@@ -1,0 +1,38 @@
+package lirand.api.dsl.menu.dynamic.chest
+
+import lirand.api.dsl.menu.dynamic.MenuDSL
+import lirand.api.dsl.menu.dynamic.SlotDSL
+import lirand.api.dsl.menu.fixed.MenuDSLMarker
+import lirand.api.menu.calculateSlot
+import org.bukkit.inventory.ItemStack
+import org.bukkit.plugin.Plugin
+
+@MenuDSLMarker
+inline fun Plugin.chestMenu(
+	lines: Int,
+	cancelOnClick: Boolean = true,
+	builder: ChestMenu.() -> Unit = {}
+): ChestMenu = ChestMenuImplementation(this, lines, cancelOnClick).apply(builder)
+
+@MenuDSLMarker
+inline fun ChestMenu.slot(
+	line: Int,
+	slot: Int,
+	item: ItemStack? = null,
+	builder: SlotDSL.() -> Unit = {}
+): SlotDSL = slot(calculateSlot(line, slot), item, builder)
+
+@MenuDSLMarker
+inline fun ChestMenu.slot(
+	slot: Int,
+	item: ItemStack? = null,
+	builder: SlotDSL.() -> Unit = {}
+): SlotDSL = baseSlot.clone(item).apply(builder).also {
+	setSlot(slot, it)
+}
+
+interface ChestMenu : MenuDSL<SlotDSL> {
+
+	var lines: Int
+
+}
