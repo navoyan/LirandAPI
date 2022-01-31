@@ -2,6 +2,10 @@ package lirand.api.architecture
 
 import com.github.shynixn.mccoroutine.SuspendingJavaPlugin
 import lirand.api.LirandAPI
+import lirand.api.dsl.menu.dynamic.chest.chestMenu
+import lirand.api.dsl.menu.dynamic.chest.slot
+import org.bukkit.Material
+import org.bukkit.inventory.ItemStack
 
 abstract class KotlinPlugin : SuspendingJavaPlugin() {
 

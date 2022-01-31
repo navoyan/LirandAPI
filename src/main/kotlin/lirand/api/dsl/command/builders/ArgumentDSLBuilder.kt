@@ -8,37 +8,30 @@ import lirand.api.dsl.command.implementation.tree.nodes.BrigadierArgument
 import org.bukkit.command.CommandSender
 import org.bukkit.plugin.Plugin
 
-class ArgumentDSLBuilder<T>(
+open class ArgumentDSLBuilder<T>(
 	plugin: Plugin,
-	override val actualBuilder: RequiredArgumentBuilder<CommandSender, T>
-) : NodeDSLBuilder<RequiredArgumentBuilder<CommandSender, T>>(plugin, actualBuilder) {
-
-	val name: String
-		get() = actualBuilder.name
-
+	val name: String,
 	val type: ArgumentType<T>
-		get() = actualBuilder.type
+) : NodeDSLBuilder<RequiredArgumentBuilder<CommandSender, T>>(plugin) {
 
-	val suggestionsProvider: SuggestionProvider<CommandSender>
-		get() = actualBuilder.suggestionsProvider
-
+	var suggestionsProvider: SuggestionProvider<CommandSender>? = null
+		private set
 
 
 	@NodeBuilderDSLMarker
 	fun suggests(provider: BrigadierCommandContext<CommandSender>.(builder: SuggestionsBuilder) -> Unit) {
-		actualBuilder.suggests { context, builder ->
+		suggestionsProvider = SuggestionProvider { context, builder ->
 			BrigadierCommandContext<CommandSender>(context).provider(builder)
 			builder.buildFuture()
 		}
 	}
 
 	override fun build(): BrigadierArgument<CommandSender, T> {
-		val argument = with(actualBuilder) {
-			BrigadierArgument<CommandSender, T>(
-				name, type, command, requirement, suggestionsProvider,
-				redirect, redirectModifier, isFork
-			)
-		}
+		val argument = BrigadierArgument(
+			name, type, completeExecutor, completeRequirement,
+			suggestionsProvider, redirect, redirectModifier, isFork
+		)
+
 		for (child in arguments) {
 			argument.addChild(child)
 		}

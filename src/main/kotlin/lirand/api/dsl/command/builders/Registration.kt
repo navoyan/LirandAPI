@@ -17,7 +17,7 @@ inline fun Plugin.command(
 	register: Boolean = true,
 	builder: LiteralDSLBuilder.() -> Unit
 ): BrigadierLiteral<CommandSender> {
-	val node = LiteralDSLBuilder(this, LiteralArgumentBuilder.literal(name))
+	val node = LiteralDSLBuilder(this, name)
 		.apply(builder).build()
 
 	if (register) Dispatcher.of(this).register(node)

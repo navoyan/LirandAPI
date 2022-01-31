@@ -6,13 +6,10 @@ import lirand.api.dsl.command.implementation.tree.nodes.createAlias
 import org.bukkit.command.CommandSender
 import org.bukkit.plugin.Plugin
 
-class LiteralDSLBuilder(
+open class LiteralDSLBuilder(
 	plugin: Plugin,
-	override val actualBuilder: LiteralArgumentBuilder<CommandSender>
-) : NodeDSLBuilder<LiteralArgumentBuilder<CommandSender>>(plugin, actualBuilder) {
-
 	val literal: String
-		get() = actualBuilder.literal
+) : NodeDSLBuilder<LiteralArgumentBuilder<CommandSender>>(plugin) {
 
 	private val _aliases = mutableListOf<String>()
 	val aliases: List<String> get() = _aliases
@@ -23,13 +20,11 @@ class LiteralDSLBuilder(
 	}
 
 	override fun build(): BrigadierLiteral<CommandSender> {
-		val literal = with(actualBuilder) {
-			BrigadierLiteral(
-				literal, mutableListOf(), false,
-				command, requirement, redirect,
-				redirectModifier, isFork
-			)
-		}
+		val literal = BrigadierLiteral(
+			literal, mutableListOf(), false,
+			completeExecutor, completeRequirement, redirect,
+			redirectModifier, isFork
+		)
 
 		for (child in arguments) {
 			literal.addChild(child)
