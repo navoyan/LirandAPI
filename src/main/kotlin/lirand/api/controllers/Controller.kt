@@ -1,6 +1,6 @@
 package lirand.api.controllers
 
-interface Controller {
+internal interface Controller {
 
 	fun onEnable() {}
 

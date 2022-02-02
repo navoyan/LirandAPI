@@ -35,7 +35,7 @@ class ComponentBaseBuilder {
 		component: C,
 		builder: C.() -> Unit = {}
 	) {
-		siblingText.addExtra(component.apply(builder))
+		siblingText.addExtra((component.duplicate() as C).apply(builder))
 	}
 
 	/**
