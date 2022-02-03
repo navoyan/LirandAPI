@@ -1,6 +1,7 @@
 package lirand.api.controllers
 
-import com.github.shynixn.mccoroutine.launchAsync
+import com.github.shynixn.mccoroutine.launch
+import kotlinx.coroutines.delay
 import lirand.api.dsl.menu.dynamic.anvil.AnvilMenu
 import lirand.api.extensions.inventory.get
 import lirand.api.extensions.inventory.isNotEmpty
@@ -75,7 +76,8 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 			val text = event.currentItem?.itemMeta?.displayName ?: ""
 			interact = PlayerMenuComplete(interact, text)
 
-			plugin.launchAsync {
+			plugin.launch {
+				delay(1)
 				(menu as AnvilMenu).eventHandler.complete(interact)
 			}
 		}
@@ -112,7 +114,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 		}
 	}
 
-	@EventHandler(ignoreCancelled = true)
+	@EventHandler
 	fun onPrepareEvent(event: PrepareAnvilEvent) {
 		val inventory = event.inventory
 		val menu = inventory.asMenu() as? AnvilMenu ?: return
@@ -124,7 +126,8 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 
 		val prepare = PlayerAnvilMenuPrepare(menu, player, inventory, event.result)
 
-		plugin.launchAsync {
+		plugin.launch {
+			delay(1)
 			menu.eventHandler.prepare(prepare)
 		}
 	}

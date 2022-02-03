@@ -21,22 +21,20 @@ object Serializer {
     	""".trimIndent()
 	}
 
-	fun deserializeItem(itemNbt: String): ItemStack? {
-		return try {
-			val asJsonObject = jsonParser.parse(itemNbt).asJsonObject
+	fun deserializeItem(itemNbt: String): ItemStack? = try {
+		val asJsonObject = jsonParser.parse(itemNbt).asJsonObject
 
-			val id = asJsonObject.getAsJsonPrimitive("id").asString
-			val amount = asJsonObject.getAsJsonPrimitive("Count").asInt
-			val nbt = asJsonObject.getAsJsonPrimitive("tag").asString
+		val id = asJsonObject.getAsJsonPrimitive("id").asString
+		val amount = asJsonObject.getAsJsonPrimitive("Count").asInt
+		val nbt = asJsonObject.getAsJsonPrimitive("tag").asString
 
-			ItemStack(
-				Material.matchMaterial(id)!!,
-				amount,
-				NBTData.deserialize(nbt)
-			)
-		} catch (exception: Throwable) {
-			null
-		}
+		ItemStack(
+			Material.matchMaterial(id)!!,
+			amount,
+			NBTData.deserialize(nbt)
+		)
+	} catch (exception: Throwable) {
+		null
 	}
 
 	fun serialize(inventory: Inventory, title: String? = null): String {
@@ -62,33 +60,31 @@ object Serializer {
 		owner: InventoryHolder,
 		inventoryNbt: String,
 		title: String? = null
-	): Inventory? {
-		return try {
-			val jsonObject = jsonParser.parse(inventoryNbt).asJsonObject
+	): Inventory? = try {
+		val jsonObject = jsonParser.parse(inventoryNbt).asJsonObject
 
-			val type = InventoryType.valueOf(
-				jsonObject.getAsJsonPrimitive("type").asString.uppercase()
-			)
-			val size = if (type == InventoryType.CHEST)
-				jsonObject.getAsJsonPrimitive("size").asInt
-			else -1
-			val resultTitle = if (title == null && jsonObject.has("title"))
-				jsonObject.getAsJsonPrimitive("title").asString
-			else title
+		val type = InventoryType.valueOf(
+			jsonObject.getAsJsonPrimitive("type").asString.uppercase()
+		)
+		val size = if (type == InventoryType.CHEST)
+			jsonObject.getAsJsonPrimitive("size").asInt
+		else -1
+		val resultTitle = if (title == null && jsonObject.has("title"))
+			jsonObject.getAsJsonPrimitive("title").asString
+		else title
 
-			val result = if (type == InventoryType.CHEST)
-				Inventory(owner, size, resultTitle)
-			else
-				Inventory(owner, type, resultTitle)
+		val result = if (type == InventoryType.CHEST)
+			Inventory(owner, size, resultTitle)
+		else
+			Inventory(owner, type, resultTitle)
 
-			val items = jsonObject.getAsJsonObject("Items")
-			result.apply {
-				for ((slot, item) in items.entrySet()) {
-					setItem(slot.toInt(), deserializeItem(item.toString()))
-				}
+		val items = jsonObject.getAsJsonObject("Items")
+		result.apply {
+			for ((slot, item) in items.entrySet()) {
+				setItem(slot.toInt(), deserializeItem(item.toString()))
 			}
-		} catch (exception: Throwable) {
-			null
 		}
+	} catch (exception: Throwable) {
+		null
 	}
 }

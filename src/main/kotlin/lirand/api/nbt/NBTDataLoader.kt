@@ -51,15 +51,21 @@ private val asNMSCopyMethod =
 	craftItemStackClass.getMethod("asNMSCopy", ItemStack::class.java)
 
 private val getItemMetaMethod = craftItemStackClass.methods
-	.find { it.name == "getItemMeta" && it.parameterTypes[0].name == "" }!!
+	.find { it.name == "getItemMeta" && it.parameterTypes.let {
+		it.size == 1 && it[0] == asNMSCopyMethod.returnType
+	} }!!
 
 
 private val minecraftEntityClass = getHandleMethod.returnType
 
 private val minecraftEntityLoadMethod = minecraftEntityClass.methods
-	.find { it.name == "load" && it.parameterTypes[0].simpleName == "NBTTagCompound" }!!
+	.find { it.name == "load" && it.parameterTypes.let {
+		it.size == 1 && it[0].simpleName == "NBTTagCompound"
+	} }!!
 private val minecraftEntitySaveMethod = minecraftEntityClass.methods
-	.find { it.name == "save" && it.parameterTypes[0].simpleName == "NBTTagCompound" }!!
+	.find { it.name == "save" && it.parameterTypes.let {
+		it.size == 1 && it[0].simpleName == "NBTTagCompound"
+	} }!!
 
 
 private val minecraftItemStackClass = asNMSCopyMethod.returnType
@@ -67,4 +73,6 @@ private val minecraftItemStackClass = asNMSCopyMethod.returnType
 private val minecraftItemStackHasTagMethod = minecraftItemStackClass.getMethod("hasTag")
 private val minecraftItemStackGetTagMethod = minecraftItemStackClass.getMethod("getTag")
 private val minecraftItemStackSetTagMethod = minecraftItemStackClass.methods
-	.find { it.name == "setTag" && it.parameterTypes[0].simpleName == "NBTTagCompound" }!!
+	.find { it.name == "setTag" && it.parameterTypes.let {
+		it.size == 1 && it[0].simpleName == "NBTTagCompound"
+	} }!!

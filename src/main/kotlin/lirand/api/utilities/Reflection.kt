@@ -23,3 +23,13 @@ val Class<*>.allMethods: List<Method>
 			currentClass = currentClass.superclass
 		}
 	}
+
+val Class<*>.superclasses: List<Class<*>>
+	get() = buildList {
+		var currentClass: Class<*>? = this@superclasses
+		while (true) {
+			val superClass = currentClass?.superclass ?: break
+			add(superClass)
+			currentClass = superClass
+		}
+	}

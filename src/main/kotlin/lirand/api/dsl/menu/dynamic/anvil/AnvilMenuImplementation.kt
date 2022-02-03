@@ -41,25 +41,24 @@ class AnvilMenuImplementation(
 	companion object {
 		private val anvilWrapper: VersionWrapper = VersionMatcher().match()
 
-		private var inventoryField: Field? = null
-		private var bukkitOwnerField: Field? = null
+		private lateinit var inventoryField: Field
+		private lateinit var bukkitOwnerField: Field
 
 		private fun verifyObfuscatedFields(container: Any) {
-			if (inventoryField != null) return
+			if (::inventoryField.isInitialized) return
 
 			inventoryField = container::class.java.allFields
 				.find {
 					if (it.type.simpleName != "IInventory") return@find false
-					val inventoryClass = it.get(container)::class.java
+					it.isAccessible = true
+					val inventoryClass = it.get(container)::class.java.superclass
 
-					return@find (inventoryClass.simpleName == "InventorySubcontainer").also {
-						bukkitOwnerField = inventoryClass.getField("bukkitOwner").apply {
+					return@find (inventoryClass.simpleName == "InventorySubcontainer").ifTrue {
+						bukkitOwnerField = inventoryClass.getDeclaredField("bukkitOwner").apply {
 							isAccessible = true
 						}
 					}
-				}!!.apply {
-					isAccessible = true
-				}
+				}!!
 		}
 
 	}
@@ -170,6 +169,9 @@ class AnvilMenuImplementation(
 			close(player, true)
 
 			try {
+				anvilWrapper.handleInventoryCloseEvent(player)
+				anvilWrapper.setActiveContainerDefault(player)
+
 				val preOpen = PlayerMenuPreOpen(this, player)
 				eventHandler.preOpen(preOpen)
 
@@ -177,10 +179,9 @@ class AnvilMenuImplementation(
 
 				val title = dynamicTitle(player)
 
-				currentContainer = (anvilWrapper.newContainerAnvil(player, title)).apply {
-					val inventory = inventoryField?.get(this)
-					bukkitOwnerField?.set(inventory, this@AnvilMenuImplementation)
-				}
+				currentContainer = anvilWrapper.newContainerAnvil(player, title)
+
+				bukkitOwnerField.set(inventoryField.get(currentContainer), this)
 
 				_viewers[player] = inventory
 
@@ -196,6 +197,7 @@ class AnvilMenuImplementation(
 
 				anvilWrapper.sendPacketOpenWindow(player, containerId, title)
 				anvilWrapper.setActiveContainer(player, currentContainer)
+				anvilWrapper.setActiveContainerId(currentContainer, containerId)
 				anvilWrapper.addActiveContainerSlotListener(currentContainer, player)
 
 				if (job == null && updateDelay > 0 && _viewers.isNotEmpty())

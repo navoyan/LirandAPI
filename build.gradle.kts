@@ -49,7 +49,7 @@ publishing {
 		create<MavenPublication>("main") {
 			group = projectGroup
 			version = projectVersion
-			artifactId = "lirand-api"
+			artifactId = "LirandAPI"
 
 			from(components["kotlin"])
 			artifact(tasks["sourcesJar"])

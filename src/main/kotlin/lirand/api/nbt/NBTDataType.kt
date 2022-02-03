@@ -1,6 +1,7 @@
 package lirand.api.nbt
 
 import java.lang.reflect.Method
+import kotlin.reflect.KClass
 
 interface NBTDataType<T> {
 
@@ -70,23 +71,27 @@ interface NBTDataType<T> {
 		private val nbtCompoundSetMethod = NBTData.nbtCompoundClass.methods
 			.find {
 				it.name == "set" && it.parameterTypes.let {
-					it[0] == String::class.java && it[1].simpleName == "NBTBase"
+					it.size >= 2 && it[0] == String::class.java && it[1].simpleName == "NBTBase"
 				}
 			}!!
 
-		private val nbtCompoundSetByteMethod = getSetMethod<Byte>("setByte")
-		private val nbtCompoundSetByteArrayMethod = getSetMethod<ByteArray>("setByteArray")
-		private val nbtCompoundSetDoubleMethod = getSetMethod<Double>("setDouble")
-		private val nbtCompoundSetFloatMethod = getSetMethod<Float>("setFloat")
-		private val nbtCompoundSetIntMethod = getSetMethod<Int>("setInt")
-		private val nbtCompoundSetIntArrayMethod = getSetMethod<IntArray>("setIntArray")
-		private val nbtCompoundSetLongMethod = getSetMethod<Long>("setLong")
-		private val nbtCompoundSetLongArrayMethod = getSetMethod<LongArray>("setLongArray")
-		private val nbtCompoundSetShortMethod = getSetMethod<Short>("setShort")
-		private val nbtCompoundSetStringMethod = getSetMethod<String>("setString")
+		private val nbtCompoundSetByteMethod = getSetMethod(Byte::class)
+		private val nbtCompoundSetByteArrayMethod = getSetMethod(ByteArray::class)
+		private val nbtCompoundSetDoubleMethod = getSetMethod(Double::class)
+		private val nbtCompoundSetFloatMethod = getSetMethod(Float::class)
+		private val nbtCompoundSetIntMethod = getSetMethod(Int::class)
+		private val nbtCompoundSetIntArrayMethod = getSetMethod(IntArray::class)
+		private val nbtCompoundSetLongMethod = getSetMethod(Long::class)
+		private val nbtCompoundSetLongArrayMethod = getSetMethod(LongArray::class)
+		private val nbtCompoundSetShortMethod = getSetMethod(Short::class)
+		private val nbtCompoundSetStringMethod = getSetMethod(String::class)
 
-		private inline fun <reified T> getSetMethod(name: String): Method {
-			return NBTData.nbtCompoundClass.getMethod(name, String::class.java, T::class.java)
+		private fun getSetMethod(clazz: KClass<*>): Method {
+			return NBTData.nbtCompoundClass.methods.find {
+				it.returnType == Void.TYPE && it.parameterTypes.let {
+					it.size == 2 && it[0] == String::class.java && it[1] == clazz.java
+				}
+			}!!
 		}
 
 
