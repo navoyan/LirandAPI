@@ -70,8 +70,8 @@ interface NBTDataType<T> {
 
 		private val nbtCompoundSetMethod = NBTData.nbtCompoundClass.methods
 			.find {
-				it.name == "set" && it.parameterTypes.let {
-					it.size >= 2 && it[0] == String::class.java && it[1].simpleName == "NBTBase"
+				it.returnType.name == "${NBTData.nmsPackage}.NBTBase" && it.parameterTypes.let {
+					it.size == 2 && it[0] == String::class.java && it[1].name == "${NBTData.nmsPackage}.NBTBase"
 				}
 			}!!
 
@@ -97,29 +97,35 @@ interface NBTDataType<T> {
 
 		private val nbtNumberClass = Class.forName("${NBTData.nmsPackage}.NBTNumber")
 
-		private val nbtNumberAsByteMethod = nbtNumberClass.getMethod("asByte")
-		private val nbtNumberAsDoubleMethod = nbtNumberClass.getMethod("asDouble")
-		private val nbtNumberAsFloatMethod = nbtNumberClass.getMethod("asFloat")
-		private val nbtNumberAsIntMethod = nbtNumberClass.getMethod("asInt")
-		private val nbtNumberAsLongMethod = nbtNumberClass.getMethod("asLong")
-		private val nbtNumberAsShortMethod = nbtNumberClass.getMethod("asShort")
+		private val nbtNumberAsByteMethod = nbtNumberClass.methods
+			.find { it.returnType == Byte::class.java && it.parameterCount == 0 }!!
+		private val nbtNumberAsDoubleMethod = nbtNumberClass.methods
+			.find { it.returnType == Double::class.java && it.parameterCount == 0 }!!
+		private val nbtNumberAsFloatMethod = nbtNumberClass.methods
+			.find { it.returnType == Float::class.java && it.parameterCount == 0 }!!
+		private val nbtNumberAsIntMethod = nbtNumberClass.methods
+			.find { it.returnType == Int::class.java && it.parameterCount == 0 }!!
+		private val nbtNumberAsLongMethod = nbtNumberClass.methods
+			.find { it.returnType == Long::class.java && it.parameterCount == 0 }!!
+		private val nbtNumberAsShortMethod = nbtNumberClass.methods
+			.find { it.returnType == Short::class.java && it.parameterCount == 0 }!!
 
 
-		private val nbtByteArrayGetBytesMethod = Class.forName("${NBTData.nmsPackage}.NBTTagByteArray")
-			.getMethod("getBytes")
-		private val nbtIntArrayGetIntsMethod = Class.forName("${NBTData.nmsPackage}.NBTTagIntArray")
-			.getMethod("getInts")
-		private val nbtLongArrayGetLongsMethod = Class.forName("${NBTData.nmsPackage}.NBTTagLongArray")
-			.getMethod("getLongs")
+		private val nbtByteArrayGetBytesMethod = Class.forName("${NBTData.nmsPackage}.NBTTagByteArray").methods
+			.find { it.returnType == ByteArray::class.java && it.parameterCount == 0 }!!
+		private val nbtIntArrayGetIntsMethod = Class.forName("${NBTData.nmsPackage}.NBTTagIntArray").methods
+			.find { it.returnType == IntArray::class.java && it.parameterCount == 0 }!!
+		private val nbtLongArrayGetLongsMethod = Class.forName("${NBTData.nmsPackage}.NBTTagLongArray").methods
+			.find { it.returnType == LongArray::class.java && it.parameterCount == 0 }!!
 
 
-		private val nbtStringAsStringMethod = Class.forName("${NBTData.nmsPackage}.NBTTagString")
-			.getMethod("asString")
+		private val nbtStringAsStringMethod = Class.forName("${NBTData.nmsPackage}.NBTTagString").methods
+			.find { it.returnType == String::class.java && it.parameterCount == 0 }!!
 
 
 
-		private val nbtBaseGetTypeIdMethod = Class.forName("${NBTData.nmsPackage}.NBTBase")
-			.getMethod("getTypeId")
+		private val nbtBaseGetTypeIdMethod = Class.forName("${NBTData.nmsPackage}.NBTBase").methods
+			.find { it.returnType == Byte::class.java && it.parameterCount == 0 }!!
 
 		private inline fun <T> nbtDataType(
 			typeId: Byte,

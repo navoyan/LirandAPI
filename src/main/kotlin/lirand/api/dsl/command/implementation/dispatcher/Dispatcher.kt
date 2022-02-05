@@ -98,8 +98,8 @@ open class Dispatcher protected constructor(private val root: BrigadierRoot) :
 
 		private val dedicatedServer = server::class.java.getMethod("getServer").invoke(server)
 		private val serverGetCommandMapMethod = server::class.java.getMethod("getCommandMap")
-		private val serverGetCommandDispatcherMethod = dedicatedServer::class.java
-			.getMethod("getCommandDispatcher")
+		private val serverGetCommandDispatcherMethod = dedicatedServer::class.java.methods
+			.find { it.returnType.simpleName == "CommandDispatcher" && it.parameterCount == 0 }!!
 		private val commandsGetDispatcherMethod = serverGetCommandDispatcherMethod.returnType.methods
 			.find { it.returnType == CommandDispatcher::class.java && it.parameterCount == 0 }!!
 

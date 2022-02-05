@@ -94,12 +94,20 @@ class NBTData internal constructor(nbtTagCompound: Any?) {
 				"net.minecraft.nbt"
 		}
 
-		internal val mojangParseMethod = Class.forName("$nmsPackage.MojangsonParser")
-			.getMethod("parse", String::class.java)
+		internal val mojangParseMethod = Class.forName("$nmsPackage.MojangsonParser").methods
+			.find { it.returnType == nbtCompoundClass && it.parameterTypes.let {
+				it.size == 1 && it[0] == String::class.java
+			} }!!
 
 		internal val nbtCompoundClass = Class.forName("$nmsPackage.NBTTagCompound")
 		internal val nbtCompoundConstructor = nbtCompoundClass.getConstructor()
-		internal val nbtCompoundGetMethod = nbtCompoundClass.getMethod("get", String::class.java)
-		internal val nbtCompoundRemoveMethod = nbtCompoundClass.getMethod("remove", String::class.java)
+		internal val nbtCompoundGetMethod = nbtCompoundClass.methods
+			.find { it.returnType.name == "$nmsPackage.NBTBase" && it.parameterTypes.let {
+				it.size == 1 && it[0] == String::class.java
+			} }!!
+		internal val nbtCompoundRemoveMethod = nbtCompoundClass.methods
+			.find { it.returnType == Void.TYPE && it.parameterTypes.let {
+				it.size == 1 && it[0] == String::class.java
+			} }!!
 	}
 }
