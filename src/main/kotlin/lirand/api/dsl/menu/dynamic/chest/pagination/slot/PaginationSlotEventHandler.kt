@@ -12,9 +12,9 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
 typealias MenuPlayerSlotPageChangeEvent<T> = suspend PlayerMenuSlotPageChange.(T?) -> Unit
-typealias MenuPlayerPageSlotInteractEvent<T> = PlayerMenuSlotInteract.(T?) -> Unit
-typealias MenuPlayerPageSlotRenderEvent<T> = PlayerMenuSlotRender.(T?) -> Unit
-typealias MenuPlayerPageSlotUpdateEvent<T> = suspend PlayerMenuSlotUpdate.(T?) -> Unit
+typealias MenuPlayerPageSlotInteractEvent<T> = PlayerMenuSlotInteract<Inventory>.(T?) -> Unit
+typealias MenuPlayerPageSlotRenderEvent<T> = PlayerMenuSlotRender<Inventory>.(T?) -> Unit
+typealias MenuPlayerPageSlotUpdateEvent<T> = suspend PlayerMenuSlotUpdate<Inventory>.(T?) -> Unit
 
 class PaginationSlotEventHandler<T>(val plugin: Plugin) {
 	val pageChangeCallbacks = mutableListOf<MenuPlayerSlotPageChangeEvent<T>>()
@@ -30,13 +30,13 @@ class PaginationSlotEventHandler<T>(val plugin: Plugin) {
 		}
 	}
 
-	fun handleRender(currentItem: T?, render: PlayerMenuSlotRender) {
+	fun handleRender(currentItem: T?, render: PlayerMenuSlotRender<Inventory>) {
 		for (callback in renderCallbacks) {
 			callback(render, currentItem)
 		}
 	}
 
-	fun handleUpdate(currentItem: T?, update: PlayerMenuSlotUpdate) {
+	fun handleUpdate(currentItem: T?, update: PlayerMenuSlotUpdate<Inventory>) {
 		for (callback in updateCallbacks) {
 			plugin.launch {
 				callback(update, currentItem)
@@ -44,7 +44,7 @@ class PaginationSlotEventHandler<T>(val plugin: Plugin) {
 		}
 	}
 
-	fun handleInteract(currentItem: T?, interact: PlayerMenuSlotInteract) {
+	fun handleInteract(currentItem: T?, interact: PlayerMenuSlotInteract<Inventory>) {
 		for (callback in interactCallbacks) {
 			callback(interact, currentItem)
 		}
@@ -52,9 +52,9 @@ class PaginationSlotEventHandler<T>(val plugin: Plugin) {
 }
 
 class PlayerMenuSlotPageChange(
-	override val menu: StaticMenu<*>,
+	override val menu: StaticMenu<*, *>,
 	override val slotIndex: Int,
-	override val slot: StaticSlot,
+	override val slot: StaticSlot<Inventory>,
 	override val player: Player,
 	override val inventory: Inventory
-) : PlayerMenuInventorySlot
+) : PlayerMenuInventorySlot<Inventory>

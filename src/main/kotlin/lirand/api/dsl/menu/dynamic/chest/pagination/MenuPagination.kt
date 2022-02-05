@@ -7,6 +7,7 @@ import lirand.api.dsl.menu.fixed.MenuDSLMarker
 import lirand.api.menu.PlayerInventoryMenu
 import lirand.api.menu.PlayerMenu
 import org.bukkit.entity.Player
+import org.bukkit.inventory.Inventory
 import java.util.*
 
 typealias ItemsProvider<T> = () -> Collection<T>
@@ -37,8 +38,8 @@ fun ChestMenu.setPlayerOpenPage(player: Player, page: Int) {
 @MenuDSLMarker
 inline fun <T> ChestMenu.pagination(
 	itemsProvider: Collection<T>,
-	nextPageSlot: SlotDSL,
-	previousPageSlot: SlotDSL,
+	nextPageSlot: SlotDSL<Inventory>,
+	previousPageSlot: SlotDSL<Inventory>,
 	autoUpdateSwitchPageSlot: Boolean = true,
 	startLine: Int = 1,
 	endLine: Int = lines - 1,
@@ -68,8 +69,8 @@ inline fun <T> ChestMenu.pagination(
 @MenuDSLMarker
 inline fun <T> ChestMenu.pagination(
 	noinline itemsProvider: ItemsProvider<T>,
-	nextPageSlot: SlotDSL,
-	previousPageSlot: SlotDSL,
+	nextPageSlot: SlotDSL<Inventory>,
+	previousPageSlot: SlotDSL<Inventory>,
 	autoUpdateSwitchPageSlot: Boolean = true,
 	startLine: Int = 1,
 	endLine: Int = lines - 1,
@@ -107,8 +108,8 @@ interface MenuPagination<T> {
 
 	val itemsProvider: ItemsProvider<T>
 
-	val nextPageSlot: SlotDSL
-	val previousPageSlot: SlotDSL
+	val nextPageSlot: SlotDSL<Inventory>
+	val previousPageSlot: SlotDSL<Inventory>
 
 	val autoUpdateSwitchPageSlot: Boolean
 
@@ -139,5 +140,5 @@ interface MenuPagination<T> {
 
 	fun getPlayerCurrentPage(player: Player): Int
 
-	fun updateItemsToPlayer(menuPlayer: PlayerInventoryMenu)
+	fun updateItemsToPlayer(menuPlayer: PlayerInventoryMenu<Inventory>)
 }

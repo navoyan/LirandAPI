@@ -39,22 +39,22 @@ inline fun Plugin.staticChestMenu(
 inline fun StaticChestMenu.slot(
 	line: Int,
 	slot: Int,
-	builder: StaticSlotDSL.() -> Unit = {}
-): StaticSlotDSL = slot(calculateSlot(line, slot), builder)
+	builder: StaticSlotDSL<Inventory>.() -> Unit = {}
+): StaticSlotDSL<Inventory> = slot(calculateSlot(line, slot), builder)
 
 @MenuDSLMarker
 inline fun StaticChestMenu.slot(
 	line: Int,
 	slot: Int,
 	item: ItemStack?,
-	builder: StaticSlotDSL.() -> Unit = {}
-): StaticSlotDSL = slot(calculateSlot(line, slot), item, builder)
+	builder: StaticSlotDSL<Inventory>.() -> Unit = {}
+): StaticSlotDSL<Inventory> = slot(calculateSlot(line, slot), item, builder)
 
 @MenuDSLMarker
 inline fun StaticChestMenu.slot(
 	slot: Int,
-	builder: StaticSlotDSL.() -> Unit = {}
-): StaticSlotDSL = baseSlot.clone().apply(builder).also {
+	builder: StaticSlotDSL<Inventory>.() -> Unit = {}
+): StaticSlotDSL<Inventory> = baseSlot.clone().apply(builder).also {
 	setSlot(slot, it)
 }
 
@@ -62,14 +62,14 @@ inline fun StaticChestMenu.slot(
 inline fun StaticChestMenu.slot(
 	slot: Int,
 	item: ItemStack?,
-	builder: StaticSlotDSL.() -> Unit = {}
-): StaticSlotDSL = ChestSlot(item, cancelEvents, SlotDSLEventHandler(plugin)).apply(builder).also {
+	builder: StaticSlotDSL<Inventory>.() -> Unit = {}
+): StaticSlotDSL<Inventory> = ChestSlot(item, cancelEvents, SlotDSLEventHandler(plugin)).apply(builder).also {
 	inventory[slot - 1] = item
 	setSlot(slot, it)
 }
 
 
-interface StaticChestMenu : StaticMenuDSL<StaticSlotDSL> {
+interface StaticChestMenu : StaticMenuDSL<StaticSlotDSL<Inventory>, Inventory> {
 
 	val lines: Int
 

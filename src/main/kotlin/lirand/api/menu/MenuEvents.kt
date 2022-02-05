@@ -1,19 +1,15 @@
 package lirand.api.menu
 
-import lirand.api.extensions.inventory.get
-import lirand.api.extensions.inventory.name
-import lirand.api.menu.slot.PlayerMenuSlotInteract
-import lirand.api.menu.slot.StaticSlot
+import lirand.api.dsl.menu.dynamic.anvil.AnvilMenu
 import org.bukkit.entity.Player
-import org.bukkit.event.inventory.ClickType
-import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.util.*
+import kotlin.collections.set
 
 interface PlayerMenu {
-	val menu: StaticMenu<*>
+	val menu: StaticMenu<*, *>
 	val player: Player
 
 	fun putPlayerData(key: String, value: Any) {
@@ -25,8 +21,8 @@ interface PlayerMenu {
 	fun getPlayerData(key: String) = menu.playerData[player]?.get(key)
 }
 
-interface PlayerInventoryMenu : PlayerMenu {
-	val inventory: Inventory
+interface PlayerInventoryMenu<I : Inventory> : PlayerMenu {
+	val inventory: I
 
 	fun close() = player.closeInventory()
 
@@ -47,86 +43,39 @@ interface PlayerMenuCancellable {
 	var canceled: Boolean
 }
 
-open class PlayerMenuInteract(
-	override val menu: StaticMenu<*>,
+open class PlayerMenuInteract<I : Inventory>(
+	override val menu: StaticMenu<*, *>,
 	override val player: Player,
-	override val inventory: Inventory,
+	override val inventory: I,
 	override var canceled: Boolean
-) : PlayerInventoryMenu, PlayerMenuCancellable
+) : PlayerInventoryMenu<I>, PlayerMenuCancellable
 
 class PlayerMenuPreOpen(
-	override val menu: StaticMenu<*>,
+	override val menu: StaticMenu<*, *>,
 	override val player: Player,
 	override var canceled: Boolean = false
 ) : PlayerMenu, PlayerMenuCancellable
 
-class PlayerMenuOpen(
-	override val menu: StaticMenu<*>,
+class PlayerMenuOpen<I : Inventory>(
+	override val menu: StaticMenu<*, *>,
 	override val player: Player,
-	override val inventory: Inventory
-) : PlayerInventoryMenu
+	override val inventory: I
+) : PlayerInventoryMenu<I>
 
-class PlayerMenuUpdate(
-	override val menu: StaticMenu<*>,
+class PlayerMenuUpdate<I : Inventory>(
+	override val menu: StaticMenu<*, *>,
 	override val player: Player,
-	override val inventory: Inventory
-) : PlayerInventoryMenu
-
-class PlayerMenuComplete(
-	menu: StaticMenu<*>,
-	inventory: AnvilInventory,
-	player: Player,
-	text: String,
-	slotIndex: Int,
-	slot: StaticSlot,
-	canceled: Boolean,
-	click: ClickType,
-	action: InventoryAction,
-	clicked: ItemStack?,
-	cursor: ItemStack?,
-	hotbarKey: Int
-) : PlayerMenuSlotInteract(
-	menu, inventory, player, slotIndex, slot,
-	canceled, click, action, clicked, cursor, hotbarKey
-) {
-
-	var text: String = text
-		set(value) {
-			field = value
-			val item = inventory[0] ?: return
-			val meta = item.itemMeta ?: return
-			meta.name = value
-			item.itemMeta = meta
-		}
-
-	constructor(
-		interact: PlayerMenuSlotInteract, text: String
-	) : this(
-		interact.menu, interact.inventory as AnvilInventory, interact.player,
-		text, interact.slotIndex, interact.slot,
-		interact.canceled, interact.click, interact.action,
-		interact.clicked, interact.cursor, interact.hotbarKey
-	)
-}
+	override val inventory: I
+) : PlayerInventoryMenu<I>
 
 class PlayerAnvilMenuPrepare(
-	override val menu: StaticMenu<*>,
+	override val menu: AnvilMenu,
 	override val player: Player,
-	override val inventory: Inventory,
-	result: ItemStack?
-) : PlayerInventoryMenu {
-
-	var result: ItemStack? = result
-		set(value) {
-			field = value
-			inventory.setItem(2, value)
-		}
-
-	val text: String? get() = result?.itemMeta?.name
-}
+	override val inventory: AnvilInventory
+) : PlayerInventoryMenu<AnvilInventory>
 
 class PlayerMenuClose(
-	override val menu: StaticMenu<*>,
+	override val menu: StaticMenu<*, *>,
 	override val player: Player
 ) : PlayerMenu
 
@@ -134,11 +83,11 @@ interface PlayerMenuMove : PlayerMenuCancellable {
 	val movedItem: ItemStack?
 }
 
-class PlayerMoveToMenu(
-	menu: StaticMenu<*>,
+class PlayerMoveToMenu<I : Inventory>(
+	menu: StaticMenu<*, *>,
 	player: Player,
-	inventory: Inventory,
+	inventory: I,
 	canceled: Boolean,
 	override val movedItem: ItemStack?,
 	val hotbarKey: Int
-) : PlayerMenuInteract(menu, player, inventory, canceled), PlayerMenuMove
+) : PlayerMenuInteract<I>(menu, player, inventory, canceled), PlayerMenuMove

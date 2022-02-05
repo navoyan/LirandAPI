@@ -8,6 +8,7 @@ import lirand.api.dsl.menu.dynamic.chest.slot
 import lirand.api.menu.PlayerInventoryMenu
 import lirand.api.menu.calculateSlot
 import org.bukkit.entity.Player
+import org.bukkit.inventory.Inventory
 import java.util.*
 
 internal const val PAGINATION_OPEN_PAGE_KEY = "PAGINATION:open_page"
@@ -15,8 +16,8 @@ internal const val PAGINATION_OPEN_PAGE_KEY = "PAGINATION:open_page"
 class MenuPaginationImplementation<T>(
 	override val menu: ChestMenu,
 	override val itemsProvider: ItemsProvider<T>,
-	override val nextPageSlot: SlotDSL,
-	override val previousPageSlot: SlotDSL,
+	override val nextPageSlot: SlotDSL<Inventory>,
+	override val previousPageSlot: SlotDSL<Inventory>,
 	override val autoUpdateSwitchPageSlot: Boolean,
 	override val startLine: Int = 1,
 	override val endLine: Int = menu.lines - 1,
@@ -148,7 +149,7 @@ class MenuPaginationImplementation<T>(
 	/**
 	 * Update current item list calling itemsUpdateFilter
 	 */
-	override fun updateItemsToPlayer(menuPlayer: PlayerInventoryMenu) {
+	override fun updateItemsToPlayer(menuPlayer: PlayerInventoryMenu<Inventory>) {
 		val player = menuPlayer.player
 
 		// checking if adapter is not null, otherwise, ignore
@@ -195,19 +196,19 @@ class MenuPaginationImplementation<T>(
 		return items.asSequence().elementAtOrNull(slotItemIndex - 1)
 	}
 
-	internal fun nextPage(menuPlayerInventory: PlayerInventoryMenu) {
+	internal fun nextPage(menuPlayerInventory: PlayerInventoryMenu<Inventory>) {
 		val nextPage = getPlayerCurrentPage(menuPlayerInventory.player) + 1
 
 		changePage(menuPlayerInventory, nextPage)
 	}
 
-	internal fun previousPage(menuPlayerInventory: PlayerInventoryMenu) {
+	internal fun previousPage(menuPlayerInventory: PlayerInventoryMenu<Inventory>) {
 		val previousPage = getPlayerCurrentPage(menuPlayerInventory.player) - 1
 
 		changePage(menuPlayerInventory, previousPage)
 	}
 
-	private fun changePage(menuPlayerInventory: PlayerInventoryMenu, nextPage: Int) {
+	private fun changePage(menuPlayerInventory: PlayerInventoryMenu<Inventory>, nextPage: Int) {
 		val player = menuPlayerInventory.player
 
 		val currentPage = getPlayerCurrentPage(player)

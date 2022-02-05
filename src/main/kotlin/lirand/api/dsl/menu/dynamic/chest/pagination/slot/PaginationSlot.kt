@@ -3,11 +3,12 @@ package lirand.api.dsl.menu.dynamic.chest.pagination.slot
 import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.fixed.MenuDSLMarker
 import org.bukkit.entity.Player
+import org.bukkit.inventory.Inventory
 import java.util.*
 
 @MenuDSLMarker
 interface PaginationSlot<T> {
-	val slotRoot: SlotDSL
+	val slotRoot: SlotDSL<Inventory>
 
 	val paginationEventHandler: PaginationSlotEventHandler<T>
 

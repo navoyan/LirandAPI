@@ -1,19 +1,20 @@
 package lirand.api.menu
 
+import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-interface MenuEventHandler {
+interface MenuEventHandler<I : Inventory> {
 
 	val plugin: Plugin
 
-	fun update(update: PlayerMenuUpdate)
+	fun update(update: PlayerMenuUpdate<I>)
 
 	fun close(close: PlayerMenuClose)
 
-	fun moveToMenu(moveToMenu: PlayerMoveToMenu)
+	fun moveToMenu(moveToMenu: PlayerMoveToMenu<I>)
 
 	fun preOpen(preOpen: PlayerMenuPreOpen)
 
-	fun open(open: PlayerMenuOpen)
+	fun open(open: PlayerMenuOpen<I>)
 
 }

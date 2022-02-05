@@ -7,18 +7,19 @@ import lirand.api.dsl.menu.PlayerMenuOpenEvent
 import lirand.api.dsl.menu.PlayerMenuPreOpenEvent
 import lirand.api.dsl.menu.PlayerMenuUpdateEvent
 import lirand.api.menu.StaticMenu
+import org.bukkit.inventory.Inventory
 
 @DslMarker
 @Retention(AnnotationRetention.BINARY)
 annotation class MenuDSLMarker
 
 @MenuDSLMarker
-interface StaticMenuDSL<S : StaticSlotDSL> : StaticMenu<S> {
+interface StaticMenuDSL<S : StaticSlotDSL<I>, I : Inventory> : StaticMenu<S, I> {
 
-	override val eventHandler: MenuDSLEventHandler
+	override val eventHandler: MenuDSLEventHandler<I>
 
 	@MenuDSLMarker
-	fun onUpdate(update: PlayerMenuUpdateEvent) {
+	fun onUpdate(update: PlayerMenuUpdateEvent<I>) {
 		eventHandler.updateCallbacks.add(update)
 	}
 
@@ -28,7 +29,7 @@ interface StaticMenuDSL<S : StaticSlotDSL> : StaticMenu<S> {
 	}
 
 	@MenuDSLMarker
-	fun onMoveToMenu(moveToMenu: PlayerMenuMoveToEvent) {
+	fun onMoveToMenu(moveToMenu: PlayerMenuMoveToEvent<I>) {
 		eventHandler.moveToMenuCallbacks.add(moveToMenu)
 	}
 
@@ -38,7 +39,7 @@ interface StaticMenuDSL<S : StaticSlotDSL> : StaticMenu<S> {
 	}
 
 	@MenuDSLMarker
-	fun onOpen(open: PlayerMenuOpenEvent) {
+	fun onOpen(open: PlayerMenuOpenEvent<I>) {
 		eventHandler.openCallbacks.add(open)
 	}
 }

@@ -4,6 +4,7 @@ import lirand.api.dsl.menu.dynamic.MenuDSL
 import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.fixed.MenuDSLMarker
 import lirand.api.menu.calculateSlot
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
 
@@ -19,19 +20,19 @@ inline fun ChestMenu.slot(
 	line: Int,
 	slot: Int,
 	item: ItemStack? = null,
-	builder: SlotDSL.() -> Unit = {}
-): SlotDSL = slot(calculateSlot(line, slot), item, builder)
+	builder: SlotDSL<Inventory>.() -> Unit = {}
+): SlotDSL<Inventory> = slot(calculateSlot(line, slot), item, builder)
 
 @MenuDSLMarker
 inline fun ChestMenu.slot(
 	slot: Int,
 	item: ItemStack? = null,
-	builder: SlotDSL.() -> Unit = {}
-): SlotDSL = baseSlot.clone(item).apply(builder).also {
+	builder: SlotDSL<Inventory>.() -> Unit = {}
+): SlotDSL<Inventory> = baseSlot.clone(item).apply(builder).also {
 	setSlot(slot, it)
 }
 
-interface ChestMenu : MenuDSL<SlotDSL> {
+interface ChestMenu : MenuDSL<SlotDSL<Inventory>, Inventory> {
 
 	var lines: Int
 

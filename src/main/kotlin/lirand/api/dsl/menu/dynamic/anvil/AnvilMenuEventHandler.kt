@@ -2,18 +2,19 @@ package lirand.api.dsl.menu.dynamic.anvil
 
 import lirand.api.dsl.menu.MenuDSLEventHandler
 import lirand.api.menu.PlayerAnvilMenuPrepare
-import lirand.api.menu.PlayerMenuComplete
+import lirand.api.menu.slot.PlayerMenuSlotInteract
+import org.bukkit.inventory.AnvilInventory
 import org.bukkit.plugin.Plugin
 
-typealias PlayerMenuCompleteEvent = PlayerMenuComplete.() -> Unit
+typealias PlayerMenuCompleteEvent = PlayerMenuSlotInteract<AnvilInventory>.() -> Unit
 typealias PlayerAnvilMenuPrepareEvent = PlayerAnvilMenuPrepare.() -> Unit
 
-class AnvilMenuEventHandler(plugin: Plugin) : MenuDSLEventHandler(plugin) {
+class AnvilMenuEventHandler(plugin: Plugin) : MenuDSLEventHandler<AnvilInventory>(plugin) {
 
 	val completeCallbacks = mutableListOf<PlayerMenuCompleteEvent>()
 	val prepareCallbacks = mutableListOf<PlayerAnvilMenuPrepareEvent>()
 
-	fun complete(complete: PlayerMenuComplete) {
+	fun complete(complete: PlayerMenuSlotInteract<AnvilInventory>) {
 		for (callback in completeCallbacks) {
 			callback(complete)
 		}

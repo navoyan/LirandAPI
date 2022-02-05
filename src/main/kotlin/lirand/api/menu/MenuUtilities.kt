@@ -17,9 +17,9 @@ fun ChestMenu.calculateEndLine(line: Int) = line * 9
 
 fun rawSlot(slot: Int) = slot - 1
 
-fun <S : StaticSlot> StaticMenu<S>.getSlotOrBaseSlot(slot: Int): S = slots[slot] ?: baseSlot
+fun <S : StaticSlot<I>, I : Inventory> StaticMenu<S, I>.getSlotOrBaseSlot(slot: Int): S = slots[slot] ?: baseSlot
 
-val StaticMenu<*>.rangeOfSlots: IntRange
+val StaticMenu<*, *>.rangeOfSlots: IntRange
 	get() = when (this) {
 		is ChestMenu -> 1..calculateEndLine(lines)
 		is StaticChestMenu -> 1..calculateEndLine(lines)
@@ -27,22 +27,23 @@ val StaticMenu<*>.rangeOfSlots: IntRange
 	}
 
 
-fun StaticMenu<*>.viewersFromPlayers(players: Set<Player>) = viewers.filterKeys { it in players }
+fun <I : Inventory> StaticMenu<*, I>.viewersFromPlayers(players: Set<Player>) =
+	viewers.filterKeys { it in players }
 
-fun <S : StaticSlot> StaticMenu<S>.slotsWithBaseSlot(): Collection<S> = slots.values + baseSlot
+fun <S : StaticSlot<I>, I : Inventory> StaticMenu<S, I>.slotsWithBaseSlot(): Collection<S> = slots.values + baseSlot
 
-fun StaticMenu<*>.hasPlayer(player: Player) = viewers.containsKey(player)
-fun StaticMenu<*>.takeIfHasPlayer(player: Player): StaticMenu<*>? = if (hasPlayer(player)) this else null
+fun StaticMenu<*, *>.hasPlayer(player: Player) = viewers.containsKey(player)
+fun StaticMenu<*, *>.takeIfHasPlayer(player: Player): StaticMenu<*, *>? = if (hasPlayer(player)) this else null
 
-fun Inventory.isMenu() = holder is StaticMenu<*>
+fun Inventory.isMenu() = holder is StaticMenu<*, *>
 
-fun Inventory.asMenu(): StaticMenu<*>? = holder as? StaticMenu<*>
+fun Inventory.asMenu(): StaticMenu<*, *>? = holder as? StaticMenu<*, *>
 
-fun Player.getMenu(): StaticMenu<*>? {
+fun Player.getMenu(): StaticMenu<*, *>? {
 	return openInventory.topInventory.asMenu()?.takeIfHasPlayer(this)
 }
 
-fun Menu<*>.putPlayerData(player: Player, key: String, value: Any) =
+fun Menu<*, *>.putPlayerData(player: Player, key: String, value: Any) =
 	playerData.getOrPut(player) { WeakHashMap() }.put(key, value)
 
-fun Menu<*>.getPlayerData(player: Player, key: String): Any? = playerData[player]?.get(key)
+fun Menu<*, *>.getPlayerData(player: Player, key: String): Any? = playerData[player]?.get(key)

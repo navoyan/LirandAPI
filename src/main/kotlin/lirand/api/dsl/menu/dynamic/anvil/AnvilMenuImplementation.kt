@@ -5,8 +5,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import lirand.api.dsl.menu.dynamic.SlotDSL
-import lirand.api.dsl.menu.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.dynamic.anvil.slot.AnvilSlot
+import lirand.api.dsl.menu.dynamic.anvil.slot.AnvilSlotEventHandler
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.menu.PlayerMenuClose
 import lirand.api.menu.PlayerMenuOpen
@@ -24,7 +24,7 @@ import net.wesjd.anvilgui.version.VersionMatcher
 import net.wesjd.anvilgui.version.VersionWrapper
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
-import org.bukkit.inventory.Inventory
+import org.bukkit.inventory.AnvilInventory
 import org.bukkit.plugin.Plugin
 import java.lang.reflect.Field
 import java.util.*
@@ -63,7 +63,7 @@ class AnvilMenuImplementation(
 
 	}
 
-	private var currentInventory: Inventory? = null
+	private var currentInventory: AnvilInventory? = null
 	private var currentContainer: Any? = null
 		set(value) {
 			field = value
@@ -76,7 +76,7 @@ class AnvilMenuImplementation(
 					val slot = _slots[index] ?: baseSlot
 					setItem(rawSlot(index), slot.item)
 				}
-			}
+			} as AnvilInventory
 		}
 
 	private var dynamicTitle: (Player?) -> String? = { "" }
@@ -96,25 +96,27 @@ class AnvilMenuImplementation(
 		}
 
 
-	private val _viewers = HashMap<Player, Inventory>()
-	override val viewers: Map<Player, Inventory> get() = _viewers
-
-	private val _slots = TreeMap<Int, SlotDSL>()
-	override val slots: Map<Int, SlotDSL> get() = _slots
-
-	override var baseSlot: SlotDSL = AnvilSlot(null, cancelEvents, SlotDSLEventHandler(plugin))
-
-	override val data = WeakHashMap<String, Any>()
-	override val playerData = WeakHashMap<Player, WeakHashMap<String, Any>>()
-
 	override val eventHandler: AnvilMenuEventHandler = AnvilMenuEventHandler(plugin)
+
+	private val _viewers = HashMap<Player, AnvilInventory>()
+
+	override val viewers: Map<Player, AnvilInventory> get() = _viewers
+	private val _slots = TreeMap<Int, SlotDSL<AnvilInventory>>()
+
+	override val slots: Map<Int, SlotDSL<AnvilInventory>> get() = _slots
+
+	override var baseSlot: SlotDSL<AnvilInventory> =
+		AnvilSlot(null, cancelEvents, AnvilSlotEventHandler(plugin, eventHandler))
+	override val data = WeakHashMap<String, Any>()
+
+	override val playerData = WeakHashMap<Player, WeakHashMap<String, Any>>()
 
 
 	override fun title(render: (Player?) -> String?) {
 		dynamicTitle = render
 	}
 
-	override fun setSlot(index: Int, slot: SlotDSL) {
+	override fun setSlot(index: Int, slot: SlotDSL<AnvilInventory>) {
 		if (index in rangeOfSlots)
 			_slots[index] = slot
 	}
@@ -143,8 +145,8 @@ class AnvilMenuImplementation(
 
 	override fun update() = update(viewers.keys)
 
-	override fun updateSlot(slot: SlotDSL, players: Set<Player>) {
-		val slots: Map<Int, SlotDSL> = if (slot === baseSlot) {
+	override fun updateSlot(slot: SlotDSL<AnvilInventory>, players: Set<Player>) {
+		val slots: Map<Int, SlotDSL<AnvilInventory>> = if (slot === baseSlot) {
 			rangeOfSlots.mapNotNull { if (_slots[it] == null) it to slot else null }.toMap()
 		}
 		else {
@@ -158,10 +160,10 @@ class AnvilMenuImplementation(
 		}
 	}
 
-	override fun updateSlot(slot: SlotDSL) = updateSlot(slot, viewers.keys)
+	override fun updateSlot(slot: SlotDSL<AnvilInventory>) = updateSlot(slot, viewers.keys)
 
-	override fun getInventory(): Inventory {
-		return currentInventory ?: Inventory(this, InventoryType.ANVIL)
+	override fun getInventory(): AnvilInventory {
+		return currentInventory ?: Inventory<AnvilInventory>(this, InventoryType.ANVIL)
 	}
 
 	override fun openTo(vararg players: Player) {
@@ -223,7 +225,7 @@ class AnvilMenuImplementation(
 		}
 	}
 
-	private fun updateSlotOnly(index: Int, slot: SlotDSL, player: Player, inventory: Inventory) {
+	private fun updateSlotOnly(index: Int, slot: SlotDSL<AnvilInventory>, player: Player, inventory: AnvilInventory) {
 		val slotUpdate = PlayerMenuSlotUpdate(this, index, slot, player, inventory)
 		slot.eventHandler.update(slotUpdate)
 	}

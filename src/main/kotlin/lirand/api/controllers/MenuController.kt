@@ -7,7 +7,6 @@ import lirand.api.extensions.inventory.get
 import lirand.api.extensions.inventory.isNotEmpty
 import lirand.api.extensions.server.server
 import lirand.api.menu.PlayerAnvilMenuPrepare
-import lirand.api.menu.PlayerMenuComplete
 import lirand.api.menu.PlayerMoveToMenu
 import lirand.api.menu.StaticMenu
 import lirand.api.menu.asMenu
@@ -25,6 +24,8 @@ import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.inventory.PrepareAnvilEvent
 import org.bukkit.event.server.PluginDisableEvent
+import org.bukkit.inventory.AnvilInventory
+import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
 internal class MenuController(val plugin: Plugin) : Listener, Controller {
@@ -38,7 +39,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 		for (player in server.onlinePlayers) {
 			val holder = player.openInventory.topInventory.holder
 
-			if (holder is StaticMenu<*>) {
+			if (holder is StaticMenu<*, *>) {
 				holder.close(player, true)
 			}
 		}
@@ -54,31 +55,39 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 
 		val menu = inventory.asMenu()?.takeIfHasPlayer(player) ?: return
 
-		handleMenuClick(menu, event)
-		handleMenuMove(menu, event)
+
+		if (inventory is AnvilInventory) {
+			val menu = menu as AnvilMenu
+
+			handleMenuClick(menu, event, inventory)
+			handleMenuMove(menu, event, inventory)
+		}
+		else {
+			val menu = menu as StaticMenu<*, Inventory>
+
+			handleMenuClick(menu, event, inventory)
+			handleMenuMove(menu, event, inventory)
+		}
 	}
 
-	private fun handleMenuClick(menu: StaticMenu<*>, event: InventoryClickEvent) {
+	private fun <I : Inventory> handleMenuClick(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
 		if (event.slot != event.rawSlot) return
 
 		val slotIndex = event.slot + 1
 		val slot = menu.getSlotOrBaseSlot(slotIndex)
 
-		var interact = PlayerMenuSlotInteract(
-			menu, event.inventory, event.whoClicked as Player,
+		val interact = PlayerMenuSlotInteract(
+			menu, inventory, event.whoClicked as Player,
 			slotIndex, slot, slot.cancelEvents,
 			event.click, event.action,
 			event.currentItem, event.cursor,
 			event.hotbarButton
 		)
 
-		if (event.slotType == InventoryType.SlotType.RESULT && event.currentItem.isNotEmpty) {
-			val text = event.currentItem?.itemMeta?.displayName ?: ""
-			interact = PlayerMenuComplete(interact, text)
-
+		if (menu is AnvilMenu) {
 			plugin.launch {
 				delay(1)
-				(menu as AnvilMenu).eventHandler.complete(interact)
+				slot.eventHandler.interact(interact)
 			}
 		}
 		else {
@@ -88,7 +97,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 		if (interact.canceled) event.isCancelled = true
 	}
 
-	private fun handleMenuMove(menu: StaticMenu<*>, event: InventoryClickEvent) {
+	private fun <I : Inventory> handleMenuMove(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
 		val slotIndex = event.rawSlot + 1
 		val slot = menu.getSlotOrBaseSlot(slotIndex)
 
@@ -124,7 +133,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 			else null
 		} ?: return
 
-		val prepare = PlayerAnvilMenuPrepare(menu, player, inventory, event.result)
+		val prepare = PlayerAnvilMenuPrepare(menu, player, inventory)
 
 		plugin.launch {
 			delay(1)

@@ -51,22 +51,23 @@ class ChestMenuImplementation(
 	private val _viewers = WeakHashMap<Player, Inventory>()
 	override val viewers: Map<Player, Inventory> get() = _viewers
 
-	private val _slots = TreeMap<Int, SlotDSL>()
-	override val slots: Map<Int, SlotDSL> get() = _slots
+	private val _slots = TreeMap<Int, SlotDSL<Inventory>>()
+	override val slots: Map<Int, SlotDSL<Inventory>> get() = _slots
 
 	override val data = WeakHashMap<String, Any>()
 	override val playerData = WeakHashMap<Player, WeakHashMap<String, Any>>()
 
-	override val eventHandler = MenuDSLEventHandler(plugin)
+	override val eventHandler = MenuDSLEventHandler<Inventory>(plugin)
 
-	override var baseSlot: SlotDSL = ChestSlot(null, cancelEvents, SlotDSLEventHandler(plugin))
+	override var baseSlot: SlotDSL<Inventory> =
+		ChestSlot(null, cancelEvents, SlotDSLEventHandler<Inventory>(plugin))
 
 
 	override fun title(render: (Player?) -> String?) {
 		dynamicTitle = render
 	}
 
-	override fun setSlot(index: Int, slot: SlotDSL) {
+	override fun setSlot(index: Int, slot: SlotDSL<Inventory>) {
 		if (index in rangeOfSlots)
 			_slots[index] = slot
 	}
@@ -95,8 +96,8 @@ class ChestMenuImplementation(
 
 	override fun update() = update(_viewers.keys)
 
-	override fun updateSlot(slot: SlotDSL, players: Set<Player>) {
-		val slots: Map<Int, SlotDSL> = if (slot === baseSlot) {
+	override fun updateSlot(slot: SlotDSL<Inventory>, players: Set<Player>) {
+		val slots: Map<Int, SlotDSL<Inventory>> = if (slot === baseSlot) {
 			rangeOfSlots.mapNotNull { if (slots[it] == null) it to slot else null }.toMap()
 		}
 		else {
@@ -110,7 +111,7 @@ class ChestMenuImplementation(
 		}
 	}
 
-	override fun updateSlot(slot: SlotDSL) = updateSlot(slot, _viewers.keys)
+	override fun updateSlot(slot: SlotDSL<Inventory>) = updateSlot(slot, _viewers.keys)
 
 	override fun openTo(vararg players: Player) {
 		for (player in players) {
@@ -183,7 +184,7 @@ class ChestMenuImplementation(
 		}
 	}
 
-	private fun updateSlotOnly(index: Int, slot: SlotDSL, player: Player, inventory: Inventory) {
+	private fun updateSlotOnly(index: Int, slot: SlotDSL<Inventory>, player: Player, inventory: Inventory) {
 		val slotUpdate = PlayerMenuSlotUpdate(this, index, slot, player, inventory)
 		slot.eventHandler.update(slotUpdate)
 	}

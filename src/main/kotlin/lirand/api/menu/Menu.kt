@@ -2,8 +2,9 @@ package lirand.api.menu
 
 import lirand.api.menu.slot.Slot
 import org.bukkit.entity.Player
+import org.bukkit.inventory.Inventory
 
-interface Menu<S : Slot> : StaticMenu<S> {
+interface Menu<S : Slot<I>, I : Inventory> : StaticMenu<S, I> {
 
 	override var title: String
 

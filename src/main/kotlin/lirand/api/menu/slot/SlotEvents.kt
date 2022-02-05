@@ -16,7 +16,7 @@ val PlayerMenuSlot.rawSlot get() = slotIndex - 1
 
 interface PlayerMenuSlot : PlayerMenu {
 	val slotIndex: Int
-	val slot: StaticSlot
+	val slot: StaticSlot<*>
 
 	fun putPlayerSlotData(key: String, value: Any) {
 		slot.playerSlotData.getOrPut(player) {
@@ -27,7 +27,7 @@ interface PlayerMenuSlot : PlayerMenu {
 	fun getPlayerSlotData(key: String): Any? = slot.playerSlotData[player]?.get(key)
 }
 
-interface PlayerMenuInventorySlot : PlayerMenuSlot, PlayerInventoryMenu {
+interface PlayerMenuInventorySlot<I : Inventory> : PlayerMenuSlot, PlayerInventoryMenu<I> {
 
 	var showingItem: ItemStack?
 		get() = getItem(slotIndex)?.takeUnless { it.type == Material.AIR }
@@ -35,32 +35,32 @@ interface PlayerMenuInventorySlot : PlayerMenuSlot, PlayerInventoryMenu {
 
 }
 
-open class PlayerMenuSlotInteract(
-	menu: StaticMenu<*>,
-	inventory: Inventory,
+open class PlayerMenuSlotInteract<I : Inventory>(
+	menu: StaticMenu<*, *>,
+	inventory: I,
 	player: Player,
 	override val slotIndex: Int,
-	override val slot: StaticSlot,
+	override val slot: StaticSlot<I>,
 	canceled: Boolean,
 	val click: ClickType,
 	val action: InventoryAction,
 	val clicked: ItemStack?,
 	val cursor: ItemStack?,
 	val hotbarKey: Int
-) : PlayerMenuInteract(menu, player, inventory, canceled), PlayerMenuInventorySlot
+) : PlayerMenuInteract<I>(menu, player, inventory, canceled), PlayerMenuInventorySlot<I>
 
-class PlayerMenuSlotRender(
-	override val menu: StaticMenu<*>,
+class PlayerMenuSlotRender<I : Inventory>(
+	override val menu: StaticMenu<*, *>,
 	override val slotIndex: Int,
-	override val slot: StaticSlot,
+	override val slot: StaticSlot<I>,
 	override val player: Player,
-	override val inventory: Inventory
-) : PlayerMenuInventorySlot
+	override val inventory: I
+) : PlayerMenuInventorySlot<I>
 
-class PlayerMenuSlotUpdate(
-	override val menu: StaticMenu<*>,
+class PlayerMenuSlotUpdate<I : Inventory>(
+	override val menu: StaticMenu<*, *>,
 	override val slotIndex: Int,
-	override val slot: StaticSlot,
+	override val slot: StaticSlot<I>,
 	override val player: Player,
-	override val inventory: Inventory
-) : PlayerMenuInventorySlot
+	override val inventory: I
+) : PlayerMenuInventorySlot<I>

@@ -1,7 +1,9 @@
 package lirand.api.menu.slot
 
-interface SlotEventHandler : StaticSlotEventHandler {
+import org.bukkit.inventory.Inventory
 
-	fun render(render: PlayerMenuSlotRender)
+interface SlotEventHandler<I : Inventory> : StaticSlotEventHandler<I> {
+
+	fun render(render: PlayerMenuSlotRender<I>)
 
 }

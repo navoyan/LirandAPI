@@ -7,7 +7,7 @@ import org.bukkit.inventory.InventoryHolder
 import org.bukkit.plugin.Plugin
 import java.util.*
 
-interface StaticMenu<S : StaticSlot> : InventoryHolder {
+interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 
 	val plugin: Plugin
 	val title: String
@@ -18,12 +18,12 @@ interface StaticMenu<S : StaticSlot> : InventoryHolder {
 	var baseSlot: S
 	var updateDelay: Long
 
-	val viewers: Map<Player, Inventory>
+	val viewers: Map<Player, I>
 
 	val data: WeakHashMap<String, Any>
 	val playerData: WeakHashMap<Player, WeakHashMap<String, Any>>
 
-	val eventHandler: MenuEventHandler
+	val eventHandler: MenuEventHandler<I>
 
 	fun setSlot(index: Int, slot: S)
 	fun removeSlot(index: Int)

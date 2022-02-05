@@ -48,18 +48,18 @@ class StaticChestMenuImplementation(
 	private val _viewers = WeakHashMap<Player, Inventory>()
 	override val viewers: Map<Player, Inventory> get() = _viewers
 
-	private val _slots = TreeMap<Int, StaticSlotDSL>()
-	override val slots: Map<Int, StaticSlotDSL> get() = _slots
+	private val _slots = TreeMap<Int, StaticSlotDSL<Inventory>>()
+	override val slots: Map<Int, StaticSlotDSL<Inventory>> get() = _slots
 
 	override val data = WeakHashMap<String, Any>()
 	override val playerData = WeakHashMap<Player, WeakHashMap<String, Any>>()
 
-	override val eventHandler = MenuDSLEventHandler(plugin)
+	override val eventHandler = MenuDSLEventHandler<Inventory>(plugin)
 
-	override var baseSlot: StaticSlotDSL = StaticChestSlot(cancelEvents, StaticSlotDSLEventHandler(plugin))
+	override var baseSlot: StaticSlotDSL<Inventory> = StaticChestSlot(cancelEvents, StaticSlotDSLEventHandler(plugin))
 
 
-	override fun setSlot(index: Int, slot: StaticSlotDSL) {
+	override fun setSlot(index: Int, slot: StaticSlotDSL<Inventory>) {
 		if (index !in rangeOfSlots) return
 
 		if (slot is StaticChestSlot && slot.menu == null
@@ -106,8 +106,8 @@ class StaticChestMenuImplementation(
 		}
 	}
 
-	override fun updateSlot(slot: StaticSlotDSL) {
-		val slots: Map<Int, StaticSlotDSL> = if (slot === baseSlot) {
+	override fun updateSlot(slot: StaticSlotDSL<Inventory>) {
+		val slots: Map<Int, StaticSlotDSL<Inventory>> = if (slot === baseSlot) {
 			rangeOfSlots.mapNotNull { if (slots[it] == null || slots[it] === baseSlot) it to slot else null }.toMap()
 		}
 		else {
@@ -174,7 +174,7 @@ class StaticChestMenuImplementation(
 		return viewing
 	}
 
-	private fun updateSlotOnly(index: Int, slot: StaticSlotDSL, player: Player, inventory: Inventory) {
+	private fun updateSlotOnly(index: Int, slot: StaticSlotDSL<Inventory>, player: Player, inventory: Inventory) {
 		val slotUpdate = PlayerMenuSlotUpdate(this, index, slot, player, inventory)
 		slot.eventHandler.update(slotUpdate)
 	}
