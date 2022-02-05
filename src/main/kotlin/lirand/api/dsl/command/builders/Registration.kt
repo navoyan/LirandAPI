@@ -14,7 +14,7 @@ annotation class NodeBuilderDSLMarker
 inline fun Plugin.command(
 	name: String,
 	register: Boolean = true,
-	builder: LiteralDSLBuilder.() -> Unit
+	crossinline builder: LiteralDSLBuilder.() -> Unit
 ): BrigadierLiteral<CommandSender> {
 	val node = LiteralDSLBuilder(this, name)
 		.apply(builder).build()

@@ -64,7 +64,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 	@NodeBuilderDSLMarker
 	inline fun literal(
 		name: String,
-		builder: LiteralDSLBuilder.() -> Unit
+		crossinline builder: LiteralDSLBuilder.() -> Unit
 	): BrigadierLiteral<CommandSender> {
 		val childNode = LiteralDSLBuilder(plugin, name)
 			.apply(builder).build()
@@ -78,7 +78,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 	inline fun <A : ArgumentType<T>, T> argument(
 		name: String,
 		type: A,
-		builder: ArgumentDSLBuilder<T>.(ArgumentDefinition<A, T>) -> Unit
+		crossinline builder: ArgumentDSLBuilder<T>.(ArgumentDefinition<A, T>) -> Unit
 	): BrigadierArgument<CommandSender, T> {
 		val childNode = ArgumentDSLBuilder(plugin, name, type).apply {
 			builder(ArgumentDefinition(name, type))
