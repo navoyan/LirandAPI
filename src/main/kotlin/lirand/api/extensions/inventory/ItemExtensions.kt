@@ -1,14 +1,14 @@
 package lirand.api.extensions.inventory
 
 import lirand.api.extensions.server.server
-import lirand.api.nbt.NBTData
+import lirand.api.nbt.NbtData
 import lirand.api.nbt.nbtData
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BookMeta
 import org.bukkit.inventory.meta.ItemMeta
 
-fun ItemStack(material: Material, amount: Int = 1, nbtData: NBTData): ItemStack {
+fun ItemStack(material: Material, amount: Int = 1, nbtData: NbtData): ItemStack {
 	return ItemStack(material, amount).apply {
 		this.nbtData = nbtData
 	}

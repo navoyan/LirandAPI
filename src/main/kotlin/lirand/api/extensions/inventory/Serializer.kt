@@ -4,7 +4,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import lirand.api.extensions.other.set
 import lirand.api.extensions.other.toId
-import lirand.api.nbt.NBTData
+import lirand.api.nbt.NbtData
 import lirand.api.nbt.nbtData
 import org.bukkit.Material
 import org.bukkit.event.inventory.InventoryType
@@ -17,7 +17,7 @@ object Serializer {
 
 	fun serialize(item: ItemStack): String {
 		return """
-        	{"id":"${item.type.toId()}","Count":${item.amount},"tag":"${item.nbtData.serialize()}"}
+        	{"id":"${item.type.toId()}","Count":${item.amount},"tag":"${item.nbtData}"}
     	""".trimIndent()
 	}
 
@@ -31,7 +31,7 @@ object Serializer {
 		ItemStack(
 			Material.matchMaterial(id)!!,
 			amount,
-			NBTData.deserialize(nbt)
+			NbtData(nbt)
 		)
 	} catch (exception: Throwable) {
 		null

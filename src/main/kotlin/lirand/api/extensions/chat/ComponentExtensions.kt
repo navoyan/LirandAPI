@@ -44,7 +44,7 @@ fun HoverItemEvent(itemStack: ItemStack): HoverEvent {
 		Item(
 			itemStack.type.toId(),
 			itemStack.amount,
-			ItemTag.ofNbt(itemStack.nbtData.serialize())
+			ItemTag.ofNbt(itemStack.nbtData.toString())
 		)
 	)
 }
