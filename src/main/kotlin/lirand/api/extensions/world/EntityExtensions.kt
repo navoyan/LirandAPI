@@ -9,7 +9,7 @@ import org.bukkit.projectiles.ProjectileSource
 import org.bukkit.util.Vector
 
 
-inline fun Firework.meta(block: FireworkMeta.() -> Unit) = apply {
+inline fun Firework.meta(crossinline block: FireworkMeta.() -> Unit) = apply {
 	fireworkMeta = fireworkMeta.apply(block)
 }
 

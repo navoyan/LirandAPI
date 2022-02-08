@@ -47,8 +47,10 @@ fun Location.createExplosion(power: Float) =
 fun Location.createExplosion(power: Float, setFire: Boolean) =
 	world!!.createExplosion(this, power, setFire) ?: false
 
-inline fun <reified E : Entity> Location.spawn(noinline builder: E.() -> Unit = {}) =
+
+inline fun <reified E : Entity> Location.spawn(noinline builder: (E.() -> Unit)?) =
 	world!!.spawn(this, E::class.java, builder)
+
 
 fun Location.spawnFallingBlock(blockData: BlockData) =
 	world!!.spawnFallingBlock(this, blockData)

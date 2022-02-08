@@ -11,14 +11,14 @@ import org.bukkit.plugin.Plugin
 @MenuDSLMarker
 inline fun Plugin.anvilMenu(
 	cancelOnClick: Boolean = true,
-	builder: AnvilMenu.() -> Unit = {}
+	crossinline builder: AnvilMenu.() -> Unit = {}
 ): AnvilMenu = AnvilMenuImplementation(this, cancelOnClick).apply(builder)
 
 @MenuDSLMarker
 inline fun AnvilMenu.slot(
 	slot: Int,
 	item: ItemStack? = null,
-	builder: StaticSlotDSL<AnvilInventory>.() -> Unit = {}
+	crossinline builder: StaticSlotDSL<AnvilInventory>.() -> Unit = {}
 ): SlotDSL<AnvilInventory> = baseSlot.clone(item).apply(builder).also {
 	setSlot(slot, it)
 }

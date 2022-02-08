@@ -23,11 +23,11 @@ fun <T : ItemMeta> ItemMeta(
 }
 
 @JvmName("typedMeta")
-inline fun <reified T : ItemMeta> ItemStack.meta(builder: T.() -> Unit) = apply {
+inline fun <reified T : ItemMeta> ItemStack.meta(crossinline builder: T.() -> Unit) = apply {
 	itemMeta = (itemMeta as? T)?.apply(builder) ?: itemMeta
 }
 
-inline fun ItemStack.meta(builder: ItemMeta.() -> Unit) = meta<ItemMeta>(builder)
+inline fun ItemStack.meta(crossinline builder: ItemMeta.() -> Unit) = meta<ItemMeta>(builder)
 
 
 var ItemMeta.loreString: String?

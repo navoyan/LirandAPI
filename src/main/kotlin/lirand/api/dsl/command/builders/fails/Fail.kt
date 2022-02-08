@@ -17,7 +17,7 @@ fun BrigadierCommandContext<*>.fail(
 ): Nothing = throw CommandFailException(TextComponent(message, *messages))
 
 inline fun BrigadierCommandContext<*>.fail(
-	builder: ComponentBaseBuilder.() -> Unit
+	crossinline builder: ComponentBaseBuilder.() -> Unit
 ): Nothing = throw CommandFailException(ComponentBaseBuilder().apply(builder).build())
 
 fun BrigadierCommandContext<*>.fail(

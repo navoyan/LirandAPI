@@ -3,7 +3,7 @@ package lirand.api.extensions.chat
 import net.md_5.bungee.api.chat.BaseComponent
 import net.md_5.bungee.api.chat.TextComponent
 
-inline fun chatComponent(builder: ComponentBaseBuilder.() -> Unit): BaseComponent {
+inline fun chatComponent(crossinline builder: ComponentBaseBuilder.() -> Unit): BaseComponent {
 	return ComponentBaseBuilder().apply(builder).build()
 }
 
@@ -20,7 +20,7 @@ class ComponentBaseBuilder {
 	 */
 	inline fun add(
 		text: String = "",
-		builder: TextComponent.() -> Unit = {}
+		crossinline builder: TextComponent.() -> Unit = {}
 	) {
 		siblingText.addExtra(TextComponent(text).apply(builder))
 	}
@@ -33,7 +33,7 @@ class ComponentBaseBuilder {
 	 */
 	inline fun <C : BaseComponent> add(
 		component: C,
-		builder: C.() -> Unit = {}
+		crossinline builder: C.() -> Unit = {}
 	) {
 		siblingText.addExtra((component.duplicate() as C).apply(builder))
 	}
@@ -48,7 +48,7 @@ class ComponentBaseBuilder {
 	 */
 	inline fun addLegacy(
 		text: String,
-		builder: TextComponent.() -> Unit = {}
+		crossinline builder: TextComponent.() -> Unit = {}
 	) {
 		siblingText.addExtra(text.toComponent().apply(builder))
 	}

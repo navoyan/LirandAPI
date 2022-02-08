@@ -12,7 +12,7 @@ import org.bukkit.plugin.Plugin
 inline fun Plugin.chestMenu(
 	lines: Int,
 	cancelOnClick: Boolean = true,
-	builder: ChestMenu.() -> Unit = {}
+	crossinline builder: ChestMenu.() -> Unit = {}
 ): ChestMenu = ChestMenuImplementation(this, lines, cancelOnClick).apply(builder)
 
 @MenuDSLMarker
@@ -20,14 +20,14 @@ inline fun ChestMenu.slot(
 	line: Int,
 	slot: Int,
 	item: ItemStack? = null,
-	builder: SlotDSL<Inventory>.() -> Unit = {}
+	crossinline builder: SlotDSL<Inventory>.() -> Unit = {}
 ): SlotDSL<Inventory> = slot(calculateSlot(line, slot), item, builder)
 
 @MenuDSLMarker
 inline fun ChestMenu.slot(
 	slot: Int,
 	item: ItemStack? = null,
-	builder: SlotDSL<Inventory>.() -> Unit = {}
+	crossinline builder: SlotDSL<Inventory>.() -> Unit = {}
 ): SlotDSL<Inventory> = baseSlot.clone(item).apply(builder).also {
 	setSlot(slot, it)
 }

@@ -56,7 +56,7 @@ fun StringReader.until(vararg delimiters: Char): String {
  * @return a string between the current cursor and the index of the character
  * for which the predicate is `true`
  */
-inline fun StringReader.until(end: (Char) -> Boolean): String {
+inline fun StringReader.until(crossinline end: (Char) -> Boolean): String {
 	val start = cursor
 	while (canRead() && !end(peek())) {
 		skip()

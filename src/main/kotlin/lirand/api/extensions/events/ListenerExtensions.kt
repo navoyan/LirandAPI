@@ -53,7 +53,7 @@ fun Listener.unregister() = HandlerList.unregisterAll(this)
 
 inline fun Plugin.events(
 	listener: Listener = SimpleListener(this),
-	block: Listener.() -> Unit
+	crossinline block: Listener.() -> Unit
 ) = listener.apply(block)
 
 

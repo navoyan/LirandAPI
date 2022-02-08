@@ -18,7 +18,7 @@ annotation class ScoreboardBuilderDSLMarker
 @ScoreboardBuilderDSLMarker
 inline fun Plugin.scoreboard(
 	title: String,
-	block: ScoreboardDSLBuilder.() -> Unit
+	crossinline block: ScoreboardDSLBuilder.() -> Unit
 ) = ScoreboardDSLBuilder(this, title).apply(block)
 
 val linesBounds = 1..16

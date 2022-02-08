@@ -19,7 +19,7 @@ enum class PaginationOrientation {
 
 @MenuDSLMarker
 inline fun <T> MenuPagination<T>.slot(
-	builder: PaginationSlot<T>.() -> Unit
+	crossinline builder: PaginationSlot<T>.() -> Unit
 ) {
 	for (paginationSlot in paginationSlots.values) {
 		paginationSlot.builder()
@@ -48,7 +48,7 @@ inline fun <T> ChestMenu.pagination(
 	orientation: PaginationOrientation = PaginationOrientation.HORIZONTAL,
 	noinline itemsAdapterOnOpen: ItemsAdapter<T>? = null,
 	noinline itemsAdapterOnUpdate: ItemsAdapter<T>? = null,
-	builder: MenuPaginationImplementation<T>.() -> Unit
+	crossinline builder: MenuPagination<T>.() -> Unit
 ): MenuPaginationImplementation<T> {
 	return pagination(
 		{ itemsProvider },
@@ -79,7 +79,7 @@ inline fun <T> ChestMenu.pagination(
 	orientation: PaginationOrientation = PaginationOrientation.HORIZONTAL,
 	noinline itemsAdapterOnOpen: ItemsAdapter<T>? = null,
 	noinline itemsAdapterOnUpdate: ItemsAdapter<T>? = null,
-	builder: MenuPaginationImplementation<T>.() -> Unit
+	crossinline builder: MenuPagination<T>.() -> Unit
 ): MenuPaginationImplementation<T> {
 	if (startSlot > endSlot) throw IllegalArgumentException()
 	if (startLine > endLine) throw IllegalArgumentException()

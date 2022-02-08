@@ -31,7 +31,7 @@ fun HoverTextEvent(vararg components: BaseComponent): HoverEvent {
 	)
 }
 
-inline fun HoverTextEvent(builder: ComponentBaseBuilder.() -> Unit): HoverEvent {
+inline fun HoverTextEvent(crossinline builder: ComponentBaseBuilder.() -> Unit): HoverEvent {
 	return HoverEvent(
 		HoverEvent.Action.SHOW_TEXT,
 		Text(arrayOf(ComponentBaseBuilder().apply(builder).build()))

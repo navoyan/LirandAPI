@@ -79,8 +79,8 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 	inline fun line(
 		line: Int,
 		text: String,
-		block: ScoreboardLine.() -> Unit = {}
-	) = setLine(line, ScoreboardLine(this, text).apply(block))
+		crossinline builder: ScoreboardLine.() -> Unit = {}
+	) = setLine(line, ScoreboardLine(this, text).apply(builder))
 
 	/**
 	 * Add an array of lines at scoreboard starting at the [startInLine] value with a builder.
@@ -93,10 +93,10 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 	inline fun lines(
 		vararg lines: String,
 		startInLine: Int = 1,
-		block: ScoreboardLine.() -> Unit = {}
+		crossinline builder: ScoreboardLine.() -> Unit = {}
 	) {
 		for ((index, line) in lines.withIndex()) {
-			line(index + startInLine, line, block)
+			line(index + startInLine, line, builder)
 		}
 	}
 
@@ -112,7 +112,9 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 	 * The DSL block to manage how the title of the scoreboard will be displayed to a specific player.
 	 */
 	@ScoreboardBuilderDSLMarker
-	inline fun title(block: ScoreboardTitle.() -> Unit) = titleController(ScoreboardTitle(this).apply(block))
+	inline fun title(crossinline block: ScoreboardTitle.() -> Unit) =
+		titleController(ScoreboardTitle(this).apply(block))
+
 
 	override fun show(player: Player) {
 		val max = lines.keys.maxOrNull() ?: return

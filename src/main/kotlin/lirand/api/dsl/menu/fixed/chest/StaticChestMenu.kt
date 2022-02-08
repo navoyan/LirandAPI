@@ -16,7 +16,7 @@ inline fun Plugin.staticChestMenu(
 	lines: Int,
 	title: String,
 	cancelEvents: Boolean = false,
-	builder: StaticChestMenu.() -> Unit = {}
+	crossinline builder: StaticChestMenu.() -> Unit = {}
 ): StaticChestMenu = StaticChestMenuImplementation(this, lines, title, cancelEvents).apply(builder)
 
 @MenuDSLMarker
@@ -24,7 +24,7 @@ inline fun Plugin.staticChestMenu(
 	inventory: Inventory,
 	title: String,
 	cancelEvents: Boolean = false,
-	builder: StaticChestMenu.() -> Unit = {}
+	crossinline builder: StaticChestMenu.() -> Unit = {}
 ): StaticChestMenu? {
 	if (inventory.size % 9 != 0) return null
 
@@ -39,7 +39,7 @@ inline fun Plugin.staticChestMenu(
 inline fun StaticChestMenu.slot(
 	line: Int,
 	slot: Int,
-	builder: StaticSlotDSL<Inventory>.() -> Unit = {}
+	crossinline builder: StaticSlotDSL<Inventory>.() -> Unit = {}
 ): StaticSlotDSL<Inventory> = slot(calculateSlot(line, slot), builder)
 
 @MenuDSLMarker
@@ -47,13 +47,13 @@ inline fun StaticChestMenu.slot(
 	line: Int,
 	slot: Int,
 	item: ItemStack?,
-	builder: StaticSlotDSL<Inventory>.() -> Unit = {}
+	crossinline builder: StaticSlotDSL<Inventory>.() -> Unit = {}
 ): StaticSlotDSL<Inventory> = slot(calculateSlot(line, slot), item, builder)
 
 @MenuDSLMarker
 inline fun StaticChestMenu.slot(
 	slot: Int,
-	builder: StaticSlotDSL<Inventory>.() -> Unit = {}
+	crossinline builder: StaticSlotDSL<Inventory>.() -> Unit = {}
 ): StaticSlotDSL<Inventory> = baseSlot.clone().apply(builder).also {
 	setSlot(slot, it)
 }
@@ -62,7 +62,7 @@ inline fun StaticChestMenu.slot(
 inline fun StaticChestMenu.slot(
 	slot: Int,
 	item: ItemStack?,
-	builder: StaticSlotDSL<Inventory>.() -> Unit = {}
+	crossinline builder: StaticSlotDSL<Inventory>.() -> Unit = {}
 ): StaticSlotDSL<Inventory> = ChestSlot(item, cancelEvents, SlotDSLEventHandler(plugin)).apply(builder).also {
 	inventory[slot - 1] = item
 	setSlot(slot, it)
