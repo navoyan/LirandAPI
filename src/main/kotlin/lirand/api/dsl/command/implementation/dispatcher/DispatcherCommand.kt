@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException
 import lirand.api.dsl.command.types.exceptions.ChatCommandSyntaxException
 import lirand.api.extensions.chat.sendMessage
 import lirand.api.extensions.chat.toComponent
+import lirand.api.utilities.isOverridden
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.BaseComponent
 import net.md_5.bungee.api.chat.ClickEvent
@@ -60,10 +61,14 @@ class DispatcherCommand(
 			dispatcher.execute(reader, sender)
 		} catch (exception: CommandSyntaxException) {
 			if (exception is ChatCommandSyntaxException) {
-				sender.sendMessage(exception.chatMessage)
+				sender.sendMessage(exception.chatMessage.apply {
+					color = ChatColor.RED
+				})
 			}
 			else {
-				sender.sendMessage(exception.rawMessage.toComponent())
+				sender.sendMessage(exception.rawMessage.toComponent().apply {
+					color = ChatColor.RED
+				})
 			}
 
 			report(sender, exception.input, exception.cursor)
@@ -140,8 +145,10 @@ class DispatcherCommand(
 		fun verifyChatMessageClass(chatMessageClass: Class<*>) {
 			if (::chatMessageGetKeyMethod.isInitialized) return
 
-			chatMessageGetKeyMethod = chatMessageClass.getMethod("getKey")
-			chatMessageGetArgsMethod = chatMessageClass.getMethod("getArgs")
+			chatMessageGetKeyMethod = chatMessageClass.methods
+				.find { it.returnType == String::class.java && !it.isOverridden }!!
+			chatMessageGetArgsMethod = chatMessageClass.methods
+				.find { it.returnType == Array<Any>::class.java && !it.isOverridden }!!
 		}
 	}
 }

@@ -33,3 +33,24 @@ val Class<*>.superclasses: List<Class<*>>
 			currentClass = superClass
 		}
 	}
+
+
+val Method.isOverridden: Boolean
+	get() {
+		val declaringClass: Class<*> = declaringClass
+		if (declaringClass == Any::class.java) {
+			return false
+		}
+		else try {
+			declaringClass.superclass.getMethod(name, *parameterTypes)
+			return true
+		} catch (_: NoSuchMethodException) {
+			declaringClass.interfaces.forEach {
+				try {
+					it.getMethod(name, *parameterTypes)
+					return true
+				} catch (_: NoSuchMethodException) {}
+			}
+			return false
+		}
+	}
