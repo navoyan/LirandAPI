@@ -15,7 +15,6 @@ import lirand.api.menu.PlayerMenuOpen
 import lirand.api.menu.PlayerMenuPreOpen
 import lirand.api.menu.PlayerMenuUpdate
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.rangeOfSlots
 import lirand.api.menu.slot.PlayerMenuSlotUpdate
 import lirand.api.utilities.ifTrue
 import org.bukkit.entity.Player
@@ -33,7 +32,7 @@ class StaticChestMenuImplementation(
 	override var cancelEvents: Boolean
 ) : StaticChestMenu {
 
-	private var inventory: Inventory = Inventory(this, lines * 9, title)
+	private var _inventory: Inventory = Inventory(this, lines * 9, title)
 
 	private var job: Job? = null
 	override var updateDelay: Long = -1
@@ -47,6 +46,8 @@ class StaticChestMenuImplementation(
 
 	private val _viewers = WeakHashMap<Player, Inventory>()
 	override val viewers: Map<Player, Inventory> get() = _viewers
+
+	override val rangeOfSlots: IntRange get() = 0 until lines * 9
 
 	private val _slots = TreeMap<Int, StaticSlotDSL<Inventory>>()
 	override val slots: Map<Int, StaticSlotDSL<Inventory>> get() = _slots
@@ -62,24 +63,18 @@ class StaticChestMenuImplementation(
 	override fun setSlot(index: Int, slot: StaticSlotDSL<Inventory>) {
 		if (index !in rangeOfSlots) return
 
-		if (slot is StaticChestSlot && slot.menu == null
-			&& slot.slotIndex <= 0
-		) {
-
+		if (slot is StaticChestSlot && slot.menu == null && slot.slotIndex <= 0) {
 			slot.menu = this
 			slot.slotIndex = index
+		}
 
-			_slots[index] = slot
-		}
-		else if (slot !is StaticChestSlot) {
-			_slots[index] = slot
-		}
+		_slots[index] = slot
 	}
 
 	override fun removeSlot(index: Int) {
 		_slots.remove(index)?.let {
 			if (it is ChestSlot) {
-				inventory.clear(index - 1)
+				_inventory.clear(index)
 			}
 		}
 	}
@@ -89,19 +84,19 @@ class StaticChestMenuImplementation(
 			_slots.remove(index)
 
 			if (slot is ChestSlot) {
-				inventory.clear(index)
+				_inventory.clear(index)
 			}
 		}
 	}
 
 	override fun update() {
 		for (player in viewers.keys) {
-			val update = PlayerMenuUpdate(this, player, inventory)
+			val update = PlayerMenuUpdate(this, player, _inventory)
 			eventHandler.update(update)
 
-			for (i in rangeOfSlots) {
-				val slot = getSlotOrBaseSlot(i)
-				updateSlotOnly(i, slot, player, inventory)
+			for (index in rangeOfSlots) {
+				val slot = getSlotOrBaseSlot(index)
+				updateSlotOnly(index, slot, player, _inventory)
 			}
 		}
 	}
@@ -116,15 +111,15 @@ class StaticChestMenuImplementation(
 
 		for (player in viewers.keys) {
 			for ((index, slot) in slots) {
-				updateSlotOnly(index, slot, player, inventory)
+				updateSlotOnly(index, slot, player, _inventory)
 			}
 		}
 	}
 
-	override fun getInventory() = inventory
+	override fun getInventory() = _inventory
 
 	override fun setInventory(inventory: Inventory) {
-		this.inventory.storageContents = inventory.storageContents
+		_inventory.storageContents = inventory.storageContents
 	}
 
 	override fun openTo(vararg players: Player) {
@@ -137,13 +132,13 @@ class StaticChestMenuImplementation(
 
 				if (preOpen.canceled) return
 
-				_viewers[player] = inventory
-				player.openInventory(inventory)
+				_viewers[player] = _inventory
+				player.openInventory(_inventory)
 
 				if (job == null && updateDelay > 0 && viewers.isNotEmpty())
 					setUpdateTask()
 
-				val open = PlayerMenuOpen(this, player, inventory)
+				val open = PlayerMenuOpen(this, player, _inventory)
 				eventHandler.open(open)
 
 			} catch (exception: Throwable) {

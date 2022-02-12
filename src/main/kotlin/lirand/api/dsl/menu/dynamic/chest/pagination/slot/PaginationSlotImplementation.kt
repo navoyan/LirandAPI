@@ -2,6 +2,7 @@ package lirand.api.dsl.menu.dynamic.chest.pagination.slot
 
 import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.chest.pagination.MenuPaginationImplementation
+import lirand.api.extensions.inventory.set
 import lirand.api.menu.PlayerInventoryMenu
 import lirand.api.menu.slot.PlayerMenuSlotRender
 import org.bukkit.entity.Player
@@ -49,7 +50,7 @@ class PaginationSlotImplementation<T>(
 		}
 
 		// cleaning item in the inventory slot
-		menuPlayerInventory.setItem(slotPos, null)
+		menuPlayerInventory.inventory[slotPos] = null
 
 		paginationEventHandler.handleRender(
 			nextItem,

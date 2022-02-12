@@ -30,7 +30,7 @@ class MenuPaginationImplementation<T>(
 	override val paginationEventHandler = PaginationEventHandler(menu.plugin)
 
 	override val paginationSlots = TreeMap<Int, PaginationSlot<T>>()
-	internal val currentPlayerPage = WeakHashMap<Player, Int>()
+	internal val currentPlayerPages = WeakHashMap<Player, Int>()
 
 	// should be null when is not mapped (for not allocate a new list everytime)
 	internal val currentPlayerItems = WeakHashMap<Player, List<T>>()
@@ -57,12 +57,12 @@ class MenuPaginationImplementation<T>(
 			if (items != null)
 				currentPlayerItems[player] = items
 
-			// set the lirand.menu page if player informed in [MenuDSL.setPlayerOpenPage]
+			// set the menu page if player informed in [MenuDSL.setPlayerOpenPage]
 			val openPage = menu.playerData[player]?.get(PAGINATION_OPEN_PAGE_KEY) as? Int?
 			if (openPage != null) {
-				// check if openPage is valid or cancel and trigger a event
+				// check if openPage is valid or cancel and trigger an event
 				if (isPageAvailable(player, openPage)) {
-					currentPlayerPage[player] = openPage
+					currentPlayerPages[player] = openPage
 				}
 				else {
 					canceled = true
@@ -71,9 +71,9 @@ class MenuPaginationImplementation<T>(
 			}
 		}
 
-		// cleaning player data on lirand.menu close
+		// cleaning player data on menu close
 		menu.onClose {
-			currentPlayerPage.remove(player)
+			currentPlayerPages.remove(player)
 			currentPlayerItems.remove(player)
 
 			for (value in itemPlayerSlotData.values) {
@@ -94,7 +94,7 @@ class MenuPaginationImplementation<T>(
 		// setup pagination slots
 		for (line in startLine..endLine) {
 			for (slotPos in startSlot..endSlot) {
-				val menuSlot = menu.calculateSlot(line, slotPos)
+				val menuSlot = menu.calculateSlot(line, slotPos).also { println(it) }
 				val slotRoot = menu.slot(menuSlot, null)
 
 				val paginationSlot = PaginationSlotImplementation(
@@ -144,7 +144,7 @@ class MenuPaginationImplementation<T>(
 		return isPageAvailable(player, getPlayerCurrentPage(player) + 1)
 	}
 
-	override fun getPlayerCurrentPage(player: Player): Int = currentPlayerPage.getOrDefault(player, 1)
+	override fun getPlayerCurrentPage(player: Player): Int = currentPlayerPages.getOrDefault(player, 1)
 
 	/**
 	 * Update current item list calling itemsUpdateFilter
@@ -160,7 +160,7 @@ class MenuPaginationImplementation<T>(
 
 			// setting player to the last page if he is not in a page with items after adapting
 			if (!isPageAvailable(player, getPlayerCurrentPage(player)))
-				currentPlayerPage[player] = maxPages(player)
+				currentPlayerPages[player] = getMaxPages(player)
 
 			// calling update slot to the PaginationSlotDSL
 			forEachSlot { slotPos, pageSlot ->
@@ -191,9 +191,9 @@ class MenuPaginationImplementation<T>(
 		val currentEndSlotUsage = if (currentLineUsage > 1) lineEndSlotNotUsage * (currentLineUsage - 1) else 0
 
 		val slotItemIndex =
-			pageStartIndex(page) + (slotPos - startLineSlotsUsage - currentUsageStartSlots - currentEndSlotUsage)
+			getPageStartIndex(page) + (slotPos - startLineSlotsUsage - currentUsageStartSlots - currentEndSlotUsage)
 
-		return items.asSequence().elementAtOrNull(slotItemIndex - 1)
+		return items.elementAtOrNull(slotItemIndex)
 	}
 
 	internal fun nextPage(menuPlayerInventory: PlayerInventoryMenu<Inventory>) {
@@ -213,7 +213,7 @@ class MenuPaginationImplementation<T>(
 
 		val currentPage = getPlayerCurrentPage(player)
 
-		currentPlayerPage[player] = nextPage
+		currentPlayerPages[player] = nextPage
 
 		forEachSlot { slotPos, pageSlot ->
 			val actualItem: T? = getCurrentItemForPlayer(slotPos, currentPage, player)
@@ -227,7 +227,7 @@ class MenuPaginationImplementation<T>(
 	}
 
 	private inline fun forEachSlot(
-		block: (slotPos: Int, pageSlot: PaginationSlotImplementation<T>) -> Unit
+		block: (Int, PaginationSlotImplementation<T>) -> Unit
 	) {
 		for (line in startLine..endLine) {
 			for (slot in startSlot..endSlot) {
@@ -240,16 +240,16 @@ class MenuPaginationImplementation<T>(
 		}
 	}
 
-	private fun pageStartIndex(page: Int) = ((page - 1) * maxSlotPerPage())
+	private fun getPageStartIndex(page: Int) = ((page - 1) * getMaxSlotPerPage())
 
 	private fun getPlayerItems(player: Player) = currentPlayerItems[player] ?: itemsProvider()
 
-	private fun maxSlotPerPage() = (endLine - startLine + 1) * (endSlot - startSlot + 1)
+	private fun getMaxSlotPerPage() = (endLine - startLine + 1) * (endSlot - startSlot + 1)
 
-	private fun maxPages(player: Player): Int {
+	private fun getMaxPages(player: Player): Int {
 		val itemsCount = getPlayerItems(player).size
 
-		val maxPerPage = maxSlotPerPage()
+		val maxPerPage = getMaxSlotPerPage()
 
 		var pages = (itemsCount / maxPerPage)
 		val mod = itemsCount % maxPerPage
@@ -260,7 +260,7 @@ class MenuPaginationImplementation<T>(
 	}
 
 	private fun isPageAvailable(player: Player, page: Int): Boolean {
-		val maxPages = maxPages(player)
+		val maxPages = getMaxPages(player)
 
 		return page in 1..maxPages
 	}

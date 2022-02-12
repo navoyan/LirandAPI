@@ -12,7 +12,7 @@ class AnvilSlotEventHandler(
 ) : SlotDSLEventHandler<AnvilInventory>(plugin) {
 
 	override fun interact(interact: PlayerMenuSlotInteract<AnvilInventory>) {
-		if (interact.slotIndex == 3) {
+		if (interact.slotIndex == AnvilSlot.RESULT) {
 			menuEventHandler.complete(interact)
 		}
 		super.interact(interact)

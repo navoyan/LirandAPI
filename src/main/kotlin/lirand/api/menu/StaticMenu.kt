@@ -13,6 +13,7 @@ interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 	val title: String
 	var cancelEvents: Boolean
 
+	val rangeOfSlots: IntRange
 	val slots: Map<Int, S>
 
 	var baseSlot: S

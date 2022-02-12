@@ -9,12 +9,12 @@ import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.dynamic.chest.slot.ChestSlot
 import lirand.api.extensions.inventory.Inventory
+import lirand.api.extensions.inventory.set
 import lirand.api.menu.PlayerMenuClose
 import lirand.api.menu.PlayerMenuOpen
 import lirand.api.menu.PlayerMenuPreOpen
 import lirand.api.menu.PlayerMenuUpdate
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.rangeOfSlots
 import lirand.api.menu.slot.PlayerMenuSlotRender
 import lirand.api.menu.slot.PlayerMenuSlotUpdate
 import lirand.api.menu.viewersFromPlayers
@@ -51,6 +51,8 @@ class ChestMenuImplementation(
 	private val _viewers = WeakHashMap<Player, Inventory>()
 	override val viewers: Map<Player, Inventory> get() = _viewers
 
+	override val rangeOfSlots: IntRange get() = 0 until lines * 9
+
 	private val _slots = TreeMap<Int, SlotDSL<Inventory>>()
 	override val slots: Map<Int, SlotDSL<Inventory>> get() = _slots
 
@@ -60,7 +62,7 @@ class ChestMenuImplementation(
 	override val eventHandler = MenuDSLEventHandler<Inventory>(plugin)
 
 	override var baseSlot: SlotDSL<Inventory> =
-		ChestSlot(null, cancelEvents, SlotDSLEventHandler<Inventory>(plugin))
+		ChestSlot(null, cancelEvents, SlotDSLEventHandler(plugin))
 
 
 	override fun title(render: (Player?) -> String?) {
@@ -87,9 +89,9 @@ class ChestMenuImplementation(
 			val update = PlayerMenuUpdate(this, player, inventory)
 			eventHandler.update(update)
 
-			for (i in rangeOfSlots) {
-				val slot = getSlotOrBaseSlot(i)
-				updateSlotOnly(i, slot, player, inventory)
+			for (index in rangeOfSlots) {
+				val slot = getSlotOrBaseSlot(index)
+				updateSlotOnly(index, slot, player, inventory)
 			}
 		}
 	}
@@ -151,14 +153,14 @@ class ChestMenuImplementation(
 	}
 
 	override fun getInventory(): Inventory {
-		val slots = rangeOfSlots
-		val inventory = Inventory(this, slots.last, title)
+		val slotIndexes = rangeOfSlots
+		val inventory = Inventory(this, slotIndexes.last + 1, title)
 
-		for (i in slots) {
-			val slot = getSlotOrBaseSlot(i)
+		for (index in slotIndexes) {
+			val slot = getSlotOrBaseSlot(index)
 
 			val item = slot.item?.clone()
-			inventory.setItem(i - 1, item)
+			inventory[index] = item
 		}
 
 		return inventory

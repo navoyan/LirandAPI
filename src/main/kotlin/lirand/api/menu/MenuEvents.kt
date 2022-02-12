@@ -1,6 +1,8 @@
 package lirand.api.menu
 
 import lirand.api.dsl.menu.dynamic.anvil.AnvilMenu
+import lirand.api.extensions.inventory.get
+import lirand.api.extensions.inventory.set
 import org.bukkit.entity.Player
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.inventory.Inventory
@@ -25,18 +27,6 @@ interface PlayerInventoryMenu<I : Inventory> : PlayerMenu {
 	val inventory: I
 
 	fun close() = player.closeInventory()
-
-	fun getItem(slot: Int): ItemStack? = inventory.getItem(slot - 1)
-
-	fun setItem(slot: Int, item: ItemStack?) {
-		inventory.setItem(rawSlot(slot), item)
-	}
-
-	fun getPlayerItem(slot: Int): ItemStack? = player.inventory.getItem(rawSlot(slot))
-
-	fun setPlayerItem(slot: Int, item: ItemStack?) {
-		player.inventory.setItem(rawSlot(slot), item)
-	}
 }
 
 interface PlayerMenuCancellable {

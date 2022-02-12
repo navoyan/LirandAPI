@@ -19,8 +19,8 @@ class AnvilSlot(
 	override fun clone() = clone(item)
 
 	companion object Index {
-		const val LEFT = 1
-		const val RIGHT = 2
-		const val RESULT = 3
+		const val LEFT = 0
+		const val RIGHT = 1
+		const val RESULT = 2
 	}
 }

@@ -7,24 +7,10 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import java.util.*
 
-fun StaticChestMenu.calculateSlot(line: Int, slot: Int) = calculateStartLine(line) + slot
-fun StaticChestMenu.calculateStartLine(line: Int) = calculateEndLine(line) - 9
-fun StaticChestMenu.calculateEndLine(line: Int) = line * 9
-
-fun ChestMenu.calculateSlot(line: Int, slot: Int) = calculateStartLine(line) + slot
-fun ChestMenu.calculateStartLine(line: Int) = calculateEndLine(line) - 9
-fun ChestMenu.calculateEndLine(line: Int) = line * 9
-
-fun rawSlot(slot: Int) = slot - 1
+fun ChestMenu.calculateSlot(line: Int, slot: Int) = (line * 9 - 10) + slot
+fun StaticChestMenu.calculateSlot(line: Int, slot: Int) = (line * 9 - 10) + slot
 
 fun <S : StaticSlot<I>, I : Inventory> StaticMenu<S, I>.getSlotOrBaseSlot(slot: Int): S = slots[slot] ?: baseSlot
-
-val StaticMenu<*, *>.rangeOfSlots: IntRange
-	get() = when (this) {
-		is ChestMenu -> 1..calculateEndLine(lines)
-		is StaticChestMenu -> 1..calculateEndLine(lines)
-		else -> 1..2
-	}
 
 
 fun <I : Inventory> StaticMenu<*, I>.viewersFromPlayers(players: Set<Player>) =

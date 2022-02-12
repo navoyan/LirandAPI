@@ -64,7 +64,7 @@ inline fun StaticChestMenu.slot(
 	item: ItemStack?,
 	crossinline builder: StaticSlotDSL<Inventory>.() -> Unit = {}
 ): StaticSlotDSL<Inventory> = ChestSlot(item, cancelEvents, SlotDSLEventHandler(plugin)).apply(builder).also {
-	inventory[slot - 1] = item
+	inventory[slot] = item
 	setSlot(slot, it)
 }
 

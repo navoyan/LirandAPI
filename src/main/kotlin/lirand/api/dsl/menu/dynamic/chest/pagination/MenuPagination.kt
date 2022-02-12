@@ -28,10 +28,7 @@ inline fun <T> MenuPagination<T>.slot(
 
 fun ChestMenu.setPlayerOpenPage(player: Player, page: Int) {
 	playerData[player] = WeakHashMap<String, Any>().apply {
-		put(
-			PAGINATION_OPEN_PAGE_KEY,
-			page
-		)
+		put(PAGINATION_OPEN_PAGE_KEY, page)
 	}
 }
 

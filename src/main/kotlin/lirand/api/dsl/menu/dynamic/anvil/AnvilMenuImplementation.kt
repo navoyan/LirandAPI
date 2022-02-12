@@ -13,8 +13,6 @@ import lirand.api.menu.PlayerMenuOpen
 import lirand.api.menu.PlayerMenuPreOpen
 import lirand.api.menu.PlayerMenuUpdate
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.rangeOfSlots
-import lirand.api.menu.rawSlot
 import lirand.api.menu.slot.PlayerMenuSlotRender
 import lirand.api.menu.slot.PlayerMenuSlotUpdate
 import lirand.api.menu.viewersFromPlayers
@@ -72,9 +70,9 @@ class AnvilMenuImplementation(
 			verifyObfuscatedFields(value)
 
 			currentInventory = anvilWrapper.toBukkitInventory(value)?.apply {
-				for (index in 1..2) {
+				for (index in rangeOfSlots) {
 					val slot = _slots[index] ?: baseSlot
-					setItem(rawSlot(index), slot.item)
+					setItem(index, slot.item)
 				}
 			} as AnvilInventory
 		}
@@ -99,16 +97,17 @@ class AnvilMenuImplementation(
 	override val eventHandler: AnvilMenuEventHandler = AnvilMenuEventHandler(plugin)
 
 	private val _viewers = HashMap<Player, AnvilInventory>()
-
 	override val viewers: Map<Player, AnvilInventory> get() = _viewers
-	private val _slots = TreeMap<Int, SlotDSL<AnvilInventory>>()
 
+	override val rangeOfSlots: IntRange = 0..1
+
+	private val _slots = TreeMap<Int, SlotDSL<AnvilInventory>>()
 	override val slots: Map<Int, SlotDSL<AnvilInventory>> get() = _slots
 
 	override var baseSlot: SlotDSL<AnvilInventory> =
 		AnvilSlot(null, cancelEvents, AnvilSlotEventHandler(plugin, eventHandler))
-	override val data = WeakHashMap<String, Any>()
 
+	override val data = WeakHashMap<String, Any>()
 	override val playerData = WeakHashMap<Player, WeakHashMap<String, Any>>()
 
 
@@ -171,9 +170,6 @@ class AnvilMenuImplementation(
 			close(player, true)
 
 			try {
-				anvilWrapper.handleInventoryCloseEvent(player)
-				anvilWrapper.setActiveContainerDefault(player)
-
 				val preOpen = PlayerMenuPreOpen(this, player)
 				eventHandler.preOpen(preOpen)
 

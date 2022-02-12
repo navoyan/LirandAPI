@@ -1,5 +1,7 @@
 package lirand.api.menu.slot
 
+import lirand.api.extensions.inventory.get
+import lirand.api.extensions.inventory.set
 import lirand.api.menu.PlayerInventoryMenu
 import lirand.api.menu.PlayerMenu
 import lirand.api.menu.PlayerMenuInteract
@@ -11,8 +13,6 @@ import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.util.*
-
-val PlayerMenuSlot.rawSlot get() = slotIndex - 1
 
 interface PlayerMenuSlot : PlayerMenu {
 	val slotIndex: Int
@@ -30,8 +30,10 @@ interface PlayerMenuSlot : PlayerMenu {
 interface PlayerMenuInventorySlot<I : Inventory> : PlayerMenuSlot, PlayerInventoryMenu<I> {
 
 	var showingItem: ItemStack?
-		get() = getItem(slotIndex)?.takeUnless { it.type == Material.AIR }
-		set(value) = setItem(slotIndex, value)
+		get() = inventory[slotIndex]?.takeIf { it.type != Material.AIR }
+		set(value) {
+			inventory[slotIndex] = value
+		}
 
 }
 

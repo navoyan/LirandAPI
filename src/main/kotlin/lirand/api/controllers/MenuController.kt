@@ -55,15 +55,14 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 
 		val menu = inventory.asMenu()?.takeIfHasPlayer(player) ?: return
 
-
 		if (inventory is AnvilInventory) {
-			val menu = menu as AnvilMenu
+			menu as AnvilMenu
 
 			handleMenuClick(menu, event, inventory)
 			handleMenuMove(menu, event, inventory)
 		}
 		else {
-			val menu = menu as StaticMenu<*, Inventory>
+			menu as StaticMenu<*, Inventory>
 
 			handleMenuClick(menu, event, inventory)
 			handleMenuMove(menu, event, inventory)
@@ -73,7 +72,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 	private fun <I : Inventory> handleMenuClick(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
 		if (event.slot != event.rawSlot) return
 
-		val slotIndex = event.slot + 1
+		val slotIndex = event.slot
 		val slot = menu.getSlotOrBaseSlot(slotIndex)
 
 		val interact = PlayerMenuSlotInteract(
@@ -98,7 +97,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 	}
 
 	private fun <I : Inventory> handleMenuMove(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
-		val slotIndex = event.rawSlot + 1
+		val slotIndex = event.rawSlot
 		val slot = menu.getSlotOrBaseSlot(slotIndex)
 
 		with(event) {
