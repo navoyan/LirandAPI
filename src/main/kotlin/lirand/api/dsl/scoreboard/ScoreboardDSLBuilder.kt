@@ -125,13 +125,13 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 		val objective = scoreboard.getObjective(DisplaySlot.SIDEBAR)
 			?: scoreboard.registerNewObjective(plugin.name, "dummy", title).apply {
 				displaySlot = DisplaySlot.SIDEBAR
-				displayName = TitleRender(player, title).also { titleController?.renderEvent?.invoke(it) }.newTitle
+				displayName = TitleRenderEvent(player, title).also { titleController?.renderEvent?.invoke(it) }.newTitle
 			}
 
 		for (i in 1..max) {
 			lineBuild(objective, i) { line ->
 				if (line.renderEvent != null) {
-					LineRender(player, line.text).also { line.renderEvent?.invoke(it) }.newText
+					LineRenderEvent(player, line.text).also { line.renderEvent?.invoke(it) }.newText
 				}
 				else line.text
 			}
@@ -204,8 +204,8 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 
 	override fun updateTitle() {
 		for ((player, objective) in _players) {
-			val titleUpdate = TitleUpdate(player, title).also { titleController?.updateEvent?.invoke(it) }
-			objective.displayName = titleUpdate.newTitle
+			val titleUpdateEvent = TitleUpdateEvent(player, title).also { titleController?.updateEvent?.invoke(it) }
+			objective.displayName = titleUpdateEvent.newTitle
 		}
 	}
 
@@ -214,7 +214,7 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 		for ((player, objective) in _players) {
 			lineBuild(objective, line) { sbLine ->
 				if (sbLine.updateEvent != null) {
-					LineUpdate(player, sbLine.text).also { sbLine.updateEvent?.invoke(it) }.newText
+					LineUpdateEvent(player, sbLine.text).also { sbLine.updateEvent?.invoke(it) }.newText
 				}
 				else sbLine.text
 			}

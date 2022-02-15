@@ -10,13 +10,13 @@ import lirand.api.dsl.menu.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.dynamic.chest.slot.ChestSlot
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.extensions.inventory.set
-import lirand.api.menu.PlayerMenuClose
-import lirand.api.menu.PlayerMenuOpen
-import lirand.api.menu.PlayerMenuPreOpen
-import lirand.api.menu.PlayerMenuUpdate
+import lirand.api.menu.PlayerMenuCloseEvent
+import lirand.api.menu.PlayerMenuOpenEvent
+import lirand.api.menu.PlayerMenuPreOpenEvent
+import lirand.api.menu.PlayerMenuUpdateEvent
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.slot.PlayerMenuSlotRender
-import lirand.api.menu.slot.PlayerMenuSlotUpdate
+import lirand.api.menu.slot.PlayerMenuSlotRenderEvent
+import lirand.api.menu.slot.PlayerMenuSlotUpdateEvent
 import lirand.api.menu.viewersFromPlayers
 import lirand.api.utilities.ifTrue
 import org.bukkit.entity.Player
@@ -24,7 +24,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 import java.util.*
 
-class ChestMenuImplementation(
+class ChestMenuImpl(
 	override val plugin: Plugin,
 	override var lines: Int,
 	override var cancelEvents: Boolean,
@@ -86,8 +86,8 @@ class ChestMenuImplementation(
 		val viewers = viewersFromPlayers(players)
 
 		for ((player, inventory) in viewers) {
-			val update = PlayerMenuUpdate(this, player, inventory)
-			eventHandler.update(update)
+			val update = PlayerMenuUpdateEvent(this, player, inventory)
+			eventHandler.handleUpdate(update)
 
 			for (index in rangeOfSlots) {
 				val slot = getSlotOrBaseSlot(index)
@@ -122,8 +122,8 @@ class ChestMenuImplementation(
 			try {
 				val inventory = inventory
 
-				val preOpen = PlayerMenuPreOpen(this, player)
-				eventHandler.preOpen(preOpen)
+				val preOpen = PlayerMenuPreOpenEvent(this, player)
+				eventHandler.handlePreOpen(preOpen)
 
 				if (preOpen.canceled) return
 
@@ -132,15 +132,15 @@ class ChestMenuImplementation(
 				for (index in rangeOfSlots) {
 					val slot = getSlotOrBaseSlot(index)
 
-					val render = PlayerMenuSlotRender(this, index, slot, player, inventory)
+					val render = PlayerMenuSlotRenderEvent(this, index, slot, player, inventory)
 
-					slot.eventHandler.render(render)
+					slot.eventHandler.handleRender(render)
 				}
 
 				player.openInventory(inventory)
 
-				val open = PlayerMenuOpen(this, player, inventory)
-				eventHandler.open(open)
+				val open = PlayerMenuOpenEvent(this, player, inventory)
+				eventHandler.handleOpen(open)
 
 				if (job == null && updateDelay > 0 && _viewers.isNotEmpty())
 					setUpdateTask()
@@ -178,8 +178,8 @@ class ChestMenuImplementation(
 
 	override fun close(player: Player, closeInventory: Boolean) {
 		removePlayer(player, closeInventory).ifTrue {
-			val menuClose = PlayerMenuClose(this, player)
-			eventHandler.close(menuClose)
+			val menuClose = PlayerMenuCloseEvent(this, player)
+			eventHandler.handleClose(menuClose)
 
 			if (job != null && updateDelay > 0 && _viewers.isEmpty())
 				removeUpdateTask()
@@ -187,8 +187,8 @@ class ChestMenuImplementation(
 	}
 
 	private fun updateSlotOnly(index: Int, slot: SlotDSL<Inventory>, player: Player, inventory: Inventory) {
-		val slotUpdate = PlayerMenuSlotUpdate(this, index, slot, player, inventory)
-		slot.eventHandler.update(slotUpdate)
+		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
+		slot.eventHandler.handleUpdate(slotUpdate)
 	}
 
 	private fun setUpdateTask() {

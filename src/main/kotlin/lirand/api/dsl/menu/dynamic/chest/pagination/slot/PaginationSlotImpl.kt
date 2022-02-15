@@ -1,15 +1,15 @@
 package lirand.api.dsl.menu.dynamic.chest.pagination.slot
 
 import lirand.api.dsl.menu.dynamic.SlotDSL
-import lirand.api.dsl.menu.dynamic.chest.pagination.MenuPaginationImplementation
+import lirand.api.dsl.menu.dynamic.chest.pagination.MenuPaginationImpl
 import lirand.api.extensions.inventory.set
-import lirand.api.menu.slot.PlayerMenuSlotRender
+import lirand.api.menu.slot.PlayerMenuSlotRenderEvent
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import java.util.*
 
-class PaginationSlotImplementation<T>(
-	private val pagination: MenuPaginationImplementation<T>,
+class PaginationSlotImpl<T>(
+	private val pagination: MenuPaginationImpl<T>,
 	override val slotRoot: SlotDSL<Inventory>
 ) : PaginationSlot<T> {
 	override val paginationEventHandler = PaginationSlotEventHandler<T>(pagination.menu.plugin)
@@ -39,7 +39,7 @@ class PaginationSlotImplementation<T>(
 			// triggering event
 			paginationEventHandler.handlePageChange(
 				actualItem,
-				PlayerMenuSlotPageChange(
+				PlayerMenuSlotPageChangeEvent(
 					pagination.menu,
 					slotPos,
 					slotRoot,
@@ -53,7 +53,7 @@ class PaginationSlotImplementation<T>(
 
 		paginationEventHandler.handleRender(
 			nextItem,
-			PlayerMenuSlotRender(
+			PlayerMenuSlotRenderEvent(
 				pagination.menu,
 				slotPos,
 				slotRoot,

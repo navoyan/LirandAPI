@@ -7,14 +7,14 @@ interface MenuEventHandler<I : Inventory> {
 
 	val plugin: Plugin
 
-	fun update(update: PlayerMenuUpdate<I>)
+	fun handleUpdate(updateEvent: PlayerMenuUpdateEvent<I>)
 
-	fun close(close: PlayerMenuClose)
+	fun handleClose(closeEvent: PlayerMenuCloseEvent)
 
-	fun moveToMenu(moveToMenu: PlayerMoveToMenu<I>)
+	fun handleMoveToMenu(moveToMenuEvent: PlayerMoveToMenuEvent<I>)
 
-	fun preOpen(preOpen: PlayerMenuPreOpen)
+	fun handlePreOpen(preOpenEvent: PlayerMenuPreOpenEvent)
 
-	fun open(open: PlayerMenuOpen<I>)
+	fun handleOpen(openEvent: PlayerMenuOpenEvent<I>)
 
 }

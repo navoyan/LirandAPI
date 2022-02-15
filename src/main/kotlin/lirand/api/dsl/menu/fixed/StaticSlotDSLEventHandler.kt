@@ -1,30 +1,30 @@
 package lirand.api.dsl.menu.fixed
 
 import com.github.shynixn.mccoroutine.launch
-import lirand.api.menu.slot.PlayerMenuSlotInteract
-import lirand.api.menu.slot.PlayerMenuSlotUpdate
+import lirand.api.menu.slot.PlayerMenuSlotInteractEvent
+import lirand.api.menu.slot.PlayerMenuSlotUpdateEvent
 import lirand.api.menu.slot.StaticSlotEventHandler
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-typealias MenuPlayerSlotUpdateEvent<I> = suspend PlayerMenuSlotUpdate<I>.() -> Unit
-typealias MenuPlayerSlotInteractEvent<I> = PlayerMenuSlotInteract<I>.() -> Unit
+typealias MenuPlayerSlotUpdateCallback<I> = suspend PlayerMenuSlotUpdateEvent<I>.() -> Unit
+typealias MenuPlayerSlotInteractCallback<I> = PlayerMenuSlotInteractEvent<I>.() -> Unit
 
 open class StaticSlotDSLEventHandler<I : Inventory>(override val plugin: Plugin) : StaticSlotEventHandler<I> {
 
-	val interactCallbacks = mutableListOf<MenuPlayerSlotInteractEvent<I>>()
-	val updateCallbacks = mutableListOf<MenuPlayerSlotUpdateEvent<I>>()
+	val interactCallbacks = mutableListOf<MenuPlayerSlotInteractCallback<I>>()
+	val updateCallbacks = mutableListOf<MenuPlayerSlotUpdateCallback<I>>()
 
-	override fun interact(interact: PlayerMenuSlotInteract<I>) {
+	override fun handleInteract(interactEvent: PlayerMenuSlotInteractEvent<I>) {
 		for (callback in interactCallbacks) {
-			callback(interact)
+			callback(interactEvent)
 		}
 	}
 
-	override fun update(update: PlayerMenuSlotUpdate<I>) {
+	override fun handleUpdate(updateEvent: PlayerMenuSlotUpdateEvent<I>) {
 		for (callback in updateCallbacks) {
 			plugin.launch {
-				callback(update)
+				callback(updateEvent)
 			}
 		}
 	}

@@ -4,14 +4,14 @@ import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.chest.ChestMenu
 import lirand.api.dsl.menu.dynamic.chest.pagination.slot.PaginationSlot
 import lirand.api.dsl.menu.fixed.MenuDSLMarker
-import lirand.api.menu.PlayerInventoryMenu
-import lirand.api.menu.PlayerMenu
+import lirand.api.menu.PlayerInventoryMenuEvent
+import lirand.api.menu.PlayerMenuEvent
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import java.util.*
 
-typealias ItemsProvider<T> = PlayerMenu.() -> Collection<T>
-typealias ItemsAdapter<T> = PlayerInventoryMenu<Inventory>.(List<T>) -> List<T>
+typealias ItemsProvider<T> = PlayerMenuEvent.() -> Collection<T>
+typealias ItemsAdapter<T> = PlayerInventoryMenuEvent<Inventory>.(List<T>) -> List<T>
 
 @MenuDSLMarker
 inline fun <T> MenuPagination<T>.slot(
@@ -37,7 +37,7 @@ inline fun <T> ChestMenu.pagination(
 	slotsRange: IntRange = 1..9,
 	autoUpdateSwitchPageSlot: Boolean = true,
 	crossinline builder: MenuPagination<T>.() -> Unit
-): MenuPagination<T> = MenuPaginationImplementation(
+): MenuPagination<T> = MenuPaginationImpl(
 	this,
 	itemsProvider,
 	previousPageSlot, nextPageSlot,
@@ -66,13 +66,13 @@ interface MenuPagination<T> {
 	val itemsAdapter: ItemsAdapter<T>?
 
 	@MenuDSLMarker
-	fun onPageChange(pageChange: MenuPlayerPageChangeEvent) {
-		paginationEventHandler.pageChangeCallbacks.add(pageChange)
+	fun onPageChange(pageChangeCallback: MenuPlayerPageChangeCallback) {
+		paginationEventHandler.pageChangeCallbacks.add(pageChangeCallback)
 	}
 
 	@MenuDSLMarker
-	fun onPageAvailable(pageAvailable: MenuPlayerPageAvailableEvent) {
-		paginationEventHandler.pageAvailableCallbacks.add(pageAvailable)
+	fun onPageAvailable(pageAvailableCallback: MenuPlayerPageAvailableCallback) {
+		paginationEventHandler.pageAvailableCallbacks.add(pageAvailableCallback)
 	}
 
 	@MenuDSLMarker

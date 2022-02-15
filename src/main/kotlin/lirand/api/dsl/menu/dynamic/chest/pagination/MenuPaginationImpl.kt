@@ -3,10 +3,10 @@ package lirand.api.dsl.menu.dynamic.chest.pagination
 import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.chest.ChestMenu
 import lirand.api.dsl.menu.dynamic.chest.pagination.slot.PaginationSlot
-import lirand.api.dsl.menu.dynamic.chest.pagination.slot.PaginationSlotImplementation
+import lirand.api.dsl.menu.dynamic.chest.pagination.slot.PaginationSlotImpl
 import lirand.api.dsl.menu.dynamic.chest.slot
-import lirand.api.menu.PlayerInventoryMenu
-import lirand.api.menu.PlayerMenu
+import lirand.api.menu.PlayerInventoryMenuEvent
+import lirand.api.menu.PlayerMenuEvent
 import lirand.api.menu.calculateSlot
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
@@ -14,7 +14,7 @@ import java.util.*
 
 internal const val PAGINATION_OPEN_PAGE_KEY = "PAGINATION:open_page"
 
-class MenuPaginationImplementation<T>(
+class MenuPaginationImpl<T>(
 	override val menu: ChestMenu,
 	override val itemsProvider: ItemsProvider<T>,
 	override val previousPageSlot: SlotDSL<Inventory>,
@@ -63,7 +63,7 @@ class MenuPaginationImplementation<T>(
 				}
 				else {
 					canceled = true
-					paginationEventHandler.pageAvailable(this)
+					paginationEventHandler.handlePageAvailable(this)
 				}
 			}
 		}
@@ -91,14 +91,14 @@ class MenuPaginationImplementation<T>(
 				val menuSlot = menu.calculateSlot(line, slotPos).also { println(it) }
 				val slotRoot = menu.slot(menuSlot, null)
 
-				val paginationSlot = PaginationSlotImplementation(
+				val paginationSlot = PaginationSlotImpl(
 					this,
 					slotRoot
 				)
 
 				slotRoot.apply {
 					fun getCurrentItemForPlayer(player: Player): T? {
-						val pagination = this@MenuPaginationImplementation
+						val pagination = this@MenuPaginationImpl
 
 						return pagination.getCurrentItemForPlayer(
 							player,
@@ -153,7 +153,7 @@ class MenuPaginationImplementation<T>(
 		val adapter = itemsAdapter ?: return
 		val inventory = menu.viewers[player] ?: return
 
-		val playerInventoryMenu = PlayerInventoryMenu(menu, player, inventory)
+		val playerInventoryMenu = PlayerInventoryMenuEvent(menu, player, inventory)
 
 		val items = adapter.invoke(playerInventoryMenu, getPlayerItems(player).toList())
 
@@ -170,7 +170,7 @@ class MenuPaginationImplementation<T>(
 			pageSlot.updateSlot(item, item, slotPos, player, inventory)
 		}
 
-		paginationEventHandler.pageChange(playerInventoryMenu)
+		paginationEventHandler.handlePageChange(playerInventoryMenu)
 	}
 
 	private fun getCurrentItemForPlayer(player: Player, slotPos: Int, page: Int): T? {
@@ -217,17 +217,17 @@ class MenuPaginationImplementation<T>(
 
 			pageSlot.updateSlot(actualItem, nextItem, slotPos, player, inventory, true)
 
-			paginationEventHandler.pageChange(PlayerInventoryMenu(menu, player, inventory))
+			paginationEventHandler.handlePageChange(PlayerInventoryMenuEvent(menu, player, inventory))
 		}
 	}
 
 	private inline fun forEachSlot(
-		block: (Int, PaginationSlotImplementation<T>) -> Unit
+		block: (Int, PaginationSlotImpl<T>) -> Unit
 	) {
 		for (line in linesRange) {
 			for (slot in slotsRange) {
 				val slotPos = menu.calculateSlot(line, slot)
-				val pageSlot = paginationSlots[slotPos] as? PaginationSlotImplementation<T>
+				val pageSlot = paginationSlots[slotPos] as? PaginationSlotImpl<T>
 					?: continue
 
 				block(slotPos, pageSlot)
@@ -238,7 +238,7 @@ class MenuPaginationImplementation<T>(
 	private fun getPageStartIndex(page: Int) = ((page - 1) * getMaxSlotPerPage())
 
 	private fun getPlayerItems(player: Player) =
-		currentPlayerItems[player] ?: itemsProvider(PlayerMenu(menu, player))
+		currentPlayerItems[player] ?: itemsProvider(PlayerMenuEvent(menu, player))
 
 	private fun getMaxSlotPerPage() =
 		(linesRange.last - linesRange.first + 1) * (slotsRange.last - slotsRange.first + 1)

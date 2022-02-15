@@ -10,12 +10,12 @@ import lirand.api.dsl.menu.fixed.StaticSlotDSL
 import lirand.api.dsl.menu.fixed.StaticSlotDSLEventHandler
 import lirand.api.dsl.menu.fixed.chest.slot.StaticChestSlot
 import lirand.api.extensions.inventory.Inventory
-import lirand.api.menu.PlayerMenuClose
-import lirand.api.menu.PlayerMenuOpen
-import lirand.api.menu.PlayerMenuPreOpen
-import lirand.api.menu.PlayerMenuUpdate
+import lirand.api.menu.PlayerMenuCloseEvent
+import lirand.api.menu.PlayerMenuOpenEvent
+import lirand.api.menu.PlayerMenuPreOpenEvent
+import lirand.api.menu.PlayerMenuUpdateEvent
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.slot.PlayerMenuSlotUpdate
+import lirand.api.menu.slot.PlayerMenuSlotUpdateEvent
 import lirand.api.utilities.ifTrue
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
@@ -25,7 +25,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 
-class StaticChestMenuImplementation(
+class StaticChestMenuImpl(
 	override val plugin: Plugin,
 	override val lines: Int,
 	override var title: String,
@@ -91,8 +91,8 @@ class StaticChestMenuImplementation(
 
 	override fun update() {
 		for (player in viewers.keys) {
-			val update = PlayerMenuUpdate(this, player, _inventory)
-			eventHandler.update(update)
+			val update = PlayerMenuUpdateEvent(this, player, _inventory)
+			eventHandler.handleUpdate(update)
 
 			for (index in rangeOfSlots) {
 				val slot = getSlotOrBaseSlot(index)
@@ -127,8 +127,8 @@ class StaticChestMenuImplementation(
 			close(player, false)
 
 			try {
-				val preOpen = PlayerMenuPreOpen(this, player)
-				eventHandler.preOpen(preOpen)
+				val preOpen = PlayerMenuPreOpenEvent(this, player)
+				eventHandler.handlePreOpen(preOpen)
 
 				if (preOpen.canceled) return
 
@@ -138,8 +138,8 @@ class StaticChestMenuImplementation(
 				if (job == null && updateDelay > 0 && viewers.isNotEmpty())
 					setUpdateTask()
 
-				val open = PlayerMenuOpen(this, player, _inventory)
-				eventHandler.open(open)
+				val open = PlayerMenuOpenEvent(this, player, _inventory)
+				eventHandler.handleOpen(open)
 
 			} catch (exception: Throwable) {
 				exception.printStackTrace()
@@ -150,8 +150,8 @@ class StaticChestMenuImplementation(
 
 	override fun close(player: Player, closeInventory: Boolean) {
 		removePlayer(player, closeInventory).ifTrue {
-			val menuClose = PlayerMenuClose(this, player)
-			eventHandler.close(menuClose)
+			val menuClose = PlayerMenuCloseEvent(this, player)
+			eventHandler.handleClose(menuClose)
 
 			if (job != null && updateDelay > 0 && _viewers.isEmpty())
 				removeUpdateTask()
@@ -170,8 +170,8 @@ class StaticChestMenuImplementation(
 	}
 
 	private fun updateSlotOnly(index: Int, slot: StaticSlotDSL<Inventory>, player: Player, inventory: Inventory) {
-		val slotUpdate = PlayerMenuSlotUpdate(this, index, slot, player, inventory)
-		slot.eventHandler.update(slotUpdate)
+		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
+		slot.eventHandler.handleUpdate(slotUpdate)
 	}
 
 	private fun setUpdateTask() {

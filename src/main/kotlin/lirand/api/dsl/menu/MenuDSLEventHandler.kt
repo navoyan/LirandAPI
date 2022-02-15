@@ -2,63 +2,63 @@ package lirand.api.dsl.menu
 
 import com.github.shynixn.mccoroutine.launch
 import lirand.api.menu.MenuEventHandler
-import lirand.api.menu.PlayerMenuClose
-import lirand.api.menu.PlayerMenuOpen
-import lirand.api.menu.PlayerMenuPreOpen
-import lirand.api.menu.PlayerMenuUpdate
-import lirand.api.menu.PlayerMoveToMenu
+import lirand.api.menu.PlayerMenuCloseEvent
+import lirand.api.menu.PlayerMenuOpenEvent
+import lirand.api.menu.PlayerMenuPreOpenEvent
+import lirand.api.menu.PlayerMenuUpdateEvent
+import lirand.api.menu.PlayerMoveToMenuEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-typealias PlayerMenuUpdateEvent<I> = suspend PlayerMenuUpdate<I>.() -> Unit
-typealias PlayerMenuCloseEvent = suspend PlayerMenuClose.() -> Unit
-typealias PlayerMenuMoveToEvent<I> = PlayerMoveToMenu<I>.() -> Unit
+typealias PlayerMenuUpdateCallback<I> = suspend PlayerMenuUpdateEvent<I>.() -> Unit
+typealias PlayerMenuCloseCallback = suspend PlayerMenuCloseEvent.() -> Unit
+typealias PlayerMenuMoveCallback<I> = PlayerMoveToMenuEvent<I>.() -> Unit
 
-typealias PlayerMenuPreOpenEvent = suspend PlayerMenuPreOpen.() -> Unit
-typealias PlayerMenuOpenEvent<I> = suspend PlayerMenuOpen<I>.() -> Unit
+typealias PlayerMenuPreOpenCallback = suspend PlayerMenuPreOpenEvent.() -> Unit
+typealias PlayerMenuOpenCallback<I> = suspend PlayerMenuOpenEvent<I>.() -> Unit
 
 open class MenuDSLEventHandler<I : Inventory>(override val plugin: Plugin) : MenuEventHandler<I> {
 
-	val updateCallbacks = mutableListOf<PlayerMenuUpdateEvent<I>>()
-	val closeCallbacks = mutableListOf<PlayerMenuCloseEvent>()
-	val moveToMenuCallbacks = mutableListOf<PlayerMenuMoveToEvent<I>>()
-	val preOpenCallbacks = mutableListOf<PlayerMenuPreOpenEvent>()
-	val openCallbacks = mutableListOf<PlayerMenuOpenEvent<I>>()
+	val updateCallbacks = mutableListOf<PlayerMenuUpdateCallback<I>>()
+	val closeCallbacks = mutableListOf<PlayerMenuCloseCallback>()
+	val moveToMenuCallbacks = mutableListOf<PlayerMenuMoveCallback<I>>()
+	val preOpenCallbacks = mutableListOf<PlayerMenuPreOpenCallback>()
+	val openCallbacks = mutableListOf<PlayerMenuOpenCallback<I>>()
 
-	override fun update(update: PlayerMenuUpdate<I>) {
+	override fun handleUpdate(updateEvent: PlayerMenuUpdateEvent<I>) {
 		for (callback in updateCallbacks) {
 			plugin.launch {
-				callback(update)
+				callback(updateEvent)
 			}
 		}
 	}
 
-	override fun close(close: PlayerMenuClose) {
+	override fun handleClose(closeEvent: PlayerMenuCloseEvent) {
 		for (callback in closeCallbacks) {
 			plugin.launch {
-				callback(close)
+				callback(closeEvent)
 			}
 		}
 	}
 
-	override fun moveToMenu(moveToMenu: PlayerMoveToMenu<I>) {
+	override fun handleMoveToMenu(moveToMenuEvent: PlayerMoveToMenuEvent<I>) {
 		for (callback in moveToMenuCallbacks) {
-			callback(moveToMenu)
+			callback(moveToMenuEvent)
 		}
 	}
 
-	override fun preOpen(preOpen: PlayerMenuPreOpen) {
+	override fun handlePreOpen(preOpenEvent: PlayerMenuPreOpenEvent) {
 		for (callback in preOpenCallbacks) {
 			plugin.launch {
-				callback(preOpen)
+				callback(preOpenEvent)
 			}
 		}
 	}
 
-	override fun open(open: PlayerMenuOpen<I>) {
+	override fun handleOpen(openEvent: PlayerMenuOpenEvent<I>) {
 		for (callback in openCallbacks) {
 			plugin.launch {
-				callback(open)
+				callback(openEvent)
 			}
 		}
 	}

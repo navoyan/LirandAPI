@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack
 import java.util.*
 import kotlin.collections.set
 
-interface PlayerMenu {
+interface PlayerMenuEvent {
 	val menu: StaticMenu<*, *>
 	val player: Player
 
@@ -22,29 +22,29 @@ interface PlayerMenu {
 
 }
 
-internal fun PlayerMenu(
+internal fun PlayerMenuEvent(
 	menu: StaticMenu<*, *>,
 	player: Player
-): PlayerMenu = PlayerMenuImpl(menu, player)
+): PlayerMenuEvent = PlayerMenuEventImpl(menu, player)
 
-internal class PlayerMenuImpl(
+internal class PlayerMenuEventImpl(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player
-) : PlayerMenu
+) : PlayerMenuEvent
 
 
 
-interface PlayerInventoryMenu<I : Inventory> : PlayerMenu {
+interface PlayerInventoryMenuEvent<I : Inventory> : PlayerMenuEvent {
 	val inventory: I
 
 	fun close() = player.closeInventory()
 }
 
-fun <I : Inventory> PlayerInventoryMenu(
+fun <I : Inventory> PlayerInventoryMenuEvent(
 	menu: StaticMenu<*, *>,
 	player: Player,
 	inventory: I
-): PlayerInventoryMenu<I> =
+): PlayerInventoryMenuEvent<I> =
 	PlayerInventoryMenuImpl<I>(
 		menu, player, inventory
 	)
@@ -53,60 +53,60 @@ internal class PlayerInventoryMenuImpl<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player,
 	override val inventory: I
-) : PlayerInventoryMenu<I>
+) : PlayerInventoryMenuEvent<I>
 
 
 
-interface PlayerMenuCancellable {
+interface PlayerMenuCancellableEvent : PlayerMenuEvent {
 	var canceled: Boolean
 }
 
 
-open class PlayerMenuInteract<I : Inventory>(
+open class PlayerMenuInteractEvent<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player,
 	override val inventory: I,
 	override var canceled: Boolean
-) : PlayerInventoryMenu<I>, PlayerMenuCancellable
+) : PlayerInventoryMenuEvent<I>, PlayerMenuCancellableEvent
 
-class PlayerMenuPreOpen(
+class PlayerMenuPreOpenEvent(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player,
 	override var canceled: Boolean = false
-) : PlayerMenu, PlayerMenuCancellable
+) : PlayerMenuEvent, PlayerMenuCancellableEvent
 
-class PlayerMenuOpen<I : Inventory>(
+class PlayerMenuOpenEvent<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player,
 	override val inventory: I
-) : PlayerInventoryMenu<I>
+) : PlayerInventoryMenuEvent<I>
 
-class PlayerMenuUpdate<I : Inventory>(
+class PlayerMenuUpdateEvent<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player,
 	override val inventory: I
-) : PlayerInventoryMenu<I>
+) : PlayerInventoryMenuEvent<I>
 
-class PlayerAnvilMenuPrepare(
+class PlayerAnvilMenuPrepareEvent(
 	override val menu: AnvilMenu,
 	override val player: Player,
 	override val inventory: AnvilInventory
-) : PlayerInventoryMenu<AnvilInventory>
+) : PlayerInventoryMenuEvent<AnvilInventory>
 
-class PlayerMenuClose(
+class PlayerMenuCloseEvent(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player
-) : PlayerMenu
+) : PlayerMenuEvent
 
-interface PlayerMenuMove : PlayerMenuCancellable {
+interface PlayerMenuMoveEvent : PlayerMenuCancellableEvent {
 	val movedItem: ItemStack?
 }
 
-class PlayerMoveToMenu<I : Inventory>(
+class PlayerMoveToMenuEvent<I : Inventory>(
 	menu: StaticMenu<*, *>,
 	player: Player,
 	inventory: I,
 	canceled: Boolean,
 	override val movedItem: ItemStack?,
 	val hotbarKey: Int
-) : PlayerMenuInteract<I>(menu, player, inventory, canceled), PlayerMenuMove
+) : PlayerMenuInteractEvent<I>(menu, player, inventory, canceled), PlayerMenuMoveEvent

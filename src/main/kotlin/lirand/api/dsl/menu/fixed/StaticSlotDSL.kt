@@ -9,13 +9,13 @@ interface StaticSlotDSL<I : Inventory> : StaticSlot<I> {
 	override val eventHandler: StaticSlotDSLEventHandler<I>
 
 	@MenuDSLMarker
-	fun onInteract(click: MenuPlayerSlotInteractEvent<I>) {
-		eventHandler.interactCallbacks.add(click)
+	fun onInteract(interactCallback: MenuPlayerSlotInteractCallback<I>) {
+		eventHandler.interactCallbacks.add(interactCallback)
 	}
 
 	@MenuDSLMarker
-	fun onUpdate(update: MenuPlayerSlotUpdateEvent<I>) {
-		eventHandler.updateCallbacks.add(update)
+	fun onUpdate(updateCallback: MenuPlayerSlotUpdateCallback<I>) {
+		eventHandler.updateCallbacks.add(updateCallback)
 	}
 
 	override fun clone(): StaticSlotDSL<I>

@@ -13,7 +13,7 @@ inline fun Plugin.chestMenu(
 	lines: Int,
 	cancelOnClick: Boolean = true,
 	crossinline builder: ChestMenu.() -> Unit = {}
-): ChestMenu = ChestMenuImplementation(this, lines, cancelOnClick).apply(builder)
+): ChestMenu = ChestMenuImpl(this, lines, cancelOnClick).apply(builder)
 
 @MenuDSLMarker
 inline fun ChestMenu.slot(

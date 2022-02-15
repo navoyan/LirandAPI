@@ -12,7 +12,7 @@ import org.bukkit.plugin.Plugin
 inline fun Plugin.anvilMenu(
 	cancelOnClick: Boolean = true,
 	crossinline builder: AnvilMenu.() -> Unit = {}
-): AnvilMenu = AnvilMenuImplementation(this, cancelOnClick).apply(builder)
+): AnvilMenu = AnvilMenuImpl(this, cancelOnClick).apply(builder)
 
 @MenuDSLMarker
 inline fun AnvilMenu.slot(
@@ -30,12 +30,12 @@ interface AnvilMenu : MenuDSL<SlotDSL<AnvilInventory>, AnvilInventory> {
 	override fun getInventory(): AnvilInventory
 
 	@MenuDSLMarker
-	fun onComplete(complete: PlayerMenuCompleteEvent) {
-		eventHandler.completeCallbacks.add(complete)
+	fun onComplete(completeCallback: PlayerMenuCompleteCallback) {
+		eventHandler.completeCallbacks.add(completeCallback)
 	}
 
 	@MenuDSLMarker
-	fun onPrepare(prepare: PlayerAnvilMenuPrepareEvent) {
-		eventHandler.prepareCallbacks.add(prepare)
+	fun onPrepare(prepareCallback: PlayerAnvilMenuPrepareCallback) {
+		eventHandler.prepareCallbacks.add(prepareCallback)
 	}
 }

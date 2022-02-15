@@ -2,28 +2,35 @@ package lirand.api.dsl.scoreboard
 
 import org.bukkit.entity.Player
 
-typealias TitleRenderEvent = TitleRender.() -> Unit
-typealias TitleUpdateEvent = TitleUpdate.() -> Unit
+typealias TitleRenderCallback = TitleRenderEvent.() -> Unit
+typealias TitleUpdateCallback = TitleUpdateEvent.() -> Unit
 
 @ScoreboardBuilderDSLMarker
 class ScoreboardTitle(private val scoreboard: ScoreboardDSLBuilder) {
-	internal var renderEvent: TitleRenderEvent? = null
-	internal var updateEvent: TitleUpdateEvent? = null
+	internal var renderEvent: TitleRenderCallback? = null
+	internal var updateEvent: TitleUpdateCallback? = null
 
 	@ScoreboardBuilderDSLMarker
-	fun onRender(block: TitleRenderEvent) {
-		renderEvent = block
+	fun onRender(renderCallback: TitleRenderCallback) {
+		renderEvent = renderCallback
 	}
 
 	@ScoreboardBuilderDSLMarker
-	fun onUpdate(block: TitleUpdateEvent) {
-		updateEvent = block
+	fun onUpdate(updateCallback: TitleUpdateCallback) {
+		updateEvent = updateCallback
 	}
 }
 
-interface ChangeableTitle {
+interface ChangeableTitleEvent {
 	var newTitle: String
 }
 
-class TitleRender(override val player: Player, override var newTitle: String) : PlayerScoreboardComponent, ChangeableTitle
-class TitleUpdate(override val player: Player, override var newTitle: String) : PlayerScoreboardComponent, ChangeableTitle
+class TitleRenderEvent(
+	override val player: Player,
+	override var newTitle: String
+) : PlayerScoreboardComponent, ChangeableTitleEvent
+
+class TitleUpdateEvent(
+	override val player: Player,
+	override var newTitle: String
+) : PlayerScoreboardComponent, ChangeableTitleEvent

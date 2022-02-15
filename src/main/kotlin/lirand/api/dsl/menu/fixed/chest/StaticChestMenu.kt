@@ -17,7 +17,7 @@ inline fun Plugin.staticChestMenu(
 	title: String,
 	cancelEvents: Boolean = false,
 	crossinline builder: StaticChestMenu.() -> Unit = {}
-): StaticChestMenu = StaticChestMenuImplementation(this, lines, title, cancelEvents).apply(builder)
+): StaticChestMenu = StaticChestMenuImpl(this, lines, title, cancelEvents).apply(builder)
 
 @MenuDSLMarker
 inline fun Plugin.staticChestMenu(
@@ -28,7 +28,7 @@ inline fun Plugin.staticChestMenu(
 ): StaticChestMenu? {
 	if (inventory.size % 9 != 0) return null
 
-	return StaticChestMenuImplementation(this, inventory.size / 9, title, cancelEvents).apply {
+	return StaticChestMenuImpl(this, inventory.size / 9, title, cancelEvents).apply {
 		this.inventory = inventory
 		builder()
 	}

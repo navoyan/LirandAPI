@@ -7,9 +7,9 @@ interface StaticSlotEventHandler<I : Inventory> {
 
 	val plugin: Plugin
 
-	fun interact(interact: PlayerMenuSlotInteract<I>)
+	fun handleInteract(interactEvent: PlayerMenuSlotInteractEvent<I>)
 
-	fun update(update: PlayerMenuSlotUpdate<I>)
+	fun handleUpdate(updateEvent: PlayerMenuSlotUpdateEvent<I>)
 
 	fun clone(plugin: Plugin = this.plugin): StaticSlotEventHandler<I>
 

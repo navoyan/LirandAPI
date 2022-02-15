@@ -8,13 +8,13 @@ import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.anvil.slot.AnvilSlot
 import lirand.api.dsl.menu.dynamic.anvil.slot.AnvilSlotEventHandler
 import lirand.api.extensions.inventory.Inventory
-import lirand.api.menu.PlayerMenuClose
-import lirand.api.menu.PlayerMenuOpen
-import lirand.api.menu.PlayerMenuPreOpen
-import lirand.api.menu.PlayerMenuUpdate
+import lirand.api.menu.PlayerMenuCloseEvent
+import lirand.api.menu.PlayerMenuOpenEvent
+import lirand.api.menu.PlayerMenuPreOpenEvent
+import lirand.api.menu.PlayerMenuUpdateEvent
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.slot.PlayerMenuSlotRender
-import lirand.api.menu.slot.PlayerMenuSlotUpdate
+import lirand.api.menu.slot.PlayerMenuSlotRenderEvent
+import lirand.api.menu.slot.PlayerMenuSlotUpdateEvent
 import lirand.api.menu.viewersFromPlayers
 import lirand.api.utilities.allFields
 import lirand.api.utilities.ifTrue
@@ -31,7 +31,7 @@ import kotlin.collections.component2
 import kotlin.collections.set
 
 
-class AnvilMenuImplementation(
+class AnvilMenuImpl(
 	override val plugin: Plugin,
 	override var cancelEvents: Boolean = true
 ) : AnvilMenu {
@@ -132,8 +132,8 @@ class AnvilMenuImplementation(
 		val viewers = viewersFromPlayers(players)
 
 		for ((player, inventory) in viewers) {
-			val update = PlayerMenuUpdate(this, player, inventory)
-			eventHandler.update(update)
+			val update = PlayerMenuUpdateEvent(this, player, inventory)
+			eventHandler.handleUpdate(update)
 
 			for (index in rangeOfSlots) {
 				val slot = getSlotOrBaseSlot(index)
@@ -170,8 +170,8 @@ class AnvilMenuImplementation(
 			close(player, true)
 
 			try {
-				val preOpen = PlayerMenuPreOpen(this, player)
-				eventHandler.preOpen(preOpen)
+				val preOpen = PlayerMenuPreOpenEvent(this, player)
+				eventHandler.handlePreOpen(preOpen)
 
 				if (preOpen.canceled) return
 
@@ -186,9 +186,9 @@ class AnvilMenuImplementation(
 				for (index in rangeOfSlots) {
 					val slot = getSlotOrBaseSlot(index)
 
-					val render = PlayerMenuSlotRender(this, index, slot, player, inventory)
+					val render = PlayerMenuSlotRenderEvent(this, index, slot, player, inventory)
 
-					slot.eventHandler.render(render)
+					slot.eventHandler.handleRender(render)
 				}
 
 				val containerId = anvilWrapper.getNextContainerId(player, currentContainer)
@@ -201,8 +201,8 @@ class AnvilMenuImplementation(
 				if (job == null && updateDelay > 0 && _viewers.isNotEmpty())
 					setUpdateTask()
 
-				val open = PlayerMenuOpen(this, player, inventory)
-				eventHandler.open(open)
+				val open = PlayerMenuOpenEvent(this, player, inventory)
+				eventHandler.handleOpen(open)
 
 			} catch (exception: Throwable) {
 				exception.printStackTrace()
@@ -213,8 +213,8 @@ class AnvilMenuImplementation(
 
 	override fun close(player: Player, closeInventory: Boolean) {
 		removePlayer(player, closeInventory).ifTrue {
-			val menuClose = PlayerMenuClose(this, player)
-			eventHandler.close(menuClose)
+			val menuClose = PlayerMenuCloseEvent(this, player)
+			eventHandler.handleClose(menuClose)
 
 			if (job != null && updateDelay > 0 && _viewers.isEmpty())
 				removeUpdateTask()
@@ -222,8 +222,8 @@ class AnvilMenuImplementation(
 	}
 
 	private fun updateSlotOnly(index: Int, slot: SlotDSL<AnvilInventory>, player: Player, inventory: AnvilInventory) {
-		val slotUpdate = PlayerMenuSlotUpdate(this, index, slot, player, inventory)
-		slot.eventHandler.update(slotUpdate)
+		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
+		slot.eventHandler.handleUpdate(slotUpdate)
 	}
 
 	private fun removePlayer(player: Player, closeInventory: Boolean): Boolean {

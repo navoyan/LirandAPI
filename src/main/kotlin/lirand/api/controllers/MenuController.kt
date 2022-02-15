@@ -6,13 +6,13 @@ import lirand.api.dsl.menu.dynamic.anvil.AnvilMenu
 import lirand.api.extensions.inventory.get
 import lirand.api.extensions.inventory.isNotEmpty
 import lirand.api.extensions.server.server
-import lirand.api.menu.PlayerAnvilMenuPrepare
-import lirand.api.menu.PlayerMoveToMenu
+import lirand.api.menu.PlayerAnvilMenuPrepareEvent
+import lirand.api.menu.PlayerMoveToMenuEvent
 import lirand.api.menu.StaticMenu
 import lirand.api.menu.asMenu
 import lirand.api.menu.getMenu
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.slot.PlayerMenuSlotInteract
+import lirand.api.menu.slot.PlayerMenuSlotInteractEvent
 import lirand.api.menu.takeIfHasPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -75,7 +75,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 		val slotIndex = event.slot
 		val slot = menu.getSlotOrBaseSlot(slotIndex)
 
-		val interact = PlayerMenuSlotInteract(
+		val interact = PlayerMenuSlotInteractEvent(
 			menu, inventory, event.whoClicked as Player,
 			slotIndex, slot, slot.cancelEvents,
 			event.click, event.action,
@@ -86,11 +86,11 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 		if (menu is AnvilMenu) {
 			plugin.launch {
 				delay(1)
-				slot.eventHandler.interact(interact)
+				slot.eventHandler.handleInteract(interact)
 			}
 		}
 		else {
-			slot.eventHandler.interact(interact)
+			slot.eventHandler.handleInteract(interact)
 		}
 
 		if (interact.canceled) event.isCancelled = true
@@ -112,12 +112,12 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 				else
 					currentItem
 
-				val move = PlayerMoveToMenu(
+				val move = PlayerMoveToMenuEvent(
 					menu, whoClicked as Player, inventory,
 					slot.cancelEvents, movedItem ?: return, hotbarButton
 				)
 
-				menu.eventHandler.moveToMenu(move)
+				menu.eventHandler.handleMoveToMenu(move)
 			}
 		}
 	}
@@ -132,11 +132,11 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 			else null
 		} ?: return
 
-		val prepare = PlayerAnvilMenuPrepare(menu, player, inventory)
+		val prepare = PlayerAnvilMenuPrepareEvent(menu, player, inventory)
 
 		plugin.launch {
 			delay(1)
-			menu.eventHandler.prepare(prepare)
+			menu.eventHandler.handlePrepare(prepare)
 		}
 	}
 

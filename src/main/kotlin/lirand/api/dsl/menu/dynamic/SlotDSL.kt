@@ -11,8 +11,8 @@ interface SlotDSL<I : Inventory> : Slot<I>, StaticSlotDSL<I> {
 	override val eventHandler: SlotDSLEventHandler<I>
 
 	@MenuDSLMarker
-	fun onRender(render: MenuPlayerSlotRenderEvent<I>) {
-		eventHandler.renderCallbacks.add(render)
+	fun onRender(renderCallback: MenuPlayerSlotRenderCallback<I>) {
+		eventHandler.renderCallbacks.add(renderCallback)
 	}
 
 	override fun clone(item: ItemStack?): SlotDSL<I>

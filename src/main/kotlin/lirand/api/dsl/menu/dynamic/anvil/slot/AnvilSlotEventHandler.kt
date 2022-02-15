@@ -2,7 +2,7 @@ package lirand.api.dsl.menu.dynamic.anvil.slot
 
 import lirand.api.dsl.menu.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.dynamic.anvil.AnvilMenuEventHandler
-import lirand.api.menu.slot.PlayerMenuSlotInteract
+import lirand.api.menu.slot.PlayerMenuSlotInteractEvent
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.plugin.Plugin
 
@@ -11,11 +11,11 @@ class AnvilSlotEventHandler(
 	private val menuEventHandler: AnvilMenuEventHandler
 ) : SlotDSLEventHandler<AnvilInventory>(plugin) {
 
-	override fun interact(interact: PlayerMenuSlotInteract<AnvilInventory>) {
-		if (interact.slotIndex == AnvilSlot.RESULT) {
-			menuEventHandler.complete(interact)
+	override fun handleInteract(interactEvent: PlayerMenuSlotInteractEvent<AnvilInventory>) {
+		if (interactEvent.slotIndex == AnvilSlot.RESULT) {
+			menuEventHandler.handleComplete(interactEvent)
 		}
-		super.interact(interact)
+		super.handleInteract(interactEvent)
 	}
 
 	override fun clone(plugin: Plugin): AnvilSlotEventHandler {

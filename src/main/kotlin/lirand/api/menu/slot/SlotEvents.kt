@@ -2,9 +2,9 @@ package lirand.api.menu.slot
 
 import lirand.api.extensions.inventory.get
 import lirand.api.extensions.inventory.set
-import lirand.api.menu.PlayerInventoryMenu
-import lirand.api.menu.PlayerMenu
-import lirand.api.menu.PlayerMenuInteract
+import lirand.api.menu.PlayerInventoryMenuEvent
+import lirand.api.menu.PlayerMenuEvent
+import lirand.api.menu.PlayerMenuInteractEvent
 import lirand.api.menu.StaticMenu
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -14,7 +14,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.util.*
 
-interface PlayerMenuSlot : PlayerMenu {
+interface PlayerMenuSlotEvent : PlayerMenuEvent {
 	val slotIndex: Int
 	val slot: StaticSlot<*>
 
@@ -27,7 +27,7 @@ interface PlayerMenuSlot : PlayerMenu {
 	fun getPlayerSlotData(key: String): Any? = slot.playerSlotData[player]?.get(key)
 }
 
-interface PlayerMenuInventorySlot<I : Inventory> : PlayerMenuSlot, PlayerInventoryMenu<I> {
+interface PlayerMenuInventorySlotEvent<I : Inventory> : PlayerMenuSlotEvent, PlayerInventoryMenuEvent<I> {
 
 	var showingItem: ItemStack?
 		get() = inventory[slotIndex]?.takeIf { it.type != Material.AIR }
@@ -37,7 +37,7 @@ interface PlayerMenuInventorySlot<I : Inventory> : PlayerMenuSlot, PlayerInvento
 
 }
 
-open class PlayerMenuSlotInteract<I : Inventory>(
+open class PlayerMenuSlotInteractEvent<I : Inventory>(
 	menu: StaticMenu<*, *>,
 	inventory: I,
 	player: Player,
@@ -49,20 +49,20 @@ open class PlayerMenuSlotInteract<I : Inventory>(
 	val clicked: ItemStack?,
 	val cursor: ItemStack?,
 	val hotbarKey: Int
-) : PlayerMenuInteract<I>(menu, player, inventory, canceled), PlayerMenuInventorySlot<I>
+) : PlayerMenuInteractEvent<I>(menu, player, inventory, canceled), PlayerMenuInventorySlotEvent<I>
 
-class PlayerMenuSlotRender<I : Inventory>(
+class PlayerMenuSlotRenderEvent<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val slotIndex: Int,
 	override val slot: StaticSlot<I>,
 	override val player: Player,
 	override val inventory: I
-) : PlayerMenuInventorySlot<I>
+) : PlayerMenuInventorySlotEvent<I>
 
-class PlayerMenuSlotUpdate<I : Inventory>(
+class PlayerMenuSlotUpdateEvent<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val slotIndex: Int,
 	override val slot: StaticSlot<I>,
 	override val player: Player,
 	override val inventory: I
-) : PlayerMenuInventorySlot<I>
+) : PlayerMenuInventorySlotEvent<I>
