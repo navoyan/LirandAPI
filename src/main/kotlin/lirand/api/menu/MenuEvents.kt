@@ -1,8 +1,6 @@
 package lirand.api.menu
 
 import lirand.api.dsl.menu.dynamic.anvil.AnvilMenu
-import lirand.api.extensions.inventory.get
-import lirand.api.extensions.inventory.set
 import org.bukkit.entity.Player
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.inventory.Inventory
@@ -21,7 +19,20 @@ interface PlayerMenu {
 	}
 
 	fun getPlayerData(key: String) = menu.playerData[player]?.get(key)
+
 }
+
+internal fun PlayerMenu(
+	menu: StaticMenu<*, *>,
+	player: Player
+): PlayerMenu = PlayerMenuImpl(menu, player)
+
+internal class PlayerMenuImpl(
+	override val menu: StaticMenu<*, *>,
+	override val player: Player
+) : PlayerMenu
+
+
 
 interface PlayerInventoryMenu<I : Inventory> : PlayerMenu {
 	val inventory: I
@@ -29,9 +40,27 @@ interface PlayerInventoryMenu<I : Inventory> : PlayerMenu {
 	fun close() = player.closeInventory()
 }
 
+fun <I : Inventory> PlayerInventoryMenu(
+	menu: StaticMenu<*, *>,
+	player: Player,
+	inventory: I
+): PlayerInventoryMenu<I> =
+	PlayerInventoryMenuImpl<I>(
+		menu, player, inventory
+	)
+
+internal class PlayerInventoryMenuImpl<I : Inventory>(
+	override val menu: StaticMenu<*, *>,
+	override val player: Player,
+	override val inventory: I
+) : PlayerInventoryMenu<I>
+
+
+
 interface PlayerMenuCancellable {
 	var canceled: Boolean
 }
+
 
 open class PlayerMenuInteract<I : Inventory>(
 	override val menu: StaticMenu<*, *>,

@@ -10,12 +10,8 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import java.util.*
 
-typealias ItemsProvider<T> = () -> Collection<T>
-typealias ItemsAdapter<T> = PlayerMenu.(List<T>) -> List<T>
-
-enum class PaginationOrientation {
-	HORIZONTAL, VERTICAL
-}
+typealias ItemsProvider<T> = PlayerMenu.() -> Collection<T>
+typealias ItemsAdapter<T> = PlayerInventoryMenu<Inventory>.(List<T>) -> List<T>
 
 @MenuDSLMarker
 inline fun <T> MenuPagination<T>.slot(
@@ -34,68 +30,22 @@ fun ChestMenu.setPlayerOpenPage(player: Player, page: Int) {
 
 @MenuDSLMarker
 inline fun <T> ChestMenu.pagination(
-	itemsProvider: Collection<T>,
-	nextPageSlot: SlotDSL<Inventory>,
-	previousPageSlot: SlotDSL<Inventory>,
-	autoUpdateSwitchPageSlot: Boolean = true,
-	startLine: Int = 1,
-	endLine: Int = lines - 1,
-	startSlot: Int = 1,
-	endSlot: Int = 9,
-	orientation: PaginationOrientation = PaginationOrientation.HORIZONTAL,
-	noinline itemsAdapterOnOpen: ItemsAdapter<T>? = null,
-	noinline itemsAdapterOnUpdate: ItemsAdapter<T>? = null,
-	crossinline builder: MenuPagination<T>.() -> Unit
-): MenuPaginationImplementation<T> {
-	return pagination(
-		{ itemsProvider },
-		nextPageSlot,
-		previousPageSlot,
-		autoUpdateSwitchPageSlot,
-		startLine,
-		endLine,
-		startSlot,
-		endSlot,
-		orientation,
-		itemsAdapterOnOpen,
-		itemsAdapterOnUpdate,
-		builder
-	)
-}
-
-@MenuDSLMarker
-inline fun <T> ChestMenu.pagination(
 	noinline itemsProvider: ItemsProvider<T>,
-	nextPageSlot: SlotDSL<Inventory>,
 	previousPageSlot: SlotDSL<Inventory>,
+	nextPageSlot: SlotDSL<Inventory>,
+	linesRange: IntRange = 1 until lines,
+	slotsRange: IntRange = 1..9,
 	autoUpdateSwitchPageSlot: Boolean = true,
-	startLine: Int = 1,
-	endLine: Int = lines - 1,
-	startSlot: Int = 1,
-	endSlot: Int = 9,
-	orientation: PaginationOrientation = PaginationOrientation.HORIZONTAL,
-	noinline itemsAdapterOnOpen: ItemsAdapter<T>? = null,
-	noinline itemsAdapterOnUpdate: ItemsAdapter<T>? = null,
 	crossinline builder: MenuPagination<T>.() -> Unit
-): MenuPaginationImplementation<T> {
-	if (startSlot > endSlot) throw IllegalArgumentException()
-	if (startLine > endLine) throw IllegalArgumentException()
+): MenuPagination<T> = MenuPaginationImplementation(
+	this,
+	itemsProvider,
+	previousPageSlot, nextPageSlot,
+	linesRange, slotsRange,
+	autoUpdateSwitchPageSlot
+).apply(builder)
 
-	return MenuPaginationImplementation(
-		this,
-		itemsProvider,
-		nextPageSlot,
-		previousPageSlot,
-		autoUpdateSwitchPageSlot,
-		startLine,
-		endLine,
-		startSlot,
-		endSlot,
-		orientation,
-		itemsAdapterOnOpen,
-		itemsAdapterOnUpdate
-	).apply(builder)
-}
+
 
 @MenuDSLMarker
 interface MenuPagination<T> {
@@ -108,18 +58,12 @@ interface MenuPagination<T> {
 	val nextPageSlot: SlotDSL<Inventory>
 	val previousPageSlot: SlotDSL<Inventory>
 
-	val autoUpdateSwitchPageSlot: Boolean
+	val autoUpdateSwitchPageSlots: Boolean
 
-	val startLine: Int
-	val endLine: Int
+	val linesRange: IntRange
+	val slotsRange: IntRange
 
-	val startSlot: Int
-	val endSlot: Int
-
-	val orientation: PaginationOrientation
-
-	val itemsAdapterOnOpen: ItemsAdapter<T>?
-	val itemsAdapterOnUpdate: ItemsAdapter<T>?
+	val itemsAdapter: ItemsAdapter<T>?
 
 	@MenuDSLMarker
 	fun onPageChange(pageChange: MenuPlayerPageChangeEvent) {
@@ -131,11 +75,12 @@ interface MenuPagination<T> {
 		paginationEventHandler.pageAvailableCallbacks.add(pageAvailable)
 	}
 
+	@MenuDSLMarker
+	fun adaptOnUpdate(adapter: ItemsAdapter<T>)
+
 	fun hasPreviousPage(player: Player): Boolean
-
 	fun hasNextPage(player: Player): Boolean
-
 	fun getPlayerCurrentPage(player: Player): Int
 
-	fun updateItemsToPlayer(menuPlayer: PlayerInventoryMenu<Inventory>)
+	fun updateItems(player: Player)
 }

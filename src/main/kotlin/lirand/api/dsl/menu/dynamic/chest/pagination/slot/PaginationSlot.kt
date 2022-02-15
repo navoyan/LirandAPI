@@ -18,7 +18,7 @@ interface PaginationSlot<T> {
 	/**
 	 * Cancel the interaction with this slot
 	 */
-	var cancel: Boolean
+	var cancelEvents: Boolean
 
 	@MenuDSLMarker
 	fun onPageChange(pageChange: MenuPlayerSlotPageChangeEvent<T>) {

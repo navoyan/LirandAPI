@@ -3,7 +3,6 @@ package lirand.api.dsl.menu.dynamic.chest.pagination.slot
 import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.chest.pagination.MenuPaginationImplementation
 import lirand.api.extensions.inventory.set
-import lirand.api.menu.PlayerInventoryMenu
 import lirand.api.menu.slot.PlayerMenuSlotRender
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
@@ -15,7 +14,7 @@ class PaginationSlotImplementation<T>(
 ) : PaginationSlot<T> {
 	override val paginationEventHandler = PaginationSlotEventHandler<T>(pagination.menu.plugin)
 
-	override var cancel: Boolean
+	override var cancelEvents: Boolean
 		get() = slotRoot.cancelEvents
 		set(value) {
 			slotRoot.cancelEvents = value
@@ -30,7 +29,8 @@ class PaginationSlotImplementation<T>(
 		actualItem: T?,
 		nextItem: T?,
 		slotPos: Int,
-		menuPlayerInventory: PlayerInventoryMenu<Inventory>,
+		player: Player,
+		inventory: Inventory,
 		isPageChange: Boolean = false
 	) {
 		if (isPageChange) {
@@ -43,14 +43,13 @@ class PaginationSlotImplementation<T>(
 					pagination.menu,
 					slotPos,
 					slotRoot,
-					menuPlayerInventory.player,
-					menuPlayerInventory.inventory
+					player,
+					inventory
 				)
 			)
 		}
 
-		// cleaning item in the inventory slot
-		menuPlayerInventory.inventory[slotPos] = null
+		inventory[slotPos] = null
 
 		paginationEventHandler.handleRender(
 			nextItem,
@@ -58,8 +57,8 @@ class PaginationSlotImplementation<T>(
 				pagination.menu,
 				slotPos,
 				slotRoot,
-				menuPlayerInventory.player,
-				menuPlayerInventory.inventory
+				player,
+				inventory
 			)
 		)
 	}
@@ -77,7 +76,6 @@ class PaginationSlotImplementation<T>(
 				pagination.itemPlayerSlotData[actualItem] = playerSlotData
 		}
 
-		// cleaning current data in the Slot
 		slotData.clear()
 		playerSlotData.clear()
 
