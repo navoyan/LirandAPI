@@ -61,7 +61,6 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 
 
 
-	@NodeBuilderDSLMarker
 	inline fun literal(
 		name: String,
 		crossinline builder: LiteralDSLBuilder.() -> Unit
@@ -74,7 +73,6 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 		return childNode
 	}
 
-	@NodeBuilderDSLMarker
 	inline fun <A : ArgumentType<T>, T> argument(
 		name: String,
 		type: A,
@@ -91,7 +89,6 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 
 
 
-	@NodeBuilderDSLMarker
 	fun executes(block: suspend BrigadierCommandContext<CommandSender>.() -> Unit) {
 		if (completeExecutor == null) {
 			setupExecutor()
@@ -99,7 +96,6 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 		defaultExecutor = block
 	}
 
-	@NodeBuilderDSLMarker
 	fun executesPlayer(block: suspend BrigadierCommandContext<Player>.() -> Unit) {
 		if (completeExecutor == null) {
 			setupExecutor()
@@ -107,7 +103,6 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 		playerExecutor = block
 	}
 
-	@NodeBuilderDSLMarker
 	fun executesConsole(block: suspend BrigadierCommandContext<ConsoleCommandSender>.() -> Unit) {
 		if (completeExecutor == null) {
 			setupExecutor()
@@ -117,12 +112,10 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 
 
 
-	@NodeBuilderDSLMarker
 	fun requires(predicate: (CommandSender) -> Boolean) {
 		_requirements.add(predicate)
 	}
 
-	@NodeBuilderDSLMarker
 	fun requiresPermissions(permission: String, vararg permissions: String) {
 		_requirements.add { sender -> sender.allPermissions(permission, *permissions) }
 	}

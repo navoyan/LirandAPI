@@ -12,6 +12,7 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.scoreboard.DisplaySlot
 import org.bukkit.scoreboard.Objective
 
+@ScoreboardBuilderDSLMarker
 class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : ScoreboardBuilder {
 
 	private val lines = mutableMapOf<Int, ScoreboardLine>()
@@ -75,7 +76,6 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 	 *
 	 * If [line] be greater than 16 or less than 1 the line will be ignored.
 	 */
-	@ScoreboardBuilderDSLMarker
 	inline fun line(
 		line: Int,
 		text: String,
@@ -89,7 +89,6 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 	 * when the line renders to the player, or [ScoreboardLine.onUpdate] when you call [updateLine] or
 	 * specify a value greater than 0 to [updateTitleDelay] to update all lines periodic.
 	 */
-	@ScoreboardBuilderDSLMarker
 	inline fun lines(
 		vararg lines: String,
 		startInLine: Int = 1,
@@ -111,12 +110,11 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 	/**
 	 * The DSL block to manage how the title of the scoreboard will be displayed to a specific player.
 	 */
-	@ScoreboardBuilderDSLMarker
 	inline fun title(crossinline block: ScoreboardTitle.() -> Unit) =
 		titleController(ScoreboardTitle(this).apply(block))
 
 
-	override fun show(player: Player) {
+	override fun showTo(player: Player) {
 		val max = lines.keys.maxOrNull() ?: return
 
 		if (_players[player]?.scoreboard != null) return
@@ -129,7 +127,7 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 			}
 
 		for (i in 1..max) {
-			lineBuild(objective, i) { line ->
+			buildLine(objective, i) { line ->
 				if (line.renderEvent != null) {
 					LineRenderEvent(player, line.text).also { line.renderEvent?.invoke(it) }.newText
 				}
@@ -158,13 +156,13 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 		}.joinToString("")
 	}
 
-	private fun entryByLine(line: Int) = lineColors[line]
+	private fun getEntryByLine(line: Int) = lineColors[line]
 
-	private inline fun lineBuild(objective: Objective, line: Int, lineTextTransformer: (ScoreboardLine) -> String) {
+	private inline fun buildLine(objective: Objective, line: Int, lineTextTransformer: (ScoreboardLine) -> String) {
 		val sb = objective.scoreboard ?: return
 		val sbLine = lines[line] ?: ScoreboardLine(this, "")
 
-		val lineEntry = entryByLine(line)
+		val lineEntry = getEntryByLine(line)
 		val realScoreLine = 17 - line
 
 		val text = lineTextTransformer(sbLine)
@@ -212,7 +210,7 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 	override fun updateLine(line: Int): Boolean {
 		if (lines[line] == null) return false
 		for ((player, objective) in _players) {
-			lineBuild(objective, line) { sbLine ->
+			buildLine(objective, line) { sbLine ->
 				if (sbLine.updateEvent != null) {
 					LineUpdateEvent(player, sbLine.text).also { sbLine.updateEvent?.invoke(it) }.newText
 				}

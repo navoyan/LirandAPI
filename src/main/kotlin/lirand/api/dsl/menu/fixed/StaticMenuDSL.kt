@@ -18,27 +18,22 @@ interface StaticMenuDSL<S : StaticSlotDSL<I>, I : Inventory> : StaticMenu<S, I> 
 
 	override val eventHandler: MenuDSLEventHandler<I>
 
-	@MenuDSLMarker
 	fun onUpdate(updateCallback: PlayerMenuUpdateCallback<I>) {
 		eventHandler.updateCallbacks.add(updateCallback)
 	}
 
-	@MenuDSLMarker
 	fun onClose(closeCallback: PlayerMenuCloseCallback) {
 		eventHandler.closeCallbacks.add(closeCallback)
 	}
 
-	@MenuDSLMarker
 	fun onMoveToMenu(moveToMenuCallback: PlayerMenuMoveCallback<I>) {
 		eventHandler.moveToMenuCallbacks.add(moveToMenuCallback)
 	}
 
-	@MenuDSLMarker
 	fun preOpen(preOpenCallback: PlayerMenuPreOpenCallback) {
 		eventHandler.preOpenCallbacks.add(preOpenCallback)
 	}
 
-	@MenuDSLMarker
 	fun onOpen(openCallback: PlayerMenuOpenCallback<I>) {
 		eventHandler.openCallbacks.add(openCallback)
 	}

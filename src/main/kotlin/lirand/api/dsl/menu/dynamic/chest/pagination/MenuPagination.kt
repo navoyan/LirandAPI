@@ -13,7 +13,6 @@ import java.util.*
 typealias ItemsProvider<T> = PlayerMenuEvent.() -> Collection<T>
 typealias ItemsAdapter<T> = PlayerInventoryMenuEvent<Inventory>.(List<T>) -> List<T>
 
-@MenuDSLMarker
 inline fun <T> MenuPagination<T>.slot(
 	crossinline builder: PaginationSlot<T>.() -> Unit
 ) {
@@ -28,7 +27,6 @@ fun ChestMenu.setPlayerOpenPage(player: Player, page: Int) {
 	}
 }
 
-@MenuDSLMarker
 inline fun <T> ChestMenu.pagination(
 	noinline itemsProvider: ItemsProvider<T>,
 	previousPageSlot: SlotDSL<Inventory>,
@@ -65,17 +63,14 @@ interface MenuPagination<T> {
 
 	val itemsAdapter: ItemsAdapter<T>?
 
-	@MenuDSLMarker
 	fun onPageChange(pageChangeCallback: MenuPlayerPageChangeCallback) {
 		paginationEventHandler.pageChangeCallbacks.add(pageChangeCallback)
 	}
 
-	@MenuDSLMarker
 	fun onPageAvailable(pageAvailableCallback: MenuPlayerPageAvailableCallback) {
 		paginationEventHandler.pageAvailableCallbacks.add(pageAvailableCallback)
 	}
 
-	@MenuDSLMarker
 	fun adaptOnUpdate(adapter: ItemsAdapter<T>)
 
 	fun hasPreviousPage(player: Player): Boolean

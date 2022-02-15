@@ -13,12 +13,10 @@ class ScoreboardLine(private val scoreboard: ScoreboardDSLBuilder, text: String)
 	internal var renderEvent: LineRenderCallback? = null
 	internal var updateEvent: LineUpdateCallback? = null
 
-	@ScoreboardBuilderDSLMarker
 	fun onRender(renderCallback: LineRenderCallback) {
 		renderEvent = renderCallback
 	}
 
-	@ScoreboardBuilderDSLMarker
 	fun onUpdate(updateCallback: LineUpdateCallback) {
 		updateEvent = updateCallback
 	}

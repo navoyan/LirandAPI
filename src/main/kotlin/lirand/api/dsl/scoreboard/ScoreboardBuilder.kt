@@ -15,7 +15,6 @@ annotation class ScoreboardBuilderDSLMarker
  * onUpdate events: Called when updateDelay trigger or force update by using [ScoreboardBuilder.updateTitle],
  * [ScoreboardBuilder.updateLine], [ScoreboardBuilder.updateLines].
  */
-@ScoreboardBuilderDSLMarker
 inline fun Plugin.scoreboard(
 	title: String,
 	crossinline block: ScoreboardDSLBuilder.() -> Unit
@@ -23,7 +22,6 @@ inline fun Plugin.scoreboard(
 
 val linesBounds = 1..16
 
-@ScoreboardBuilderDSLMarker
 interface ScoreboardBuilder {
 
 	val players: Map<Player, Objective>
@@ -31,22 +29,22 @@ interface ScoreboardBuilder {
 	/**
 	 * Show/set the built scoreboard to a [player]
 	 */
-	fun show(player: Player)
+	fun showTo(player: Player)
 
 	/**
-	 * Update the title to all players with the scoreboard set see [show])
+	 * Update the title to all players with the scoreboard set see [showTo])
 	 */
 	fun updateTitle()
 
 	/**
-	 * Update a specific line to all players with the scoreboard set see [show])
+	 * Update a specific line to all players with the scoreboard set see [showTo])
 	 *
 	 * Returns false if the line doesn't exist, true if the line was founded and update.
 	 */
 	fun updateLine(line: Int): Boolean
 
 	/**
-	 * Update all lines to all players with the scoreboard set (see [show])
+	 * Update all lines to all players with the scoreboard set (see [showTo])
 	 */
 	fun updateLines()
 

@@ -20,22 +20,18 @@ interface PaginationSlot<T> {
 	 */
 	var cancelEvents: Boolean
 
-	@MenuDSLMarker
 	fun onPageChange(pageChangeCallback: MenuPlayerSlotPageChangeCallback<T>) {
 		paginationEventHandler.pageChangeCallbacks.add(pageChangeCallback)
 	}
 
-	@MenuDSLMarker
-	fun onClick(clickCallback: MenuPlayerPageSlotInteractCallback<T>) {
+	fun onInteract(clickCallback: MenuPlayerPageSlotInteractCallback<T>) {
 		paginationEventHandler.interactCallbacks.add(clickCallback)
 	}
 
-	@MenuDSLMarker
 	fun onRender(renderCallback: MenuPlayerPageSlotRenderCallback<T>) {
 		paginationEventHandler.renderCallbacks.add(renderCallback)
 	}
 
-	@MenuDSLMarker
 	fun onUpdate(updateCallback: MenuPlayerPageSlotUpdateCallback<T>) {
 		paginationEventHandler.updateCallbacks.add(updateCallback)
 	}

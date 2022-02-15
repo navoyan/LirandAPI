@@ -18,7 +18,6 @@ open class ArgumentDSLBuilder<T>(
 		private set
 
 
-	@NodeBuilderDSLMarker
 	fun suggests(provider: BrigadierCommandContext<CommandSender>.(builder: SuggestionsBuilder) -> Unit) {
 		suggestionsProvider = SuggestionProvider { context, builder ->
 			BrigadierCommandContext<CommandSender>(context).provider(builder)

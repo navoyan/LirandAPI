@@ -2,7 +2,6 @@ package lirand.api.dsl.menu.fixed.chest
 
 import lirand.api.dsl.menu.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.dynamic.chest.slot.ChestSlot
-import lirand.api.dsl.menu.fixed.MenuDSLMarker
 import lirand.api.dsl.menu.fixed.StaticMenuDSL
 import lirand.api.dsl.menu.fixed.StaticSlotDSL
 import lirand.api.extensions.inventory.set
@@ -11,7 +10,6 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
 
-@MenuDSLMarker
 inline fun Plugin.staticChestMenu(
 	lines: Int,
 	title: String,
@@ -19,7 +17,6 @@ inline fun Plugin.staticChestMenu(
 	crossinline builder: StaticChestMenu.() -> Unit = {}
 ): StaticChestMenu = StaticChestMenuImpl(this, lines, title, cancelEvents).apply(builder)
 
-@MenuDSLMarker
 inline fun Plugin.staticChestMenu(
 	inventory: Inventory,
 	title: String,
@@ -35,14 +32,12 @@ inline fun Plugin.staticChestMenu(
 }
 
 
-@MenuDSLMarker
 inline fun StaticChestMenu.slot(
 	line: Int,
 	slot: Int,
 	crossinline builder: StaticSlotDSL<Inventory>.() -> Unit = {}
 ): StaticSlotDSL<Inventory> = slot(calculateSlot(line, slot), builder)
 
-@MenuDSLMarker
 inline fun StaticChestMenu.slot(
 	line: Int,
 	slot: Int,
@@ -50,7 +45,6 @@ inline fun StaticChestMenu.slot(
 	crossinline builder: StaticSlotDSL<Inventory>.() -> Unit = {}
 ): StaticSlotDSL<Inventory> = slot(calculateSlot(line, slot), item, builder)
 
-@MenuDSLMarker
 inline fun StaticChestMenu.slot(
 	slot: Int,
 	crossinline builder: StaticSlotDSL<Inventory>.() -> Unit = {}
@@ -58,7 +52,6 @@ inline fun StaticChestMenu.slot(
 	setSlot(slot, it)
 }
 
-@MenuDSLMarker
 inline fun StaticChestMenu.slot(
 	slot: Int,
 	item: ItemStack?,

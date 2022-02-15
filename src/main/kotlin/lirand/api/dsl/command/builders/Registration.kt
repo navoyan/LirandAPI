@@ -10,7 +10,6 @@ import org.bukkit.plugin.Plugin
 annotation class NodeBuilderDSLMarker
 
 
-@NodeBuilderDSLMarker
 inline fun Plugin.command(
 	name: String,
 	register: Boolean = true,

@@ -10,12 +10,10 @@ class ScoreboardTitle(private val scoreboard: ScoreboardDSLBuilder) {
 	internal var renderEvent: TitleRenderCallback? = null
 	internal var updateEvent: TitleUpdateCallback? = null
 
-	@ScoreboardBuilderDSLMarker
 	fun onRender(renderCallback: TitleRenderCallback) {
 		renderEvent = renderCallback
 	}
 
-	@ScoreboardBuilderDSLMarker
 	fun onUpdate(updateCallback: TitleUpdateCallback) {
 		updateEvent = updateCallback
 	}
