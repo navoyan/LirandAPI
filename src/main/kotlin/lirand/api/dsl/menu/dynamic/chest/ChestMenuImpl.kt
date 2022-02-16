@@ -1,9 +1,13 @@
 package lirand.api.dsl.menu.dynamic.chest
 
-import com.github.shynixn.mccoroutine.launch
-import kotlinx.coroutines.Job
+import com.github.shynixn.mccoroutine.minecraftDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import lirand.api.dsl.menu.MenuDSLEventHandler
 import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.SlotDSLEventHandler
@@ -15,7 +19,7 @@ import lirand.api.menu.PlayerMenuOpenEvent
 import lirand.api.menu.PlayerMenuPreOpenEvent
 import lirand.api.menu.PlayerMenuUpdateEvent
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.slot.PlayerMenuSlotRenderEvent
+import lirand.api.menu.slot.MenuSlotRenderEvent
 import lirand.api.menu.slot.PlayerMenuSlotUpdateEvent
 import lirand.api.menu.viewersFromPlayers
 import lirand.api.utilities.ifTrue
@@ -38,12 +42,15 @@ class ChestMenuImpl(
 			dynamicTitle = { value }
 		}
 
-	private var job: Job? = null
-	override var updateDelay: Long = -1
+	private val scope = CoroutineScope(
+		plugin.minecraftDispatcher + SupervisorJob() +
+				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
+	)
+	override var updateDelay: Long = 0
 		set(value) {
-			field = value
+			field = value.takeIf { it >= 0 } ?: 0
 			removeUpdateTask()
-			if (value > 0 && _viewers.isNotEmpty())
+			if (value > 0 && viewers.isNotEmpty())
 				setUpdateTask()
 		}
 
@@ -96,7 +103,7 @@ class ChestMenuImpl(
 		}
 	}
 
-	override fun update() = update(_viewers.keys)
+	override fun update() = update(viewers.keys)
 
 	override fun updateSlot(slot: SlotDSL<Inventory>, players: Set<Player>) {
 		val slots: Map<Int, SlotDSL<Inventory>> = if (slot === baseSlot) {
@@ -113,7 +120,7 @@ class ChestMenuImpl(
 		}
 	}
 
-	override fun updateSlot(slot: SlotDSL<Inventory>) = updateSlot(slot, _viewers.keys)
+	override fun updateSlot(slot: SlotDSL<Inventory>) = updateSlot(slot, viewers.keys)
 
 	override fun openTo(vararg players: Player) {
 		for (player in players) {
@@ -132,7 +139,7 @@ class ChestMenuImpl(
 				for (index in rangeOfSlots) {
 					val slot = getSlotOrBaseSlot(index)
 
-					val render = PlayerMenuSlotRenderEvent(this, index, slot, player, inventory)
+					val render = MenuSlotRenderEvent(this, index, slot, player, inventory)
 
 					slot.eventHandler.handleRender(render)
 				}
@@ -142,7 +149,7 @@ class ChestMenuImpl(
 				val open = PlayerMenuOpenEvent(this, player, inventory)
 				eventHandler.handleOpen(open)
 
-				if (job == null && updateDelay > 0 && _viewers.isNotEmpty())
+				if (updateDelay > 0 && viewers.size == 1)
 					setUpdateTask()
 
 			} catch (exception: Throwable) {
@@ -166,6 +173,17 @@ class ChestMenuImpl(
 		return inventory
 	}
 
+	override fun close(player: Player, closeInventory: Boolean) {
+		removePlayer(player, closeInventory).ifTrue {
+			val menuClose = PlayerMenuCloseEvent(this, player)
+			eventHandler.handleClose(menuClose)
+
+			if (updateDelay > 0 && viewers.isEmpty())
+				removeUpdateTask()
+		}
+	}
+
+
 	private fun removePlayer(player: Player, closeInventory: Boolean): Boolean {
 		if (closeInventory) player.closeInventory()
 
@@ -176,32 +194,21 @@ class ChestMenuImpl(
 		return viewing
 	}
 
-	override fun close(player: Player, closeInventory: Boolean) {
-		removePlayer(player, closeInventory).ifTrue {
-			val menuClose = PlayerMenuCloseEvent(this, player)
-			eventHandler.handleClose(menuClose)
-
-			if (job != null && updateDelay > 0 && _viewers.isEmpty())
-				removeUpdateTask()
-		}
-	}
-
 	private fun updateSlotOnly(index: Int, slot: SlotDSL<Inventory>, player: Player, inventory: Inventory) {
 		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
 		slot.eventHandler.handleUpdate(slotUpdate)
 	}
 
 	private fun setUpdateTask() {
-		job = plugin.launch {
+		scope.launch {
 			while (isActive) {
-				update()
 				delay(updateDelay)
+				update()
 			}
 		}
 	}
 
 	private fun removeUpdateTask() {
-		job?.cancel()
-		job = null
+		scope.coroutineContext.cancelChildren()
 	}
 }

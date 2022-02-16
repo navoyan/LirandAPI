@@ -26,11 +26,11 @@ interface AnvilMenu : MenuDSL<SlotDSL<AnvilInventory>, AnvilInventory> {
 
 	override fun getInventory(): AnvilInventory
 
-	fun onComplete(completeCallback: PlayerMenuCompleteCallback) {
+	fun onComplete(completeCallback: AnvilMenuCompleteCallback) {
 		eventHandler.completeCallbacks.add(completeCallback)
 	}
 
-	fun onPrepare(prepareCallback: PlayerAnvilMenuPrepareCallback) {
+	fun onPrepare(prepareCallback: AnvilMenuPrepareCallback) {
 		eventHandler.prepareCallbacks.add(prepareCallback)
 	}
 }

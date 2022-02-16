@@ -3,7 +3,7 @@ package lirand.api.dsl.menu.dynamic.chest.pagination.slot
 import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.chest.pagination.MenuPaginationImpl
 import lirand.api.extensions.inventory.set
-import lirand.api.menu.slot.PlayerMenuSlotRenderEvent
+import lirand.api.menu.slot.MenuSlotRenderEvent
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import java.util.*
@@ -36,7 +36,6 @@ class PaginationSlotImpl<T>(
 		if (isPageChange) {
 			relocateSlotData(actualItem, nextItem)
 
-			// triggering event
 			paginationEventHandler.handlePageChange(
 				actualItem,
 				PlayerMenuSlotPageChangeEvent(
@@ -53,7 +52,7 @@ class PaginationSlotImpl<T>(
 
 		paginationEventHandler.handleRender(
 			nextItem,
-			PlayerMenuSlotRenderEvent(
+			MenuSlotRenderEvent(
 				pagination.menu,
 				slotPos,
 				slotRoot,

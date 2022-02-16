@@ -1,6 +1,10 @@
 package lirand.api.dsl.menu
 
-import com.github.shynixn.mccoroutine.launch
+import com.github.shynixn.mccoroutine.minecraftDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import lirand.api.menu.MenuEventHandler
 import lirand.api.menu.PlayerMenuCloseEvent
 import lirand.api.menu.PlayerMenuOpenEvent
@@ -10,14 +14,18 @@ import lirand.api.menu.PlayerMoveToMenuEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-typealias PlayerMenuUpdateCallback<I> = suspend PlayerMenuUpdateEvent<I>.() -> Unit
-typealias PlayerMenuCloseCallback = suspend PlayerMenuCloseEvent.() -> Unit
-typealias PlayerMenuMoveCallback<I> = PlayerMoveToMenuEvent<I>.() -> Unit
+typealias PlayerMenuUpdateCallback<I> = suspend PlayerMenuUpdateEvent<I>.(scope: CoroutineScope) -> Unit
+typealias PlayerMenuCloseCallback = suspend PlayerMenuCloseEvent.(scope: CoroutineScope) -> Unit
+typealias PlayerMenuMoveCallback<I> = PlayerMoveToMenuEvent<I>.(scope: CoroutineScope) -> Unit
 
-typealias PlayerMenuPreOpenCallback = suspend PlayerMenuPreOpenEvent.() -> Unit
-typealias PlayerMenuOpenCallback<I> = suspend PlayerMenuOpenEvent<I>.() -> Unit
+typealias PlayerMenuPreOpenCallback = suspend PlayerMenuPreOpenEvent.(scope: CoroutineScope) -> Unit
+typealias PlayerMenuOpenCallback<I> = suspend PlayerMenuOpenEvent<I>.(scope: CoroutineScope) -> Unit
 
 open class MenuDSLEventHandler<I : Inventory>(override val plugin: Plugin) : MenuEventHandler<I> {
+	protected val scope = CoroutineScope(
+		plugin.minecraftDispatcher + SupervisorJob() +
+				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
+	)
 
 	val updateCallbacks = mutableListOf<PlayerMenuUpdateCallback<I>>()
 	val closeCallbacks = mutableListOf<PlayerMenuCloseCallback>()
@@ -27,38 +35,40 @@ open class MenuDSLEventHandler<I : Inventory>(override val plugin: Plugin) : Men
 
 	override fun handleUpdate(updateEvent: PlayerMenuUpdateEvent<I>) {
 		for (callback in updateCallbacks) {
-			plugin.launch {
-				callback(updateEvent)
+			scope.launch {
+				callback(updateEvent, this)
 			}
 		}
 	}
 
 	override fun handleClose(closeEvent: PlayerMenuCloseEvent) {
 		for (callback in closeCallbacks) {
-			plugin.launch {
-				callback(closeEvent)
+			scope.launch {
+				callback(closeEvent, this)
 			}
 		}
 	}
 
 	override fun handleMoveToMenu(moveToMenuEvent: PlayerMoveToMenuEvent<I>) {
 		for (callback in moveToMenuCallbacks) {
-			callback(moveToMenuEvent)
+			scope.launch {
+				callback(moveToMenuEvent, this)
+			}
 		}
 	}
 
 	override fun handlePreOpen(preOpenEvent: PlayerMenuPreOpenEvent) {
 		for (callback in preOpenCallbacks) {
-			plugin.launch {
-				callback(preOpenEvent)
+			scope.launch {
+				callback(preOpenEvent, this)
 			}
 		}
 	}
 
 	override fun handleOpen(openEvent: PlayerMenuOpenEvent<I>) {
 		for (callback in openCallbacks) {
-			plugin.launch {
-				callback(openEvent)
+			scope.launch {
+				callback(openEvent, this)
 			}
 		}
 	}

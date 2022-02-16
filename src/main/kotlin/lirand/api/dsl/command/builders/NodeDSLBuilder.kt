@@ -1,12 +1,16 @@
 package lirand.api.dsl.command.builders
 
-import com.github.shynixn.mccoroutine.launch
+import com.github.shynixn.mccoroutine.minecraftDispatcher
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.RedirectModifier
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
 import com.mojang.brigadier.tree.CommandNode
 import com.mojang.brigadier.tree.RootCommandNode
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import lirand.api.dsl.command.builders.fails.CommandFailException
 import lirand.api.dsl.command.implementation.tree.nodes.BrigadierArgument
 import lirand.api.dsl.command.implementation.tree.nodes.BrigadierLiteral
@@ -18,7 +22,7 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import java.util.function.Predicate
 
-private typealias CommandExecutor<S> = suspend BrigadierCommandContext<S>.() -> Unit
+private typealias CommandExecutor<S> = suspend BrigadierCommandContext<S>.(scope: CoroutineScope) -> Unit
 
 @NodeBuilderDSLMarker
 abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
@@ -30,6 +34,11 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 	val arguments: Collection<CommandNode<CommandSender>>
 		get() = rootNode.children
 
+
+	private val scope = CoroutineScope(
+		plugin.minecraftDispatcher + SupervisorJob() +
+				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
+	)
 
 	var completeExecutor: Command<CommandSender>? = null
 		private set
@@ -76,7 +85,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 	inline fun <A : ArgumentType<T>, T> argument(
 		name: String,
 		type: A,
-		crossinline builder: ArgumentDSLBuilder<T>.(ArgumentDefinition<A, T>) -> Unit
+		crossinline builder: ArgumentDSLBuilder<T>.(argument: ArgumentDefinition<A, T>) -> Unit
 	): BrigadierArgument<CommandSender, T> {
 		val childNode = ArgumentDSLBuilder(plugin, name, type).apply {
 			builder(ArgumentDefinition(name, type))
@@ -89,21 +98,21 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 
 
 
-	fun executes(block: suspend BrigadierCommandContext<CommandSender>.() -> Unit) {
+	fun executes(block: CommandExecutor<CommandSender>) {
 		if (completeExecutor == null) {
 			setupExecutor()
 		}
 		defaultExecutor = block
 	}
 
-	fun executesPlayer(block: suspend BrigadierCommandContext<Player>.() -> Unit) {
+	fun executesPlayer(block: CommandExecutor<Player>) {
 		if (completeExecutor == null) {
 			setupExecutor()
 		}
 		playerExecutor = block
 	}
 
-	fun executesConsole(block: suspend BrigadierCommandContext<ConsoleCommandSender>.() -> Unit) {
+	fun executesConsole(block: CommandExecutor<ConsoleCommandSender>) {
 		if (completeExecutor == null) {
 			setupExecutor()
 		}
@@ -112,7 +121,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 
 
 
-	fun requires(predicate: (CommandSender) -> Boolean) {
+	fun requires(predicate: (sender: CommandSender) -> Boolean) {
 		_requirements.add(predicate)
 	}
 
@@ -144,7 +153,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 		modifier: RedirectModifier<CommandSender>? = null,
 		isFork: Boolean
 	) {
-		check(rootNode.children.isEmpty()) { "Cannot forward a node with children" }
+		check(rootNode.children.isEmpty()) { "Cannot forward a node with children." }
 		redirect = target
 		redirectModifier = modifier
 		this.isFork = isFork
@@ -158,7 +167,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 
 	@PublishedApi
 	internal fun addChild(node: CommandNode<CommandSender>) {
-		check(redirect == null) { "Cannot add children to a redirected node" }
+		check(redirect == null) { "Cannot add children to a redirected node." }
 		rootNode.addChild(node)
 	}
 
@@ -193,9 +202,9 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 	) {
 		if (executor == null) return
 
-		plugin.launch {
+		scope.launch {
 			try {
-				executor(context)
+				executor(context, this)
 			} catch (exception: CommandFailException) {
 				val message = exception.failMessage
 

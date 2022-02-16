@@ -1,9 +1,13 @@
 package lirand.api.dsl.menu.dynamic.anvil
 
-import com.github.shynixn.mccoroutine.launch
-import kotlinx.coroutines.Job
+import com.github.shynixn.mccoroutine.minecraftDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import lirand.api.dsl.menu.dynamic.SlotDSL
 import lirand.api.dsl.menu.dynamic.anvil.slot.AnvilSlot
 import lirand.api.dsl.menu.dynamic.anvil.slot.AnvilSlotEventHandler
@@ -13,7 +17,7 @@ import lirand.api.menu.PlayerMenuOpenEvent
 import lirand.api.menu.PlayerMenuPreOpenEvent
 import lirand.api.menu.PlayerMenuUpdateEvent
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.slot.PlayerMenuSlotRenderEvent
+import lirand.api.menu.slot.MenuSlotRenderEvent
 import lirand.api.menu.slot.PlayerMenuSlotUpdateEvent
 import lirand.api.menu.viewersFromPlayers
 import lirand.api.utilities.allFields
@@ -84,12 +88,15 @@ class AnvilMenuImpl(
 			dynamicTitle = { value }
 		}
 
-	private var job: Job? = null
-	override var updateDelay: Long = -1
+	private val scope = CoroutineScope(
+		plugin.minecraftDispatcher + SupervisorJob() +
+				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
+	)
+	override var updateDelay: Long = 0
 		set(value) {
-			field = value
+			field = value.takeIf { it >= 0 } ?: 0
 			removeUpdateTask()
-			if (value > 0 && _viewers.isNotEmpty())
+			if (value > 0 && viewers.isNotEmpty())
 				setUpdateTask()
 		}
 
@@ -186,7 +193,7 @@ class AnvilMenuImpl(
 				for (index in rangeOfSlots) {
 					val slot = getSlotOrBaseSlot(index)
 
-					val render = PlayerMenuSlotRenderEvent(this, index, slot, player, inventory)
+					val render = MenuSlotRenderEvent(this, index, slot, player, inventory)
 
 					slot.eventHandler.handleRender(render)
 				}
@@ -198,7 +205,7 @@ class AnvilMenuImpl(
 				anvilWrapper.setActiveContainerId(currentContainer, containerId)
 				anvilWrapper.addActiveContainerSlotListener(currentContainer, player)
 
-				if (job == null && updateDelay > 0 && _viewers.isNotEmpty())
+				if (updateDelay > 0 && viewers.size == 1)
 					setUpdateTask()
 
 				val open = PlayerMenuOpenEvent(this, player, inventory)
@@ -216,7 +223,7 @@ class AnvilMenuImpl(
 			val menuClose = PlayerMenuCloseEvent(this, player)
 			eventHandler.handleClose(menuClose)
 
-			if (job != null && updateDelay > 0 && _viewers.isEmpty())
+			if (updateDelay > 0 && viewers.isEmpty())
 				removeUpdateTask()
 		}
 	}
@@ -237,16 +244,15 @@ class AnvilMenuImpl(
 	}
 
 	private fun setUpdateTask() {
-		job = plugin.launch {
+		scope.launch {
 			while (isActive) {
-				update()
 				delay(updateDelay)
+				update()
 			}
 		}
 	}
 
 	private fun removeUpdateTask() {
-		job?.cancel()
-		job = null
+		scope.coroutineContext.cancelChildren()
 	}
 }

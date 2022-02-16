@@ -2,7 +2,6 @@
 
 package lirand.api.flow
 
-import com.github.shynixn.mccoroutine.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -116,9 +115,7 @@ private fun <T : Event> Channel<T>.buildEventFlow(
 ): Flow<T> =
 	consumeAsFlow().onStart {
 		listener.listen(plugin, type, priority, ignoreCancelled) {
-			plugin.launch {
-				if (!channel.isClosedForSend && !channel.isClosedForReceive)
-					channel.send(this@listen)
-			}
+			if (!channel.isClosedForSend && !channel.isClosedForReceive)
+				channel.trySend(this@listen)
 		}
 	}

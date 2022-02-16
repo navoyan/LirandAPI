@@ -45,7 +45,7 @@ fun <I : Inventory> PlayerInventoryMenuEvent(
 	player: Player,
 	inventory: I
 ): PlayerInventoryMenuEvent<I> =
-	PlayerInventoryMenuImpl<I>(
+	PlayerInventoryMenuImpl(
 		menu, player, inventory
 	)
 

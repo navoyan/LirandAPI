@@ -1,21 +1,25 @@
 package lirand.api.dsl.menu.dynamic
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import lirand.api.dsl.menu.fixed.StaticSlotDSLEventHandler
-import lirand.api.menu.slot.PlayerMenuSlotRenderEvent
+import lirand.api.menu.slot.MenuSlotRenderEvent
 import lirand.api.menu.slot.SlotEventHandler
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-typealias MenuPlayerSlotRenderCallback<I> = PlayerMenuSlotRenderEvent<I>.() -> Unit
+typealias MenuPlayerSlotRenderCallback<I> = MenuSlotRenderEvent<I>.(scope: CoroutineScope) -> Unit
 
 open class SlotDSLEventHandler<I : Inventory>(plugin: Plugin)
 	: StaticSlotDSLEventHandler<I>(plugin), SlotEventHandler<I> {
 
 	val renderCallbacks = mutableListOf<MenuPlayerSlotRenderCallback<I>>()
 
-	override fun handleRender(renderEvent: PlayerMenuSlotRenderEvent<I>) {
+	override fun handleRender(renderEvent: MenuSlotRenderEvent<I>) {
 		for (callback in renderCallbacks) {
-			callback(renderEvent)
+			scope.launch {
+				callback(renderEvent, this)
+			}
 		}
 	}
 

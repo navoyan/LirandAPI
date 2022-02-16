@@ -1,7 +1,9 @@
 package lirand.api.controllers
 
-import com.github.shynixn.mccoroutine.launch
-import kotlinx.coroutines.delay
+import com.github.shynixn.mccoroutine.minecraftDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import lirand.api.dsl.menu.dynamic.anvil.AnvilMenu
 import lirand.api.extensions.inventory.get
 import lirand.api.extensions.inventory.isNotEmpty
@@ -12,7 +14,7 @@ import lirand.api.menu.StaticMenu
 import lirand.api.menu.asMenu
 import lirand.api.menu.getMenu
 import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.slot.PlayerMenuSlotInteractEvent
+import lirand.api.menu.slot.MenuSlotInteractEvent
 import lirand.api.menu.takeIfHasPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -29,6 +31,10 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
 internal class MenuController(val plugin: Plugin) : Listener, Controller {
+	private val scope = CoroutineScope(
+		plugin.minecraftDispatcher + SupervisorJob() +
+				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
+	)
 
 	private val supportedInventoryTypes = listOf(
 		InventoryType.CHEST, InventoryType.ANVIL
@@ -72,28 +78,19 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 	private fun <I : Inventory> handleMenuClick(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
 		if (event.slot != event.rawSlot) return
 
-		val slotIndex = event.slot
-		val slot = menu.getSlotOrBaseSlot(slotIndex)
+		val slot = menu.getSlotOrBaseSlot(event.slot)
 
-		val interact = PlayerMenuSlotInteractEvent(
+		val interactEvent = MenuSlotInteractEvent(
 			menu, inventory, event.whoClicked as Player,
-			slotIndex, slot, slot.cancelEvents,
+			event.slot, slot, slot.cancelEvents,
 			event.click, event.action,
 			event.currentItem, event.cursor,
 			event.hotbarButton
 		)
 
-		if (menu is AnvilMenu) {
-			plugin.launch {
-				delay(1)
-				slot.eventHandler.handleInteract(interact)
-			}
-		}
-		else {
-			slot.eventHandler.handleInteract(interact)
-		}
+		slot.eventHandler.handleInteract(interactEvent)
 
-		if (interact.canceled) event.isCancelled = true
+		if (interactEvent.canceled) event.isCancelled = true
 	}
 
 	private fun <I : Inventory> handleMenuMove(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
@@ -112,12 +109,12 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 				else
 					currentItem
 
-				val move = PlayerMoveToMenuEvent(
+				val moveEvent = PlayerMoveToMenuEvent(
 					menu, whoClicked as Player, inventory,
 					slot.cancelEvents, movedItem ?: return, hotbarButton
 				)
 
-				menu.eventHandler.handleMoveToMenu(move)
+				menu.eventHandler.handleMoveToMenu(moveEvent)
 			}
 		}
 	}
@@ -132,12 +129,9 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 			else null
 		} ?: return
 
-		val prepare = PlayerAnvilMenuPrepareEvent(menu, player, inventory)
+		val prepareEvent = PlayerAnvilMenuPrepareEvent(menu, player, inventory)
 
-		plugin.launch {
-			delay(1)
-			menu.eventHandler.handlePrepare(prepare)
-		}
+		menu.eventHandler.handlePrepare(prepareEvent)
 	}
 
 	@EventHandler(ignoreCancelled = true)

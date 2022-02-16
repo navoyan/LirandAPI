@@ -6,6 +6,7 @@ import lirand.api.dsl.menu.fixed.StaticMenuDSL
 import lirand.api.dsl.menu.fixed.StaticSlotDSL
 import lirand.api.extensions.inventory.set
 import lirand.api.menu.calculateSlot
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
@@ -22,8 +23,8 @@ inline fun Plugin.staticChestMenu(
 	title: String,
 	cancelEvents: Boolean = false,
 	crossinline builder: StaticChestMenu.() -> Unit = {}
-): StaticChestMenu? {
-	if (inventory.size % 9 != 0) return null
+): StaticChestMenu {
+	require(inventory.type == InventoryType.CHEST) { "Illegal inventory type." }
 
 	return StaticChestMenuImpl(this, inventory.size / 9, title, cancelEvents).apply {
 		this.inventory = inventory

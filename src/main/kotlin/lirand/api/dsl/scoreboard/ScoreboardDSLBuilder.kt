@@ -1,9 +1,13 @@
 package lirand.api.dsl.scoreboard
 
-import com.github.shynixn.mccoroutine.launch
+import com.github.shynixn.mccoroutine.minecraftDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import lirand.api.collections.onlinePlayerMapOf
 import lirand.api.extensions.server.server
 import org.bukkit.ChatColor
@@ -22,6 +26,10 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 
 	private var titleController: ScoreboardTitle? = null
 
+	private val scope = CoroutineScope(
+		plugin.minecraftDispatcher + SupervisorJob() +
+				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
+	)
 	private var titleJob: Job? = null
 	private var lineJob: Job? = null
 
@@ -31,10 +39,10 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 			titleJob?.cancel()
 			titleJob = null
 			if (value > 0 && _players.isNotEmpty())
-				titleJob = plugin.launch {
+				titleJob = scope.launch {
 					while (isActive) {
-						updateTitle()
 						delay(value)
+						updateTitle()
 					}
 				}
 		}
@@ -45,10 +53,10 @@ class ScoreboardDSLBuilder(internal val plugin: Plugin, var title: String) : Sco
 			lineJob?.cancel()
 			lineJob = null
 			if (value > 0 && _players.isNotEmpty())
-				lineJob = plugin.launch {
+				lineJob = scope.launch {
 					while (isActive) {
-						updateLines()
 						delay(value)
+						updateLines()
 					}
 				}
 		}

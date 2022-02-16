@@ -7,7 +7,7 @@ interface StaticSlotEventHandler<I : Inventory> {
 
 	val plugin: Plugin
 
-	fun handleInteract(interactEvent: PlayerMenuSlotInteractEvent<I>)
+	fun handleInteract(interactEvent: MenuSlotInteractEvent<I>)
 
 	fun handleUpdate(updateEvent: PlayerMenuSlotUpdateEvent<I>)
 

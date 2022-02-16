@@ -20,19 +20,19 @@ interface PaginationSlot<T> {
 	 */
 	var cancelEvents: Boolean
 
-	fun onPageChange(pageChangeCallback: MenuPlayerSlotPageChangeCallback<T>) {
+	fun onPageChange(pageChangeCallback: MenuSlotPageChangeCallback<T>) {
 		paginationEventHandler.pageChangeCallbacks.add(pageChangeCallback)
 	}
 
-	fun onInteract(clickCallback: MenuPlayerPageSlotInteractCallback<T>) {
+	fun onInteract(clickCallback: MenuPageSlotInteractCallback<T>) {
 		paginationEventHandler.interactCallbacks.add(clickCallback)
 	}
 
-	fun onRender(renderCallback: MenuPlayerPageSlotRenderCallback<T>) {
+	fun onRender(renderCallback: MenuPageSlotRenderCallback<T>) {
 		paginationEventHandler.renderCallbacks.add(renderCallback)
 	}
 
-	fun onUpdate(updateCallback: MenuPlayerPageSlotUpdateCallback<T>) {
+	fun onUpdate(updateCallback: MenuPageSlotUpdateCallback<T>) {
 		paginationEventHandler.updateCallbacks.add(updateCallback)
 	}
 }

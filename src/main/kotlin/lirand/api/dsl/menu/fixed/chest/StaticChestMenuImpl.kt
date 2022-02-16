@@ -1,9 +1,13 @@
 package lirand.api.dsl.menu.fixed.chest
 
-import com.github.shynixn.mccoroutine.launch
-import kotlinx.coroutines.Job
+import com.github.shynixn.mccoroutine.minecraftDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import lirand.api.dsl.menu.MenuDSLEventHandler
 import lirand.api.dsl.menu.dynamic.chest.slot.ChestSlot
 import lirand.api.dsl.menu.fixed.StaticSlotDSL
@@ -34,12 +38,15 @@ class StaticChestMenuImpl(
 
 	private var _inventory: Inventory = Inventory(this, lines * 9, title)
 
-	private var job: Job? = null
-	override var updateDelay: Long = -1
+	private val scope = CoroutineScope(
+		plugin.minecraftDispatcher + SupervisorJob() +
+				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
+	)
+	override var updateDelay: Long = 0
 		set(value) {
-			field = value
+			field = value.takeIf { it >= 0 } ?: 0
 			removeUpdateTask()
-			if (value > 0 && _viewers.isNotEmpty())
+			if (value > 0 && viewers.isNotEmpty())
 				setUpdateTask()
 		}
 
@@ -74,7 +81,7 @@ class StaticChestMenuImpl(
 	override fun removeSlot(index: Int) {
 		_slots.remove(index)?.let {
 			if (it is ChestSlot) {
-				_inventory.clear(index)
+				inventory.clear(index)
 			}
 		}
 	}
@@ -84,19 +91,19 @@ class StaticChestMenuImpl(
 			_slots.remove(index)
 
 			if (slot is ChestSlot) {
-				_inventory.clear(index)
+				inventory.clear(index)
 			}
 		}
 	}
 
 	override fun update() {
 		for (player in viewers.keys) {
-			val update = PlayerMenuUpdateEvent(this, player, _inventory)
+			val update = PlayerMenuUpdateEvent(this, player, inventory)
 			eventHandler.handleUpdate(update)
 
 			for (index in rangeOfSlots) {
 				val slot = getSlotOrBaseSlot(index)
-				updateSlotOnly(index, slot, player, _inventory)
+				updateSlotOnly(index, slot, player, inventory)
 			}
 		}
 	}
@@ -111,7 +118,7 @@ class StaticChestMenuImpl(
 
 		for (player in viewers.keys) {
 			for ((index, slot) in slots) {
-				updateSlotOnly(index, slot, player, _inventory)
+				updateSlotOnly(index, slot, player, inventory)
 			}
 		}
 	}
@@ -132,13 +139,13 @@ class StaticChestMenuImpl(
 
 				if (preOpen.canceled) return
 
-				_viewers[player] = _inventory
-				player.openInventory(_inventory)
+				_viewers[player] = inventory
+				player.openInventory(inventory)
 
-				if (job == null && updateDelay > 0 && viewers.isNotEmpty())
+				if (updateDelay > 0 && viewers.size == 1)
 					setUpdateTask()
 
-				val open = PlayerMenuOpenEvent(this, player, _inventory)
+				val open = PlayerMenuOpenEvent(this, player, inventory)
 				eventHandler.handleOpen(open)
 
 			} catch (exception: Throwable) {
@@ -153,7 +160,7 @@ class StaticChestMenuImpl(
 			val menuClose = PlayerMenuCloseEvent(this, player)
 			eventHandler.handleClose(menuClose)
 
-			if (job != null && updateDelay > 0 && _viewers.isEmpty())
+			if (updateDelay > 0 && viewers.isEmpty())
 				removeUpdateTask()
 		}
 	}
@@ -175,16 +182,15 @@ class StaticChestMenuImpl(
 	}
 
 	private fun setUpdateTask() {
-		job = plugin.launch {
+		scope.launch {
 			while (isActive) {
-				update()
 				delay(updateDelay)
+				update()
 			}
 		}
 	}
 
 	private fun removeUpdateTask() {
-		job?.cancel()
-		job = null
+		scope.coroutineContext.cancelChildren()
 	}
 }

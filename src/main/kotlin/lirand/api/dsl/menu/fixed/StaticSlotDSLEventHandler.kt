@@ -1,30 +1,40 @@
 package lirand.api.dsl.menu.fixed
 
-import com.github.shynixn.mccoroutine.launch
-import lirand.api.menu.slot.PlayerMenuSlotInteractEvent
+import com.github.shynixn.mccoroutine.minecraftDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import lirand.api.menu.slot.MenuSlotInteractEvent
 import lirand.api.menu.slot.PlayerMenuSlotUpdateEvent
 import lirand.api.menu.slot.StaticSlotEventHandler
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-typealias MenuPlayerSlotUpdateCallback<I> = suspend PlayerMenuSlotUpdateEvent<I>.() -> Unit
-typealias MenuPlayerSlotInteractCallback<I> = PlayerMenuSlotInteractEvent<I>.() -> Unit
+typealias MenuPlayerSlotUpdateCallback<I> = suspend PlayerMenuSlotUpdateEvent<I>.(scope: CoroutineScope) -> Unit
+typealias MenuPlayerSlotInteractCallback<I> = MenuSlotInteractEvent<I>.(scope: CoroutineScope) -> Unit
 
 open class StaticSlotDSLEventHandler<I : Inventory>(override val plugin: Plugin) : StaticSlotEventHandler<I> {
+	protected val scope = CoroutineScope(
+		plugin.minecraftDispatcher + SupervisorJob() +
+				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
+	)
 
 	val interactCallbacks = mutableListOf<MenuPlayerSlotInteractCallback<I>>()
 	val updateCallbacks = mutableListOf<MenuPlayerSlotUpdateCallback<I>>()
 
-	override fun handleInteract(interactEvent: PlayerMenuSlotInteractEvent<I>) {
+	override fun handleInteract(interactEvent: MenuSlotInteractEvent<I>) {
 		for (callback in interactCallbacks) {
-			callback(interactEvent)
+			scope.launch {
+				callback(interactEvent, this)
+			}
 		}
 	}
 
 	override fun handleUpdate(updateEvent: PlayerMenuSlotUpdateEvent<I>) {
 		for (callback in updateCallbacks) {
-			plugin.launch {
-				callback(updateEvent)
+			scope.launch {
+				callback(updateEvent, this)
 			}
 		}
 	}

@@ -37,7 +37,7 @@ interface PlayerMenuInventorySlotEvent<I : Inventory> : PlayerMenuSlotEvent, Pla
 
 }
 
-open class PlayerMenuSlotInteractEvent<I : Inventory>(
+open class MenuSlotInteractEvent<I : Inventory>(
 	menu: StaticMenu<*, *>,
 	inventory: I,
 	player: Player,
@@ -51,7 +51,7 @@ open class PlayerMenuSlotInteractEvent<I : Inventory>(
 	val hotbarKey: Int
 ) : PlayerMenuInteractEvent<I>(menu, player, inventory, canceled), PlayerMenuInventorySlotEvent<I>
 
-class PlayerMenuSlotRenderEvent<I : Inventory>(
+class MenuSlotRenderEvent<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val slotIndex: Int,
 	override val slot: StaticSlot<I>,

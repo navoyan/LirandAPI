@@ -4,6 +4,6 @@ import org.bukkit.inventory.Inventory
 
 interface SlotEventHandler<I : Inventory> : StaticSlotEventHandler<I> {
 
-	fun handleRender(renderEvent: PlayerMenuSlotRenderEvent<I>)
+	fun handleRender(renderEvent: MenuSlotRenderEvent<I>)
 
 }
