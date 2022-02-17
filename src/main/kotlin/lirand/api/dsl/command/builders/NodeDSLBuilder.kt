@@ -1,7 +1,7 @@
 package lirand.api.dsl.command.builders
 
 import com.github.shynixn.mccoroutine.minecraftDispatcher
-import com.mojang.brigadier.Command
+import com.mojang.brigadier.Command as BrigadierCommand
 import com.mojang.brigadier.RedirectModifier
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
@@ -22,7 +22,7 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import java.util.function.Predicate
 
-private typealias CommandExecutor<S> = suspend BrigadierCommandContext<S>.(scope: CoroutineScope) -> Unit
+private typealias CommandExecutor<S> = BrigadierCommandContext<S>.(scope: CoroutineScope) -> Unit
 
 @NodeBuilderDSLMarker
 abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
@@ -40,7 +40,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
 	)
 
-	var completeExecutor: Command<CommandSender>? = null
+	var completeExecutor: BrigadierCommand<CommandSender>? = null
 		private set
 
 	var defaultExecutor: CommandExecutor<CommandSender>? = null
@@ -172,7 +172,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 	}
 
 	private fun setupExecutor() {
-		completeExecutor = Command { context ->
+		completeExecutor = BrigadierCommand { context ->
 
 			val brigadierContext = BrigadierCommandContext(context)
 
@@ -192,7 +192,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 				)
 			}
 			
-			Command.SINGLE_SUCCESS
+			BrigadierCommand.SINGLE_SUCCESS
 		}
 	}
 

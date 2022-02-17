@@ -14,12 +14,12 @@ import lirand.api.menu.PlayerMoveToMenuEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-typealias PlayerMenuUpdateCallback<I> = suspend PlayerMenuUpdateEvent<I>.(scope: CoroutineScope) -> Unit
-typealias PlayerMenuCloseCallback = suspend PlayerMenuCloseEvent.(scope: CoroutineScope) -> Unit
+typealias PlayerMenuUpdateCallback<I> = PlayerMenuUpdateEvent<I>.(scope: CoroutineScope) -> Unit
+typealias PlayerMenuCloseCallback = PlayerMenuCloseEvent.(scope: CoroutineScope) -> Unit
 typealias PlayerMenuMoveCallback<I> = PlayerMoveToMenuEvent<I>.(scope: CoroutineScope) -> Unit
 
-typealias PlayerMenuPreOpenCallback = suspend PlayerMenuPreOpenEvent.(scope: CoroutineScope) -> Unit
-typealias PlayerMenuOpenCallback<I> = suspend PlayerMenuOpenEvent<I>.(scope: CoroutineScope) -> Unit
+typealias PlayerMenuPreOpenCallback = PlayerMenuPreOpenEvent.(scope: CoroutineScope) -> Unit
+typealias PlayerMenuOpenCallback<I> = PlayerMenuOpenEvent<I>.(scope: CoroutineScope) -> Unit
 
 open class MenuDSLEventHandler<I : Inventory>(override val plugin: Plugin) : MenuEventHandler<I> {
 	protected val scope = CoroutineScope(

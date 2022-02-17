@@ -16,13 +16,13 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
 typealias MenuSlotPageChangeCallback<T> =
-		suspend PlayerMenuSlotPageChangeEvent.(currentItem: T?, scope: CoroutineScope) -> Unit
+		PlayerMenuSlotPageChangeEvent.(currentItem: T?, scope: CoroutineScope) -> Unit
 typealias MenuPageSlotInteractCallback<T> =
 		MenuSlotInteractEvent<Inventory>.(currentItem: T?, scope: CoroutineScope) -> Unit
 typealias MenuPageSlotRenderCallback<T> =
 		MenuSlotRenderEvent<Inventory>.(currentItem: T?, scope: CoroutineScope) -> Unit
 typealias MenuPageSlotUpdateCallback<T> =
-		suspend PlayerMenuSlotUpdateEvent<Inventory>.(currentItem: T?, scope: CoroutineScope) -> Unit
+		PlayerMenuSlotUpdateEvent<Inventory>.(currentItem: T?, scope: CoroutineScope) -> Unit
 
 class PaginationSlotEventHandler<T>(val plugin: Plugin) {
 	private val scope = CoroutineScope(

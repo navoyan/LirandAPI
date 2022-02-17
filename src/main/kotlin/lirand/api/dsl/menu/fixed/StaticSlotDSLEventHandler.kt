@@ -11,7 +11,7 @@ import lirand.api.menu.slot.StaticSlotEventHandler
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-typealias MenuPlayerSlotUpdateCallback<I> = suspend PlayerMenuSlotUpdateEvent<I>.(scope: CoroutineScope) -> Unit
+typealias MenuPlayerSlotUpdateCallback<I> = PlayerMenuSlotUpdateEvent<I>.(scope: CoroutineScope) -> Unit
 typealias MenuPlayerSlotInteractCallback<I> = MenuSlotInteractEvent<I>.(scope: CoroutineScope) -> Unit
 
 open class StaticSlotDSLEventHandler<I : Inventory>(override val plugin: Plugin) : StaticSlotEventHandler<I> {

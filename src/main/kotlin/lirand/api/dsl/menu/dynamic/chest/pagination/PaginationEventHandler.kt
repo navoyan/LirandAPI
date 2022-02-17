@@ -10,8 +10,8 @@ import lirand.api.menu.PlayerMenuEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
-typealias MenuPlayerPageChangeCallback = suspend PlayerInventoryMenuEvent<Inventory>.(scope: CoroutineScope) -> Unit
-typealias MenuPlayerPageAvailableCallback = suspend PlayerMenuEvent.(scope: CoroutineScope) -> Unit
+typealias MenuPlayerPageChangeCallback = PlayerInventoryMenuEvent<Inventory>.(scope: CoroutineScope) -> Unit
+typealias MenuPlayerPageAvailableCallback = PlayerMenuEvent.(scope: CoroutineScope) -> Unit
 
 class PaginationEventHandler(val plugin: Plugin) {
 	private val scope = CoroutineScope(
