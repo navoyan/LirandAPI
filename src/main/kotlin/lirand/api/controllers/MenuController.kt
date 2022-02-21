@@ -4,18 +4,20 @@ import com.github.shynixn.mccoroutine.minecraftDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import lirand.api.dsl.menu.dynamic.anvil.AnvilMenu
+import lirand.api.dsl.menu.builders.dynamic.anvil.AnvilMenuDSL
+import lirand.api.dsl.menu.builders.fixed.StaticMenuDSL
+import lirand.api.dsl.menu.builders.fixed.StaticSlotDSL
+import lirand.api.dsl.menu.exposed.MenuSlotInteractEvent
+import lirand.api.dsl.menu.exposed.PlayerAnvilMenuPrepareEvent
+import lirand.api.dsl.menu.exposed.PlayerMoveToMenuEvent
+import lirand.api.dsl.menu.exposed.asMenu
+import lirand.api.dsl.menu.exposed.fixed.StaticMenu
+import lirand.api.dsl.menu.exposed.getMenu
+import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
+import lirand.api.dsl.menu.exposed.takeIfHasPlayer
 import lirand.api.extensions.inventory.get
 import lirand.api.extensions.inventory.isNotEmpty
 import lirand.api.extensions.server.server
-import lirand.api.menu.PlayerAnvilMenuPrepareEvent
-import lirand.api.menu.PlayerMoveToMenuEvent
-import lirand.api.menu.StaticMenu
-import lirand.api.menu.asMenu
-import lirand.api.menu.getMenu
-import lirand.api.menu.getSlotOrBaseSlot
-import lirand.api.menu.slot.MenuSlotInteractEvent
-import lirand.api.menu.takeIfHasPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -62,7 +64,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 		val menu = inventory.asMenu()?.takeIfHasPlayer(player) ?: return
 
 		if (inventory is AnvilInventory) {
-			menu as AnvilMenu
+			menu as AnvilMenuDSL
 
 			handleMenuClick(menu, event, inventory)
 			handleMenuMove(menu, event, inventory)
@@ -78,7 +80,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 	private fun <I : Inventory> handleMenuClick(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
 		if (event.slot != event.rawSlot) return
 
-		val slot = menu.getSlotOrBaseSlot(event.slot)
+		val slot = menu.getSlotOrBaseSlot(event.slot) as StaticSlotDSL<I>
 
 		val interactEvent = MenuSlotInteractEvent(
 			menu, inventory, event.whoClicked as Player,
@@ -95,7 +97,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 
 	private fun <I : Inventory> handleMenuMove(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
 		val slotIndex = event.rawSlot
-		val slot = menu.getSlotOrBaseSlot(slotIndex)
+		val slot = menu.getSlotOrBaseSlot(slotIndex) as StaticSlotDSL<I>
 
 		with(event) {
 			if ((this.slot == rawSlot && (cursor.isNotEmpty ||
@@ -122,7 +124,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Controller {
 	@EventHandler
 	fun onPrepareEvent(event: PrepareAnvilEvent) {
 		val inventory = event.inventory
-		val menu = inventory.asMenu() as? AnvilMenu ?: return
+		val menu = inventory.asMenu() as? AnvilMenuDSL ?: return
 
 		val player = menu.viewers.firstNotNullOfOrNull { (player, menuInventory) ->
 			if (inventory == menuInventory) player

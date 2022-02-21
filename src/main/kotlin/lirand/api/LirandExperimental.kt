@@ -1,4 +1,4 @@
 package lirand.api
 
-@RequiresOptIn
+@RequiresOptIn(level = RequiresOptIn.Level.WARNING)
 annotation class LirandExperimental

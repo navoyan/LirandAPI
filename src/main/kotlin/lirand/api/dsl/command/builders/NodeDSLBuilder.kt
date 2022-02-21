@@ -1,7 +1,6 @@
 package lirand.api.dsl.command.builders
 
 import com.github.shynixn.mccoroutine.minecraftDispatcher
-import com.mojang.brigadier.Command as BrigadierCommand
 import com.mojang.brigadier.RedirectModifier
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
@@ -21,6 +20,7 @@ import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import java.util.function.Predicate
+import com.mojang.brigadier.Command as BrigadierCommand
 
 private typealias CommandExecutor<S> = BrigadierCommandContext<S>.(scope: CoroutineScope) -> Unit
 
@@ -35,7 +35,7 @@ abstract class NodeDSLBuilder<B : ArgumentBuilder<CommandSender, B>>(
 		get() = rootNode.children
 
 
-	private val scope = CoroutineScope(
+	protected val scope = CoroutineScope(
 		plugin.minecraftDispatcher + SupervisorJob() +
 				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
 	)
