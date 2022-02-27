@@ -13,7 +13,7 @@ fun Inventory(
 	title: String? = null
 ): Inventory = Inventory<Inventory>(owner, type, title)
 
-@JvmName("typedInventory")
+@JvmName("TypedInventory")
 fun <I : Inventory> Inventory(
 	owner: InventoryHolder? = null,
 	type: InventoryType,
@@ -42,11 +42,9 @@ val Inventory.hasSpace: Boolean
 fun Inventory.hasSpace(
 	item: ItemStack,
 	amount: Int = item.amount
-) = spaceOf(item) >= amount
+): Boolean = getSpaceOf(item) >= amount
 
-fun Inventory.spaceOf(
-	item: ItemStack
-): Int {
+fun Inventory.getSpaceOf(item: ItemStack): Int {
 	return contents.filterNotNull().map {
 		if (it.amount < it.maxStackSize && it.isSimilar(item))
 			it.maxStackSize - it.amount
@@ -54,8 +52,7 @@ fun Inventory.spaceOf(
 	}.count()
 }
 
-operator fun Inventory.get(slot: Int) =
-	getItem(slot)
+operator fun Inventory.get(slot: Int): ItemStack? = getItem(slot)
 
 operator fun Inventory.set(slot: Int, itemStack: ItemStack?) {
 	setItem(slot, itemStack)
