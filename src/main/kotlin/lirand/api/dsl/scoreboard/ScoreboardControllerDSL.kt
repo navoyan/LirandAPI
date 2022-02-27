@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import lirand.api.collections.onlinePlayerMapOf
+import lirand.api.dsl.scoreboard.ScoreboardController.Companion.linesBounds
 import lirand.api.extensions.server.server
 import org.bukkit.ChatColor
 import org.bukkit.entity.Player
@@ -19,10 +20,20 @@ import org.bukkit.scoreboard.Objective
 @ScoreboardBuilderDSLMarker
 class ScoreboardControllerDSL(internal val plugin: Plugin, var title: String) : ScoreboardController {
 
+	private companion object {
+		val uniqueLineEntries = (0..15).map {
+			it.toByte().toString(2).take(4).map {
+				if (it == '0') ChatColor.RESET.toString()
+				else ChatColor.WHITE.toString()
+			}.joinToString("")
+		}
+	}
+
+
 	private val lineControllers = mutableMapOf<Int, ScoreboardLineController>()
 
-	private val _players = plugin.onlinePlayerMapOf<Objective>()
-	override val players: Map<Player, Objective> = _players
+	private val _viewers = plugin.onlinePlayerMapOf<Objective>()
+	override val viewers: Map<Player, Objective> = _viewers
 
 	private var titleController: ScoreboardTitleController? = null
 
@@ -38,7 +49,7 @@ class ScoreboardControllerDSL(internal val plugin: Plugin, var title: String) : 
 			field = value
 			titleJob?.cancel()
 			titleJob = null
-			if (value > 0 && _players.isNotEmpty())
+			if (value > 0 && _viewers.isNotEmpty())
 				titleJob = scope.launch {
 					while (isActive) {
 						delay(value)
@@ -52,7 +63,7 @@ class ScoreboardControllerDSL(internal val plugin: Plugin, var title: String) : 
 			field = value
 			lineJob?.cancel()
 			lineJob = null
-			if (value > 0 && _players.isNotEmpty())
+			if (value > 0 && _viewers.isNotEmpty())
 				lineJob = scope.launch {
 					while (isActive) {
 						delay(value)
@@ -61,77 +72,57 @@ class ScoreboardControllerDSL(internal val plugin: Plugin, var title: String) : 
 				}
 		}
 
-	override fun dispose() {
-		titleJob?.cancel()
-		lineJob?.cancel()
-
-		for (objective in players.values) {
-			objective.unregister()
-		}
-	}
-
-	fun setLine(line: Int, scoreboardLineController: ScoreboardLineController) {
-		if (line in linesBounds)
-			lineControllers[line] = scoreboardLineController
-	}
 
 	/**
-	 * set a [text] to specified [line] (1 to 16) of the scoreboard with a builder.
+	 * The DSL block to manage how the title of the scoreboard will be displayed to a specific player.
+	 */
+	inline fun title(crossinline builder: ScoreboardTitleController.() -> Unit) =
+		setTitleController(ScoreboardTitleController().apply(builder))
+
+	/**
+	 * set a [text] to specified [index] (1 to 16) of the scoreboard with a builder.
 	 *
 	 * In the builder you can use [ScoreboardLineController.onRender] to change the value
 	 * when the line renders to the player, or [ScoreboardLineController.onUpdate] when you call [updateLine] or
 	 * specify a value greater than 0 to [updateTitleDelay] to update all lines periodic.
 	 *
-	 * If [line] be greater than 16 or less than 1 the line will be ignored.
+	 * If [index] be greater than 16 or less than 1 the line will be ignored.
 	 */
 	inline fun line(
-		line: Int,
+		index: Int,
 		text: String,
 		crossinline builder: ScoreboardLineController.() -> Unit = {}
-	) = setLine(line, ScoreboardLineController(this, text).apply(builder))
+	) = setLineController(index, ScoreboardLineController(text).apply(builder))
 
 	/**
-	 * Add an array of lines at scoreboard starting at the [startInLine] value with a builder.
+	 * Add an array of lines at scoreboard starting at the [startIndex] value with a builder.
 	 *
 	 * In the builder you can use [ScoreboardLineController.onRender] to change the value
 	 * when the line renders to the player, or [ScoreboardLineController.onUpdate] when you call [updateLine] or
 	 * specify a value greater than 0 to [updateTitleDelay] to update all lines periodic.
 	 */
 	inline fun lines(
+		startIndex: Int = 1,
 		vararg lines: String,
-		startInLine: Int = 1,
 		crossinline builder: ScoreboardLineController.() -> Unit = {}
 	) {
 		for ((index, line) in lines.withIndex()) {
-			line(index + startInLine, line, builder)
+			line(index + startIndex, line, builder)
 		}
 	}
-
-	fun removeLine(line: Int): Boolean {
-		return lineControllers.remove(line) != null
-	}
-
-	fun setTitleController(title: ScoreboardTitleController) = title.also {
-		titleController = it
-	}
-
-	/**
-	 * The DSL block to manage how the title of the scoreboard will be displayed to a specific player.
-	 */
-	inline fun title(crossinline block: ScoreboardTitleController.() -> Unit) =
-		setTitleController(ScoreboardTitleController(this).apply(block))
 
 
 	override fun showTo(player: Player) {
 		val max = lineControllers.keys.maxOrNull() ?: return
 
-		if (_players[player]?.scoreboard != null) return
+		if (_viewers[player]?.scoreboard != null) return
 		val scoreboard = server.scoreboardManager?.newScoreboard ?: return
 
 		val objective = scoreboard.getObjective(DisplaySlot.SIDEBAR)
 			?: scoreboard.registerNewObjective(plugin.name, "dummy", title).apply {
 				displaySlot = DisplaySlot.SIDEBAR
-				displayName = TitleRenderEvent(player, title).also { titleController?.renderEvent?.invoke(it) }.title
+				displayName = TitleRenderEvent(player, title)
+					.also { titleController?.renderEvent?.invoke(it) }.title
 			}
 
 		for (i in 1..max) {
@@ -144,10 +135,12 @@ class ScoreboardControllerDSL(internal val plugin: Plugin, var title: String) : 
 		}
 
 		player.scoreboard = scoreboard
-		_players.put(player, objective) {
-			if (_players.isEmpty()) {
-				titleJob?.cancel(); titleJob = null
-				lineJob?.cancel(); lineJob = null
+		_viewers.put(player, objective) {
+			if (_viewers.isEmpty()) {
+				titleJob?.cancel()
+				titleJob = null
+				lineJob?.cancel()
+				lineJob = null
 			}
 		}
 
@@ -157,68 +150,27 @@ class ScoreboardControllerDSL(internal val plugin: Plugin, var title: String) : 
 			updateLinesDelay = updateLinesDelay
 	}
 
-	private val lineColors = (0..15).map {
-		it.toByte().toString(2).take(4).map {
-			if (it == '0') ChatColor.RESET.toString()
-			else ChatColor.WHITE.toString()
-		}.joinToString("")
-	}
+	override fun dispose() {
+		titleJob?.cancel()
+		lineJob?.cancel()
 
-	private fun getEntryByLine(line: Int) = lineColors[line]
-
-	private inline fun buildLine(objective: Objective, line: Int, lineTextTransformer: (ScoreboardLineController) -> String) {
-		val sb = objective.scoreboard ?: return
-		val sbLine = lineControllers[line] ?: ScoreboardLineController(this, "")
-
-		val lineEntry = getEntryByLine(line)
-		val realScoreLine = 17 - line
-
-		val text = lineTextTransformer(sbLine)
-
-		val team = sb.getTeam("line_$line") ?: sb.registerNewTeam("line_$line")
-
-		if (text.isEmpty()) {
-			if (team.prefix.isNotEmpty()) team.prefix = ""
-			if (team.suffix.isNotEmpty()) team.suffix = ""
-			return
-		}
-
-		if (text.length > 16) {
-			val fixedText = if (text.length > 32) text.take(32) else text
-			val prefix = fixedText.substring(0, 16)
-			val suffix = fixedText.substring(16, fixedText.length - 1)
-			if (team.prefix != prefix || team.suffix != suffix) {
-				team.prefix = prefix
-				team.suffix = suffix
-			}
-		}
-		else {
-			if (team.prefix != text) {
-				team.prefix = text
-				team.suffix = ""
-			}
-		}
-
-		if (!team.hasEntry(lineEntry)) team.addEntry(lineEntry)
-
-		val score = objective.getScore(lineEntry)
-
-		if (!(score.isScoreSet && score.score == realScoreLine)) {
-			score.score = realScoreLine
+		for (objective in viewers.values) {
+			objective.unregister()
 		}
 	}
+
 
 	override fun updateTitle() {
-		for ((player, objective) in _players) {
+		for ((player, objective) in _viewers) {
 			val titleUpdateEvent = TitleUpdateEvent(player, title).also { titleController?.updateEvent?.invoke(it) }
 			objective.displayName = titleUpdateEvent.title
 		}
 	}
 
-	override fun updateLine(line: Int): Boolean {
-		if (lineControllers[line] == null) return false
-		for ((player, objective) in _players) {
-			buildLine(objective, line) { scoreboardLine ->
+	override fun updateLine(index: Int): Boolean {
+		if (lineControllers[index] == null) return false
+		for ((player, objective) in _viewers) {
+			buildLine(objective, index) { scoreboardLine ->
 				if (scoreboardLine.updateEvent != null) {
 					LineUpdateEvent(player, scoreboardLine.text).also { scoreboardLine.updateEvent?.invoke(it) }.text
 				}
@@ -233,6 +185,47 @@ class ScoreboardControllerDSL(internal val plugin: Plugin, var title: String) : 
 
 		for (i in 1..max) {
 			updateLine(i)
+		}
+	}
+
+
+	fun setTitleController(index: ScoreboardTitleController) = index.also {
+		titleController = it
+	}
+
+	fun setLineController(index: Int, scoreboardLineController: ScoreboardLineController) {
+		if (index in linesBounds)
+			lineControllers[index] = scoreboardLineController
+	}
+
+	fun removeLineController(index: Int): Boolean {
+		return lineControllers.remove(index) != null
+	}
+
+
+
+	private inline fun buildLine(
+		objective: Objective,
+		index: Int,
+		lineTextTransformer: (ScoreboardLineController) -> String
+	) {
+		val scoreboard = objective.scoreboard ?: return
+		val scoreboardLine = lineControllers[index] ?: ScoreboardLineController("")
+		val lineEntry = uniqueLineEntries[index - 1]
+		val realLineScore = (lineControllers.size) - index
+
+		val text = lineTextTransformer(scoreboardLine)
+
+		val team = scoreboard.getTeam("line_$index") ?: scoreboard.registerNewTeam("line_$index")
+
+		team.prefix = text
+
+		if (!team.hasEntry(lineEntry)) team.addEntry(lineEntry)
+
+		val score = objective.getScore(lineEntry)
+
+		if (!score.isScoreSet || score.score != realLineScore) {
+			score.score = realLineScore
 		}
 	}
 }

@@ -7,7 +7,7 @@ typealias LineRenderCallback = LineRenderEvent.() -> Unit
 typealias LineUpdateCallback = LineUpdateEvent.() -> Unit
 
 @ScoreboardBuilderDSLMarker
-class ScoreboardLineController(private val scoreboard: ScoreboardControllerDSL, text: String) {
+class ScoreboardLineController(text: String) {
 	var text: String by translatedColor(text)
 		internal set
 

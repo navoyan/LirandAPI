@@ -6,7 +6,7 @@ typealias TitleRenderCallback = TitleRenderEvent.() -> Unit
 typealias TitleUpdateCallback = TitleUpdateEvent.() -> Unit
 
 @ScoreboardBuilderDSLMarker
-class ScoreboardTitleController(private val scoreboard: ScoreboardControllerDSL) {
+class ScoreboardTitleController {
 	internal var renderEvent: TitleRenderCallback? = null
 	internal var updateEvent: TitleUpdateCallback? = null
 

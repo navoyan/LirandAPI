@@ -1,5 +1,6 @@
 package lirand.api.dsl.scoreboard
 
+import lirand.api.LirandExperimental
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import org.bukkit.scoreboard.Objective
@@ -15,19 +16,24 @@ annotation class ScoreboardBuilderDSLMarker
  * onUpdate events: Called when updateDelay trigger or force update by using [ScoreboardController.updateTitle],
  * [ScoreboardController.updateLine], [ScoreboardController.updateLines].
  */
+@LirandExperimental
 inline fun Plugin.scoreboard(
 	title: String,
 	crossinline block: ScoreboardControllerDSL.() -> Unit
 ) = ScoreboardControllerDSL(this, title).apply(block)
 
-val linesBounds = 1..16
 
 interface ScoreboardController {
 
-	val players: Map<Player, Objective>
+	companion object {
+		val linesBounds = 1..16
+	}
+
+
+	val viewers: Map<Player, Objective>
 
 	/**
-	 * Show/set the built scoreboard to a [player]
+	 * Show/set the built scoreboard to the [player]
 	 */
 	fun showTo(player: Player)
 
@@ -41,7 +47,7 @@ interface ScoreboardController {
 	 *
 	 * Returns false if the line doesn't exist, true if the line was founded and update.
 	 */
-	fun updateLine(line: Int): Boolean
+	fun updateLine(index: Int): Boolean
 
 	/**
 	 * Update all lines to all players with the scoreboard set (see [showTo])
@@ -52,4 +58,5 @@ interface ScoreboardController {
 	 * Remove all scoreboard of the players and cancel all internal tasks
 	 */
 	fun dispose()
+
 }
