@@ -1,11 +1,6 @@
 package lirand.api.controllers
 
-import com.github.shynixn.mccoroutine.minecraftDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import lirand.api.dsl.menu.builders.dynamic.anvil.AnvilMenuDSL
-import lirand.api.dsl.menu.builders.fixed.StaticMenuDSL
 import lirand.api.dsl.menu.builders.fixed.StaticSlotDSL
 import lirand.api.dsl.menu.exposed.MenuSlotInteractEvent
 import lirand.api.dsl.menu.exposed.PlayerAnvilMenuPrepareEvent
@@ -33,11 +28,6 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
 internal class MenuController(val plugin: Plugin) : Listener, Controller {
-	private val scope = CoroutineScope(
-		plugin.minecraftDispatcher + SupervisorJob() +
-				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
-	)
-
 	private val supportedInventoryTypes = listOf(
 		InventoryType.CHEST, InventoryType.ANVIL
 	)
