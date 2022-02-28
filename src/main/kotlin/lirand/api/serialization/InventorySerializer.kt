@@ -1,7 +1,9 @@
-package lirand.api.extensions.inventory
+package lirand.api.serialization
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import lirand.api.extensions.inventory.Inventory
+import lirand.api.extensions.inventory.ItemStack
 import lirand.api.extensions.other.set
 import lirand.api.extensions.other.toId
 import lirand.api.nbt.NbtData
