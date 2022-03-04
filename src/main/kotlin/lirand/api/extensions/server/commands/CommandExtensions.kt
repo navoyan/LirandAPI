@@ -1,6 +1,6 @@
-package lirand.api.extensions.server
+package lirand.api.extensions.server.commands
 
-import lirand.api.controllers.provideCommandController
+import lirand.api.extensions.server.server
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.SimpleCommandMap

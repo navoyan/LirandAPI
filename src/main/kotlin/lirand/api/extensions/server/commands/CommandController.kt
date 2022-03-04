@@ -1,7 +1,7 @@
-package lirand.api.controllers
+package lirand.api.extensions.server.commands
 
 import lirand.api.LirandAPI
-import lirand.api.extensions.server.unregister
+import lirand.api.utilities.Initializable
 import org.bukkit.command.Command
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -10,12 +10,14 @@ import org.bukkit.plugin.Plugin
 
 internal fun provideCommandController(plugin: Plugin) = LirandAPI.instances[plugin]?.commandController
 
-internal class CommandController(val plugin: Plugin) : Listener, Controller {
+internal class CommandController(val plugin: Plugin) : Listener, Initializable {
 
 	val commands = mutableListOf<Command>()
 
 	@EventHandler
 	fun onPluginDisableEvent(event: PluginDisableEvent) {
+		if (event.plugin != plugin) return
+
 		commands.forEach {
 			it.unregister(plugin)
 		}

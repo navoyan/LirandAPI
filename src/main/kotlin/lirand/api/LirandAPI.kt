@@ -1,9 +1,9 @@
 package lirand.api
 
-import lirand.api.controllers.CommandController
-import lirand.api.controllers.Controller
-import lirand.api.controllers.MenuController
+import lirand.api.dsl.menu.MenuController
+import lirand.api.extensions.server.commands.CommandController
 import lirand.api.extensions.server.registerEvents
+import lirand.api.utilities.Initializable
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
 
@@ -24,7 +24,7 @@ class LirandAPI internal constructor(internal val plugin: Plugin) {
 	internal val commandController = CommandController(plugin)
 	internal val menuController = MenuController(plugin)
 
-	private val controllers = listOf<Controller>(
+	private val controllers = listOf<Initializable>(
 		commandController, menuController
 	)
 
@@ -32,7 +32,7 @@ class LirandAPI internal constructor(internal val plugin: Plugin) {
 		_instances[plugin] = this
 
 		for (controller in controllers) {
-			controller.onEnable()
+			controller.initialize()
 
 			if (controller is Listener)
 				plugin.registerEvents(controller)
