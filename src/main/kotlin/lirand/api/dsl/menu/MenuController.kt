@@ -12,6 +12,7 @@ import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
 import lirand.api.dsl.menu.exposed.takeIfHasPlayer
 import lirand.api.extensions.inventory.get
 import lirand.api.extensions.inventory.isNotEmpty
+import lirand.api.extensions.server.registerEvents
 import lirand.api.extensions.server.server
 import lirand.api.utilities.Initializable
 import org.bukkit.entity.Player
@@ -29,9 +30,16 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
 internal class MenuController(val plugin: Plugin) : Listener, Initializable {
+
 	private val supportedInventoryTypes = listOf(
 		InventoryType.CHEST, InventoryType.ANVIL
 	)
+
+
+	override fun initialize() {
+		plugin.registerEvents(this)
+	}
+
 
 	@EventHandler
 	fun onPluginDisableEvent(event: PluginDisableEvent) {

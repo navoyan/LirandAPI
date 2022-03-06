@@ -1,6 +1,7 @@
 package lirand.api.extensions.server.commands
 
 import lirand.api.LirandAPI
+import lirand.api.extensions.server.registerEvents
 import lirand.api.utilities.Initializable
 import org.bukkit.command.Command
 import org.bukkit.event.EventHandler
@@ -10,9 +11,16 @@ import org.bukkit.plugin.Plugin
 
 internal fun provideCommandController(plugin: Plugin) = LirandAPI.instances[plugin]?.commandController
 
+
 internal class CommandController(val plugin: Plugin) : Listener, Initializable {
 
 	val commands = mutableListOf<Command>()
+
+
+	override fun initialize() {
+		plugin.registerEvents(this)
+	}
+
 
 	@EventHandler
 	fun onPluginDisableEvent(event: PluginDisableEvent) {

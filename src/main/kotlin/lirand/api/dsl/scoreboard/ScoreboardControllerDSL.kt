@@ -8,7 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import lirand.api.collections.onlinePlayerMapOf
+import lirand.api.collections.online.onlinePlayerMapOf
 import lirand.api.dsl.scoreboard.ScoreboardController.Companion.linesBounds
 import lirand.api.extensions.server.server
 import org.bukkit.ChatColor
@@ -135,7 +135,7 @@ class ScoreboardControllerDSL(internal val plugin: Plugin, var title: String) : 
 		}
 
 		player.scoreboard = scoreboard
-		_viewers.put(player, objective) {
+		_viewers.put(player, objective) { _, _ ->
 			if (_viewers.isEmpty()) {
 				titleJob?.cancel()
 				titleJob = null
