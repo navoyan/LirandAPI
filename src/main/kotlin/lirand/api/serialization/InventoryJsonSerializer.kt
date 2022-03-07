@@ -14,7 +14,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 
-object InventorySerializer {
+object InventoryJsonSerializer {
 	private val jsonParser = JsonParser()
 
 	fun serialize(item: ItemStack): String {
