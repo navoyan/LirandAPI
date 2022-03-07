@@ -18,7 +18,17 @@ import org.bukkit.plugin.Plugin
 import kotlin.reflect.KClass
 
 /**
- * Creates a SharedFlow that receives the specified [T] Event.
+ * a [SharedFlow] that receives the specified [T] Event.
+ */
+class SharedEventFlow<out T : Event> internal constructor(
+	flow: SharedFlow<T>,
+	internal val plugin: Plugin,
+	internal val listener: Listener
+) : SharedFlow<T> by flow
+
+
+/**
+ * Creates a [SharedEventFlow].
  *
  * @param considerSubscriptionCount determines whether to cancel or start
  * event listening when the number of subscriptions changes.
@@ -31,7 +41,7 @@ inline fun <reified T : Event> Plugin.eventFlow(
 	priority: EventPriority = EventPriority.NORMAL,
 	ignoreCancelled: Boolean = false,
 	listener: Listener = SimpleListener(this)
-): SharedFlow<T> = eventFlow(
+): SharedEventFlow<T> = eventFlow(
 	T::class, considerSubscriptionCount,
 	replay, extraBufferCapacity, onBufferOverflow,
 	priority, ignoreCancelled, listener
@@ -39,7 +49,7 @@ inline fun <reified T : Event> Plugin.eventFlow(
 
 
 /**
- * Creates a SharedFlow that receives the specified [type] Event.
+ * Creates a [SharedEventFlow].
  *
  * @param considerSubscriptionCount determines whether to cancel or start
  * event listening when the number of subscriptions changes.
@@ -53,19 +63,19 @@ fun <T : Event> Plugin.eventFlow(
 	priority: EventPriority = EventPriority.NORMAL,
 	ignoreCancelled: Boolean = false,
 	listener: Listener = SimpleListener(this)
-): SharedFlow<T> {
+): SharedEventFlow<T> {
 
 	val mutableEventFlow = MutableSharedFlow<T>(replay, extraBufferCapacity, onBufferOverflow)
 
 	val emitterScope = CoroutineScope(minecraftDispatcher)
 
 	if (!considerSubscriptionCount) {
-		listener.listen(this, type, priority, ignoreCancelled) {
+		listener.listen(this, type, priority, ignoreCancelled) { event ->
 			emitterScope.launch {
-				mutableEventFlow.emit(this@listen)
+				mutableEventFlow.emit(event)
 			}
 		}
-		return mutableEventFlow.asSharedFlow()
+		return SharedEventFlow(mutableEventFlow.asSharedFlow(), this, listener)
 	}
 
 
@@ -80,14 +90,15 @@ fun <T : Event> Plugin.eventFlow(
 				listener.unregister()
 			}
 			else if (count == 1 && lastSubscriptionCount == 0) {
-				listener.listen(this@eventFlow, type, priority, ignoreCancelled) {
+				listener.listen(this@eventFlow, type, priority, ignoreCancelled) { event ->
 					emitterScope.launch {
-						mutableEventFlow.emit(this@listen)
+						mutableEventFlow.emit(event)
 					}
 				}
 			}
 			lastSubscriptionCount = count
 		}
 	}
-	return mutableEventFlow.asSharedFlow()
+
+	return SharedEventFlow(mutableEventFlow.asSharedFlow(), this, listener)
 }
