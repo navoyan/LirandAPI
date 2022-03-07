@@ -8,53 +8,70 @@ import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
 import kotlin.reflect.KClass
 
+data class ListenerWithPlugin(val listener: Listener, val plugin: Plugin)
+
+open class SimpleListener(open val plugin: Plugin) : Listener
+
+
+
+fun Listener.unregister() = HandlerList.unregisterAll(this)
+
+
+
 inline fun <reified T : Event> Listener.listen(
 	plugin: Plugin,
 	priority: EventPriority = EventPriority.NORMAL,
 	ignoreCancelled: Boolean = false,
-	noinline block: T.() -> Unit
-) {
-	listen(plugin, T::class, priority, ignoreCancelled, block)
-}
+	noinline block: (event: T) -> Unit
+): Unit = listen(plugin, T::class, priority, ignoreCancelled, block)
+
+inline fun <reified T : Event> ListenerWithPlugin.listen(
+	priority: EventPriority = EventPriority.NORMAL,
+	ignoreCancelled: Boolean = false,
+	noinline block: (event: T) -> Unit
+): Unit = listen(T::class, priority, ignoreCancelled, block)
+
 
 fun <T : Event> Listener.listen(
 	plugin: Plugin,
 	type: KClass<T>,
 	priority: EventPriority = EventPriority.NORMAL,
 	ignoreCancelled: Boolean = false,
-	block: T.() -> Unit
-) {
-	server.pluginManager.registerEvent(
-		type.java,
-		this,
-		priority,
-		{ _, event ->
-			if (type.isInstance(event))
-				(event as? T)?.block()
-		},
-		plugin,
-		ignoreCancelled
-	)
-}
+	block: (event: T) -> Unit
+): Unit = server.pluginManager.registerEvent(
+	type.java,
+	this,
+	priority,
+	{ _, event ->
+		if (type.isInstance(event))
+			(event as? T)?.let { block(it) }
+	},
+	plugin,
+	ignoreCancelled
+)
 
-inline fun <reified T : Event> Plugin.listen(
+fun <T : Event> ListenerWithPlugin.listen(
+	type: KClass<T>,
 	priority: EventPriority = EventPriority.NORMAL,
 	ignoreCancelled: Boolean = false,
+	block: (event: T) -> Unit
+): Unit = listener.listen(plugin, type, priority, ignoreCancelled, block)
+
+
+
+inline fun <reified T : Event> Plugin.listen(
 	listener: Listener = SimpleListener(this),
-	noinline onEvent: T.() -> Unit,
-): Listener {
-	return listener.apply {
-		listen(this@listen, priority, ignoreCancelled, onEvent)
-	}
+	priority: EventPriority = EventPriority.NORMAL,
+	ignoreCancelled: Boolean = false,
+	noinline block: (event: T) -> Unit,
+): Listener = listener.apply {
+	listen(this@listen, priority, ignoreCancelled, block)
 }
 
-
-fun Listener.unregister() = HandlerList.unregisterAll(this)
 
 inline fun Plugin.events(
 	listener: Listener = SimpleListener(this),
-	crossinline block: Listener.() -> Unit
-) = listener.apply(block)
-
-
-open class SimpleListener(open val plugin: Plugin) : Listener
+	crossinline block: ListenerWithPlugin.() -> Unit
+) = listener.apply {
+	ListenerWithPlugin(listener, this@events).apply(block)
+}
