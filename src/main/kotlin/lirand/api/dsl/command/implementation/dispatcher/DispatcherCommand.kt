@@ -5,12 +5,12 @@ import com.mojang.brigadier.Message
 import com.mojang.brigadier.StringReader
 import com.mojang.brigadier.exceptions.CommandSyntaxException
 import lirand.api.dsl.command.types.exceptions.ChatCommandSyntaxException
+import lirand.api.extensions.chat.SuggestCommandClickEvent
 import lirand.api.extensions.chat.sendMessage
 import lirand.api.extensions.chat.toComponent
 import lirand.api.utilities.isOverridden
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.BaseComponent
-import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.chat.TranslatableComponent
 import org.bukkit.command.Command
@@ -33,9 +33,7 @@ class DispatcherCommand(
 	val dispatcher: CommandDispatcher<CommandSender>,
 	usage: String,
 	aliases: List<String>
-) : Command(
-	name, "", usage, aliases
-), PluginIdentifiableCommand {
+) : Command(name, "", usage, aliases), PluginIdentifiableCommand {
 
 	/**
 	 * Forwards execution with the rejoined label and arguments to the underlying
@@ -44,7 +42,7 @@ class DispatcherCommand(
 	 * @param sender the sender
 	 * @param label the label
 	 * @param arguments the arguments
-	 * @return `true`
+	 * @return true
 	 */
 	override fun execute(sender: CommandSender, label: String, vararg arguments: String): Boolean {
 		if (!testPermission(sender)) {
@@ -81,33 +79,38 @@ class DispatcherCommand(
 		return plugin
 	}
 
+
+
 	private fun report(sender: CommandSender, input: String?, cursor: Int) {
 		if (input == null || cursor < 0) return
 
 		val index = min(input.length, cursor)
-		val failedCommandMessage = TextComponent("").apply {
+		val errorStart = input.lastIndexOf(' ', index - 1) + 1
+
+		val failedCommandMessage = TextComponent().apply {
 			color = ChatColor.GRAY
-			clickEvent = ClickEvent(
-				ClickEvent.Action.SUGGEST_COMMAND,
-				input
-			)
+			clickEvent = SuggestCommandClickEvent(input)
 		}
-		if (index > 10) {
+
+		if (errorStart > 10) {
 			failedCommandMessage.addExtra("...")
 		}
-		failedCommandMessage.addExtra(input.substring(max(0, index - 10), index))
+		failedCommandMessage.addExtra(input.substring(max(0, errorStart - 10), errorStart))
+
 		if (index < input.length) {
-			val error = TextComponent(input.substring(index)).apply {
+			val error = TextComponent(input.substring(errorStart)).apply {
 				color = ChatColor.RED
 				isUnderlined = true
 			}
 			failedCommandMessage.addExtra(error)
 		}
+
 		val context = TranslatableComponent("command.context.here").apply {
 			color = ChatColor.RED
-			isUnderlined = true
+			isItalic = true
 		}
 		failedCommandMessage.addExtra(context)
+
 
 		sender.sendMessage(failedCommandMessage)
 	}
