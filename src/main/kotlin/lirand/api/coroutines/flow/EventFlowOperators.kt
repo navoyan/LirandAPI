@@ -1,13 +1,10 @@
 package lirand.api.coroutines.flow
 
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.job
 import lirand.api.extensions.events.SimpleListener
-import lirand.api.extensions.events.events
 import lirand.api.extensions.events.listen
 import lirand.api.extensions.events.unregister
 import org.bukkit.entity.Player
@@ -22,7 +19,7 @@ import org.bukkit.event.player.PlayerQuitEvent
  */
 fun <T : Event> SharedEventFlow<T>.assign(
 	player: Player,
-	listener: Listener = SimpleListener(plugin)
+	listener: Listener = SimpleListener()
 ) = flow {
 	val job = currentCoroutineContext().job
 

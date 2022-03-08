@@ -40,7 +40,7 @@ inline fun <reified T : Event> Plugin.eventFlow(
 	onBufferOverflow: BufferOverflow = BufferOverflow.DROP_OLDEST,
 	priority: EventPriority = EventPriority.NORMAL,
 	ignoreCancelled: Boolean = false,
-	listener: Listener = SimpleListener(this)
+	listener: Listener = SimpleListener()
 ): SharedEventFlow<T> = eventFlow(
 	T::class, considerSubscriptionCount,
 	replay, extraBufferCapacity, onBufferOverflow,
@@ -62,7 +62,7 @@ fun <T : Event> Plugin.eventFlow(
 	onBufferOverflow: BufferOverflow = BufferOverflow.DROP_OLDEST,
 	priority: EventPriority = EventPriority.NORMAL,
 	ignoreCancelled: Boolean = false,
-	listener: Listener = SimpleListener(this)
+	listener: Listener = SimpleListener()
 ): SharedEventFlow<T> {
 
 	val mutableEventFlow = MutableSharedFlow<T>(replay, extraBufferCapacity, onBufferOverflow)

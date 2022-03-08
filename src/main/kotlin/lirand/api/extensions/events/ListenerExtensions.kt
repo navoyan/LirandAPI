@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
 
 data class ListenerWithPlugin(val listener: Listener, val plugin: Plugin)
 
-open class SimpleListener(open val plugin: Plugin) : Listener
+class SimpleListener : Listener
 
 
 
@@ -60,7 +60,7 @@ fun <T : Event> ListenerWithPlugin.listen(
 
 
 inline fun <reified T : Event> Plugin.listen(
-	listener: Listener = SimpleListener(this),
+	listener: Listener = SimpleListener(),
 	priority: EventPriority = EventPriority.NORMAL,
 	ignoreCancelled: Boolean = false,
 	noinline block: (event: T) -> Unit,
@@ -70,7 +70,7 @@ inline fun <reified T : Event> Plugin.listen(
 
 
 inline fun Plugin.events(
-	listener: Listener = SimpleListener(this),
+	listener: Listener = SimpleListener(),
 	crossinline block: ListenerWithPlugin.() -> Unit
 ) = listener.apply {
 	ListenerWithPlugin(listener, this@events).apply(block)
