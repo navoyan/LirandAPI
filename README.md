@@ -31,8 +31,8 @@ repositories {
 
 dependencies {
     // ... 
-	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.6.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.6.0")
     implementation("com.github.dyam0:LirandAPI:VERSION")
     compileOnly("com.mojang:brigadier:1.0.18")
     // ...
