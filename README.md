@@ -4,14 +4,14 @@ Lirand API allows you to develop Spigot plugins faster, easier
 and more Kotlin-like way.
 
 It includes a lot of cool features like:
- - Command builders based on the [Mojang Brigadier](https://github.com/Mojang/brigadier)
- - Three types of inventory-based menus and their builders
- - Scoreboard builder
- - Easy way to change the NBT of items and entities
+ - Command DSL builders based on the [Mojang Brigadier](https://github.com/Mojang/brigadier)
+ - Three types of inventory-based menus and their DSL builders
+ - Easy way to change the NBT of items and entities 
+ - Shared event flow
  - Items and inventories serialization/deserialization
- - Event flow
  - Online player collections
  - A bunch of useful extensions for working with chat, events, items, inventories, etc.
+ - Scoreboard builder (experimental)
 
 And most importantly **it is backward compatible via 1.16+ Minecraft versions**.
 
@@ -31,6 +31,8 @@ repositories {
 
 dependencies {
     // ... 
+	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk9:1.6.0")
     implementation("com.github.dyam0:LirandAPI:VERSION")
     compileOnly("com.mojang:brigadier:1.0.18")
     // ...
