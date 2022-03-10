@@ -60,8 +60,8 @@ object InventoryJsonSerializer {
 	}
 
 	fun deserializeInventory(
-		owner: InventoryHolder,
 		inventoryNbt: String,
+		owner: InventoryHolder? = null,
 		title: String? = null
 	): Inventory? = try {
 		val nbtJsonObject = jsonParser.parse(inventoryNbt).asJsonObject
