@@ -6,6 +6,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.plugin.Plugin
+import kotlin.time.Duration
 
 interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 
@@ -16,7 +17,7 @@ interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 	val slots: Map<Int, S>
 
 	var baseSlot: S
-	var updateDelay: Long
+	var updateDelay: Duration
 
 	val viewers: Map<Player, I>
 

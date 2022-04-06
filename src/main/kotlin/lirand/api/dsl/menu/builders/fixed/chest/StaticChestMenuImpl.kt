@@ -28,6 +28,7 @@ import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.time.Duration
 
 class StaticChestMenuImpl(
 	override val plugin: Plugin,
@@ -36,17 +37,17 @@ class StaticChestMenuImpl(
 	override var cancelEvents: Boolean
 ) : StaticChestMenuDSL {
 
-	private var _inventory: Inventory = Inventory(this, lines * 9, title)
+	private var _inventory: Inventory = Inventory(lines * 9, this, title)
 
 	private val scope = CoroutineScope(
 		plugin.minecraftDispatcher + SupervisorJob() +
 				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
 	)
-	override var updateDelay: Long = 0
+	override var updateDelay: Duration = Duration.ZERO
 		set(value) {
-			field = value.takeIf { it >= 0 } ?: 0
+			field = value.takeIf { it >= Duration.ZERO } ?: Duration.ZERO
 			removeUpdateTask()
-			if (value > 0 && viewers.isNotEmpty())
+			if (value > Duration.ZERO && viewers.isNotEmpty())
 				setUpdateTask()
 		}
 
@@ -143,7 +144,7 @@ class StaticChestMenuImpl(
 				_viewers[player] = inventory
 				player.openInventory(inventory)
 
-				if (updateDelay > 0 && viewers.size == 1)
+				if (updateDelay > Duration.ZERO && viewers.size == 1)
 					setUpdateTask()
 
 				val open = PlayerMenuOpenEvent(this, player, inventory)
@@ -161,7 +162,7 @@ class StaticChestMenuImpl(
 			val menuClose = PlayerMenuCloseEvent(this, player)
 			eventHandler.handleClose(menuClose)
 
-			if (updateDelay > 0 && viewers.isEmpty())
+			if (updateDelay > Duration.ZERO && viewers.isEmpty())
 				removeUpdateTask()
 		}
 	}

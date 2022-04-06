@@ -33,6 +33,7 @@ import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.time.Duration
 
 
 class AnvilMenuImpl(
@@ -92,11 +93,11 @@ class AnvilMenuImpl(
 		plugin.minecraftDispatcher + SupervisorJob() +
 				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
 	)
-	override var updateDelay: Long = 0
+	override var updateDelay: Duration = Duration.ZERO
 		set(value) {
-			field = value.takeIf { it >= 0 } ?: 0
+			field = value.takeIf { it >= Duration.ZERO } ?: Duration.ZERO
 			removeUpdateTask()
-			if (value > 0 && viewers.isNotEmpty())
+			if (value > Duration.ZERO && viewers.isNotEmpty())
 				setUpdateTask()
 		}
 
@@ -169,7 +170,7 @@ class AnvilMenuImpl(
 	override fun updateSlot(slot: Slot<AnvilInventory>) = updateSlot(slot, viewers.keys)
 
 	override fun getInventory(): AnvilInventory {
-		return currentInventory ?: Inventory<AnvilInventory>(this, InventoryType.ANVIL)
+		return currentInventory ?: Inventory<AnvilInventory>(InventoryType.ANVIL, this)
 	}
 
 	override fun openTo(players: Collection<Player>) {
@@ -205,7 +206,7 @@ class AnvilMenuImpl(
 				anvilWrapper.setActiveContainerId(currentContainer, containerId)
 				anvilWrapper.addActiveContainerSlotListener(currentContainer, player)
 
-				if (updateDelay > 0 && viewers.size == 1)
+				if (updateDelay > Duration.ZERO && viewers.size == 1)
 					setUpdateTask()
 
 				val open = PlayerMenuOpenEvent(this, player, inventory)
@@ -223,7 +224,7 @@ class AnvilMenuImpl(
 			val menuClose = PlayerMenuCloseEvent(this, player)
 			eventHandler.handleClose(menuClose)
 
-			if (updateDelay > 0 && viewers.isEmpty())
+			if (updateDelay > Duration.ZERO && viewers.isEmpty())
 				removeUpdateTask()
 		}
 	}

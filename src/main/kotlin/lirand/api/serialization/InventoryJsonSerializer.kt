@@ -77,9 +77,9 @@ object InventoryJsonSerializer {
 		else title
 
 		val resultInventory = if (type == InventoryType.CHEST)
-			Inventory(owner, size, resultTitle)
+			Inventory(size, owner, resultTitle)
 		else
-			Inventory(owner, type, resultTitle)
+			Inventory(type, owner, resultTitle)
 
 		val items = nbtJsonObject.getAsJsonObject("Items")
 

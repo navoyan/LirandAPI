@@ -27,6 +27,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 import java.util.*
+import kotlin.time.Duration
 
 class ChestMenuImpl(
 	override val plugin: Plugin,
@@ -46,11 +47,11 @@ class ChestMenuImpl(
 		plugin.minecraftDispatcher + SupervisorJob() +
 				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
 	)
-	override var updateDelay: Long = 0
+	override var updateDelay: Duration = Duration.ZERO
 		set(value) {
-			field = value.takeIf { it >= 0 } ?: 0
+			field = value.takeIf { it >= Duration.ZERO } ?: Duration.ZERO
 			removeUpdateTask()
-			if (value > 0 && viewers.isNotEmpty())
+			if (value > Duration.ZERO && viewers.isNotEmpty())
 				setUpdateTask()
 		}
 
@@ -149,7 +150,7 @@ class ChestMenuImpl(
 				val open = PlayerMenuOpenEvent(this, player, inventory)
 				eventHandler.handleOpen(open)
 
-				if (updateDelay > 0 && viewers.size == 1)
+				if (updateDelay > Duration.ZERO && viewers.size == 1)
 					setUpdateTask()
 
 			} catch (exception: Throwable) {
@@ -161,7 +162,7 @@ class ChestMenuImpl(
 
 	override fun getInventory(): Inventory {
 		val slotIndexes = rangeOfSlots
-		val inventory = Inventory(this, slotIndexes.last + 1, title)
+		val inventory = Inventory(slotIndexes.last + 1, this, title)
 
 		for (index in slotIndexes) {
 			val slot = getSlotOrBaseSlot(index)
@@ -178,7 +179,7 @@ class ChestMenuImpl(
 			val menuClose = PlayerMenuCloseEvent(this, player)
 			eventHandler.handleClose(menuClose)
 
-			if (updateDelay > 0 && viewers.isEmpty())
+			if (updateDelay > Duration.ZERO && viewers.isEmpty())
 				removeUpdateTask()
 		}
 	}
