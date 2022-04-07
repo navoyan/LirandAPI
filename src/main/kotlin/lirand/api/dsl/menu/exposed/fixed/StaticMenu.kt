@@ -33,8 +33,7 @@ interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 	fun update()
 	fun updateSlot(slot: S)
 
-	fun openTo(players: Collection<Player>)
-	fun openTo(vararg players: Player) = openTo(players.toList())
+	fun openTo(player: Player)
 
 	fun clearData() {
 		data.clear()

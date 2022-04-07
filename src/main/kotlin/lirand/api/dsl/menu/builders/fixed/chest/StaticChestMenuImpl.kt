@@ -131,29 +131,26 @@ class StaticChestMenuImpl(
 		_inventory.storageContents = inventory.storageContents
 	}
 
-	override fun openTo(players: Collection<Player>) {
-		for (player in players) {
-			close(player, false)
+	override fun openTo(player: Player) {
+		close(player, false)
 
-			try {
-				val preOpen = PlayerMenuPreOpenEvent(this, player)
-				eventHandler.handlePreOpen(preOpen)
+		try {
+			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
+			eventHandler.handlePreOpen(preOpenEvent)
+			if (preOpenEvent.canceled) return
 
-				if (preOpen.canceled) return
+			_viewers[player] = inventory
+			player.openInventory(inventory)
 
-				_viewers[player] = inventory
-				player.openInventory(inventory)
+			if (updateDelay > Duration.ZERO && viewers.size == 1)
+				setUpdateTask()
 
-				if (updateDelay > Duration.ZERO && viewers.size == 1)
-					setUpdateTask()
+			val openEvent = PlayerMenuOpenEvent(this, player, inventory)
+			eventHandler.handleOpen(openEvent)
 
-				val open = PlayerMenuOpenEvent(this, player, inventory)
-				eventHandler.handleOpen(open)
-
-			} catch (exception: Throwable) {
-				exception.printStackTrace()
-				removePlayer(player, true)
-			}
+		} catch (exception: Throwable) {
+			exception.printStackTrace()
+			removePlayer(player, true)
 		}
 	}
 

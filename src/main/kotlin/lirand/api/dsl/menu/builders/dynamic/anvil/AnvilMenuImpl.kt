@@ -155,59 +155,57 @@ class AnvilMenuImpl(
 
 	override fun getInventory() = Inventory<AnvilInventory>(InventoryType.ANVIL, this)
 
-	override fun openTo(players: Collection<Player>) {
-		for (player in players) {
-			close(player, true)
+	override fun openTo(player: Player) {
+		close(player, true)
 
-			try {
-				val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
-				eventHandler.handlePreOpen(preOpenEvent)
-				if (preOpenEvent.canceled) return
-
-
-				val title = dynamicTitle(player)
-				val currentContainer = anvilWrapper.newContainerAnvil(player, title)?.apply {
-					verifyObfuscatedFields(this)
-				}
-				val currentInventory = anvilWrapper.toBukkitInventory(this)?.apply {
-					for (index in rangeOfSlots) {
-						val slot = _slots[index] ?: baseSlot
-						setItem(index, slot.item)
-					}
-				} as AnvilInventory
-
-				bukkitOwnerField.set(inventoryField.get(currentContainer), this)
-				_viewers[player] = currentInventory
+		try {
+			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
+			eventHandler.handlePreOpen(preOpenEvent)
+			if (preOpenEvent.canceled) return
 
 
-				for (index in rangeOfSlots) {
-					val slot = getSlotOrBaseSlot(index)
-					val render = MenuSlotRenderEvent(this, index, slot, player, inventory)
-					slot.eventHandler.handleRender(render)
-				}
-
-
-				with(anvilWrapper) {
-					val containerId = getNextContainerId(player, currentContainer)
-
-					sendPacketOpenWindow(player, getNextContainerId(player, currentContainer), title)
-					setActiveContainer(player, currentContainer)
-					setActiveContainerId(currentContainer, containerId)
-					addActiveContainerSlotListener(currentContainer, player)
-				}
-
-
-				if (updateDelay > Duration.ZERO && viewers.size == 1)
-					setUpdateTask()
-
-
-				val openEvent = PlayerMenuOpenEvent(this, player, inventory)
-				eventHandler.handleOpen(openEvent)
-
-			} catch (exception: Throwable) {
-				exception.printStackTrace()
-				removePlayer(player, true)
+			val title = dynamicTitle(player)
+			val currentContainer = anvilWrapper.newContainerAnvil(player, title)?.apply {
+				verifyObfuscatedFields(this)
 			}
+			val currentInventory = anvilWrapper.toBukkitInventory(this)?.apply {
+				for (index in rangeOfSlots) {
+					val slot = _slots[index] ?: baseSlot
+					setItem(index, slot.item)
+				}
+			} as AnvilInventory
+
+			bukkitOwnerField.set(inventoryField.get(currentContainer), this)
+			_viewers[player] = currentInventory
+
+
+			for (index in rangeOfSlots) {
+				val slot = getSlotOrBaseSlot(index)
+				val render = MenuSlotRenderEvent(this, index, slot, player, inventory)
+				slot.eventHandler.handleRender(render)
+			}
+
+
+			with(anvilWrapper) {
+				val containerId = getNextContainerId(player, currentContainer)
+
+				sendPacketOpenWindow(player, getNextContainerId(player, currentContainer), title)
+				setActiveContainer(player, currentContainer)
+				setActiveContainerId(currentContainer, containerId)
+				addActiveContainerSlotListener(currentContainer, player)
+			}
+
+
+			if (updateDelay > Duration.ZERO && viewers.size == 1)
+				setUpdateTask()
+
+
+			val openEvent = PlayerMenuOpenEvent(this, player, inventory)
+			eventHandler.handleOpen(openEvent)
+
+		} catch (exception: Throwable) {
+			exception.printStackTrace()
+			removePlayer(player, true)
 		}
 	}
 

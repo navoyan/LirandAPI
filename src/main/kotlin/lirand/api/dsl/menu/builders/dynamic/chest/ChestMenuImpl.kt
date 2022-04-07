@@ -123,40 +123,35 @@ class ChestMenuImpl(
 
 	override fun updateSlot(slot: Slot<Inventory>) = updateSlot(slot, viewers.keys)
 
-	override fun openTo(players: Collection<Player>) {
-		for (player in players) {
-			close(player, false)
+	override fun openTo(player: Player) {
+		close(player, false)
 
-			try {
-				val inventory = inventory
+		try {
+			val inventory = inventory
 
-				val preOpen = PlayerMenuPreOpenEvent(this, player)
-				eventHandler.handlePreOpen(preOpen)
+			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
+			eventHandler.handlePreOpen(preOpenEvent)
+			if (preOpenEvent.canceled) return
 
-				if (preOpen.canceled) return
+			_viewers[player] = inventory
 
-				_viewers[player] = inventory
-
-				for (index in rangeOfSlots) {
-					val slot = getSlotOrBaseSlot(index)
-
-					val render = MenuSlotRenderEvent(this, index, slot, player, inventory)
-
-					slot.eventHandler.handleRender(render)
-				}
-
-				player.openInventory(inventory)
-
-				val open = PlayerMenuOpenEvent(this, player, inventory)
-				eventHandler.handleOpen(open)
-
-				if (updateDelay > Duration.ZERO && viewers.size == 1)
-					setUpdateTask()
-
-			} catch (exception: Throwable) {
-				exception.printStackTrace()
-				removePlayer(player, true)
+			for (index in rangeOfSlots) {
+				val slot = getSlotOrBaseSlot(index)
+				val render = MenuSlotRenderEvent(this, index, slot, player, inventory)
+				slot.eventHandler.handleRender(render)
 			}
+
+			player.openInventory(inventory)
+
+			val openEvent = PlayerMenuOpenEvent(this, player, inventory)
+			eventHandler.handleOpen(openEvent)
+
+			if (updateDelay > Duration.ZERO && viewers.size == 1)
+				setUpdateTask()
+
+		} catch (exception: Throwable) {
+			exception.printStackTrace()
+			removePlayer(player, true)
 		}
 	}
 
