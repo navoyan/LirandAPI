@@ -11,7 +11,7 @@ import kotlin.time.Duration
 interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 
 	val plugin: Plugin
-	val title: String
+	val title: String?
 
 	val rangeOfSlots: IntRange
 	val slots: Map<Int, S>

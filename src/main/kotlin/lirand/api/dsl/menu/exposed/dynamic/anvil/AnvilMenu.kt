@@ -8,6 +8,4 @@ interface AnvilMenu : Menu<Slot<AnvilInventory>, AnvilInventory> {
 
 	override val eventHandler: AnvilMenuEventHandler
 
-	override fun getInventory(): AnvilInventory
-
 }

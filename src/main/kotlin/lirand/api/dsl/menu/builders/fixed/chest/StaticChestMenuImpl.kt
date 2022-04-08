@@ -33,7 +33,7 @@ import kotlin.time.Duration
 class StaticChestMenuImpl(
 	override val plugin: Plugin,
 	override val lines: Int,
-	override var title: String,
+	override val title: String,
 	override var cancelEvents: Boolean
 ) : StaticChestMenuDSL {
 
@@ -55,7 +55,7 @@ class StaticChestMenuImpl(
 	private val _viewers = WeakHashMap<Player, Inventory>()
 	override val viewers: Map<Player, Inventory> get() = _viewers
 
-	override val rangeOfSlots: IntRange get() = 0 until lines * 9
+	override val rangeOfSlots: IntRange = 0 until lines * 9
 
 	private val _slots = TreeMap<Int, StaticSlot<Inventory>>()
 	override val slots: Map<Int, StaticSlot<Inventory>> get() = _slots
@@ -128,7 +128,7 @@ class StaticChestMenuImpl(
 	override fun getInventory() = _inventory
 
 	override fun setInventory(inventory: Inventory) {
-		_inventory.storageContents = inventory.storageContents
+		_inventory.storageContents = inventory.storageContents.map { it.clone() }.toTypedArray()
 	}
 
 	override fun openTo(player: Player) {
@@ -142,11 +142,11 @@ class StaticChestMenuImpl(
 			_viewers[player] = inventory
 			player.openInventory(inventory)
 
-			if (updateDelay > Duration.ZERO && viewers.size == 1)
-				setUpdateTask()
-
 			val openEvent = PlayerMenuOpenEvent(this, player, inventory)
 			eventHandler.handleOpen(openEvent)
+
+			if (updateDelay > Duration.ZERO && viewers.size == 1)
+				setUpdateTask()
 
 		} catch (exception: Throwable) {
 			exception.printStackTrace()

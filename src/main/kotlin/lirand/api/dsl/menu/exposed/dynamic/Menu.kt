@@ -6,8 +6,6 @@ import org.bukkit.inventory.Inventory
 
 interface Menu<S : Slot<I>, I : Inventory> : StaticMenu<S, I> {
 
-	override var title: String
-
 	fun update(players: Collection<Player>)
 	fun updateSlot(slot: S, players: Collection<Player>)
 

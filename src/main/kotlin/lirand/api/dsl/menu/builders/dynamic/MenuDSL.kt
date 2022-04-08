@@ -8,6 +8,8 @@ import org.bukkit.inventory.Inventory
 
 interface MenuDSL<S : Slot<I>, I : Inventory> : Menu<S, I>, StaticMenuDSL<S, I> {
 
-	fun title(render: (Player?) -> String?)
+	override var title: String?
+
+	fun title(render: (Player) -> String?)
 
 }

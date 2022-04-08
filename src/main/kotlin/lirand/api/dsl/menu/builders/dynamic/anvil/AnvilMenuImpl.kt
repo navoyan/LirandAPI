@@ -66,12 +66,8 @@ class AnvilMenuImpl(
 
 	}
 
-	private var dynamicTitle: (Player?) -> String? = { "" }
-	override var title: String
-		get() = dynamicTitle(null) ?: ""
-		set(value) {
-			dynamicTitle = { value }
-		}
+	private var dynamicTitle: ((Player) -> String?)? = null
+	override var title: String? = null
 
 	private val scope = CoroutineScope(
 		plugin.minecraftDispatcher + SupervisorJob() +
@@ -103,7 +99,7 @@ class AnvilMenuImpl(
 	override val playerData = WeakHashMap<Player, MutableMap<String, Any>>()
 
 
-	override fun title(render: (Player?) -> String?) {
+	override fun title(render: (Player) -> String?) {
 		dynamicTitle = render
 	}
 
@@ -153,10 +149,15 @@ class AnvilMenuImpl(
 
 	override fun updateSlot(slot: Slot<AnvilInventory>) = updateSlot(slot, viewers.keys)
 
-	override fun getInventory() = Inventory<AnvilInventory>(InventoryType.ANVIL, this)
+	override fun getInventory() = Inventory(InventoryType.ANVIL, this).apply {
+		for (index in rangeOfSlots) {
+			val slot = getSlotOrBaseSlot(index)
+			setItem(index, slot.item?.clone())
+		}
+	}
 
 	override fun openTo(player: Player) {
-		close(player, true)
+		close(player, false)
 
 		try {
 			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
@@ -164,19 +165,16 @@ class AnvilMenuImpl(
 			if (preOpenEvent.canceled) return
 
 
-			val title = dynamicTitle(player)
-			val currentContainer = anvilWrapper.newContainerAnvil(player, title)?.apply {
+			val title = title ?: dynamicTitle?.invoke(player)
+			val container = anvilWrapper.newContainerAnvil(player, title)?.apply {
 				verifyObfuscatedFields(this)
 			}
-			val currentInventory = anvilWrapper.toBukkitInventory(this)?.apply {
-				for (index in rangeOfSlots) {
-					val slot = _slots[index] ?: baseSlot
-					setItem(index, slot.item)
-				}
+			val inventory = anvilWrapper.toBukkitInventory(container)?.apply {
+				contents = inventory.contents
 			} as AnvilInventory
 
-			bukkitOwnerField.set(inventoryField.get(currentContainer), this)
-			_viewers[player] = currentInventory
+			bukkitOwnerField.set(inventoryField.get(container), this)
+			_viewers[player] = inventory
 
 
 			for (index in rangeOfSlots) {
@@ -187,21 +185,20 @@ class AnvilMenuImpl(
 
 
 			with(anvilWrapper) {
-				val containerId = getNextContainerId(player, currentContainer)
+				val containerId = getNextContainerId(player, container)
 
-				sendPacketOpenWindow(player, getNextContainerId(player, currentContainer), title)
-				setActiveContainer(player, currentContainer)
-				setActiveContainerId(currentContainer, containerId)
-				addActiveContainerSlotListener(currentContainer, player)
+				sendPacketOpenWindow(player, getNextContainerId(player, container), title)
+				setActiveContainer(player, container)
+				setActiveContainerId(container, containerId)
+				addActiveContainerSlotListener(container, player)
 			}
-
-
-			if (updateDelay > Duration.ZERO && viewers.size == 1)
-				setUpdateTask()
 
 
 			val openEvent = PlayerMenuOpenEvent(this, player, inventory)
 			eventHandler.handleOpen(openEvent)
+
+			if (updateDelay > Duration.ZERO && viewers.size == 1)
+				setUpdateTask()
 
 		} catch (exception: Throwable) {
 			exception.printStackTrace()
