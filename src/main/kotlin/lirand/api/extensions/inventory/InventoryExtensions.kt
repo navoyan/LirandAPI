@@ -11,18 +11,11 @@ fun Inventory(
 	type: InventoryType,
 	owner: InventoryHolder? = null,
 	title: String? = null
-): Inventory = Inventory<Inventory>(type, owner, title)
-
-@JvmName("TypedInventory")
-fun <I : Inventory> Inventory(
-	type: InventoryType,
-	owner: InventoryHolder? = null,
-	title: String? = null
-): I {
+): Inventory {
 	return if (title != null)
-		server.createInventory(owner, type, title) as I
+		server.createInventory(owner, type, title)
 	else
-		server.createInventory(owner, type) as I
+		server.createInventory(owner, type)
 }
 
 fun Inventory(
@@ -61,15 +54,15 @@ operator fun Inventory.set(slot: Int, itemStack: ItemStack?) {
 }
 
 
-fun <I : Inventory> I.clone(
+fun Inventory.clone(
 	cloneItemStacks: Boolean = true,
 	owner: InventoryHolder? = holder,
 	title: String? = null
-): I {
+): Inventory {
 	val inventory = if (type == InventoryType.CHEST)
-		Inventory(size, owner, title) as I
+		Inventory(size, owner, title)
 	else
-		Inventory<I>(type, owner, title)
+		Inventory(type, owner, title)
 
 	inventory.contents = if (cloneItemStacks)
 		contents.map { it.clone() }.toTypedArray()
