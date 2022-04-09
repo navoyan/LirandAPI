@@ -28,7 +28,7 @@ interface PlayerMenuSlotEvent : PlayerMenuEvent {
 
 interface PlayerMenuInventorySlotEvent<I : Inventory> : PlayerMenuSlotEvent, PlayerInventoryMenuEvent<I> {
 
-	var showingItem: ItemStack?
+	var currentItem: ItemStack?
 		get() = inventory[slotIndex]?.takeIf { it.type != Material.AIR }
 		set(value) {
 			inventory[slotIndex] = value
@@ -44,13 +44,13 @@ open class MenuSlotInteractEvent<I : Inventory>(
 	player: Player,
 	override val slotIndex: Int,
 	override val slot: StaticSlot<I>,
-	canceled: Boolean,
+	isCanceled: Boolean,
 	val click: ClickType,
 	val action: InventoryAction,
 	val clicked: ItemStack?,
 	val cursor: ItemStack?,
 	val hotbarKey: Int
-) : PlayerMenuInteractEvent<I>(menu, player, inventory, canceled), PlayerMenuInventorySlotEvent<I>
+) : PlayerMenuInteractEvent<I>(menu, player, inventory, isCanceled), PlayerMenuInventorySlotEvent<I>
 
 
 class PlayerMenuSlotPageChangeEvent(

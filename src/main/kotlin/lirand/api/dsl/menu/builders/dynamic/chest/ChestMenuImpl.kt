@@ -136,7 +136,7 @@ class ChestMenuImpl(
 
 			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
 			eventHandler.handlePreOpen(preOpenEvent)
-			if (preOpenEvent.canceled) return
+			if (preOpenEvent.isCanceled) return
 
 			_viewers[player] = inventory
 

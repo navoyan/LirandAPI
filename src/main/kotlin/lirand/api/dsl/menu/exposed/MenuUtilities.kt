@@ -23,7 +23,6 @@ fun StaticMenu<*, *>.hasPlayer(player: Player) = viewers.containsKey(player)
 fun StaticMenu<*, *>.takeIfHasPlayer(player: Player): StaticMenu<*, *>? = if (hasPlayer(player)) this else null
 
 fun Inventory.isMenu() = holder is StaticMenu<*, *>
-
 fun Inventory.asMenu(): StaticMenu<*, *>? = holder as? StaticMenu<*, *>
 
 fun Player.getMenu(): StaticMenu<*, *>? {

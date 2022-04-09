@@ -20,7 +20,6 @@ interface PlayerMenuEvent {
 	}
 
 	fun getPlayerData(key: String) = menu.playerData[player]?.get(key)
-
 }
 
 internal fun PlayerMenuEvent(
@@ -59,7 +58,7 @@ internal class PlayerInventoryMenuImpl<I : Inventory>(
 
 
 interface PlayerMenuCancellableEvent : PlayerMenuEvent {
-	var canceled: Boolean
+	var isCanceled: Boolean
 }
 
 
@@ -67,13 +66,13 @@ open class PlayerMenuInteractEvent<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player,
 	override val inventory: I,
-	override var canceled: Boolean
+	override var isCanceled: Boolean
 ) : PlayerInventoryMenuEvent<I>, PlayerMenuCancellableEvent
 
 class PlayerMenuPreOpenEvent(
 	override val menu: StaticMenu<*, *>,
 	override val player: Player,
-	override var canceled: Boolean = false
+	override var isCanceled: Boolean = false
 ) : PlayerMenuEvent, PlayerMenuCancellableEvent
 
 class PlayerMenuOpenEvent<I : Inventory>(
@@ -107,7 +106,7 @@ class PlayerMoveToMenuEvent<I : Inventory>(
 	menu: StaticMenu<*, *>,
 	player: Player,
 	inventory: I,
-	canceled: Boolean,
+	isCanceled: Boolean,
 	override val movedItem: ItemStack?,
 	val hotbarKey: Int
-) : PlayerMenuInteractEvent<I>(menu, player, inventory, canceled), PlayerMenuMoveEvent
+) : PlayerMenuInteractEvent<I>(menu, player, inventory, isCanceled), PlayerMenuMoveEvent

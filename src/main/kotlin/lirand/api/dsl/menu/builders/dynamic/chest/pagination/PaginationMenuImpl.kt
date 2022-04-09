@@ -60,7 +60,7 @@ class PaginationMenuImpl<T>(
 					currentPlayerPages[player] = openPage
 				}
 				else {
-					canceled = true
+					isCanceled = true
 					eventHandler.handlePageAvailable(this)
 				}
 			}

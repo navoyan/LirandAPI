@@ -91,7 +91,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Initializable {
 
 		slot.eventHandler.handleInteract(interactEvent)
 
-		if (interactEvent.canceled) event.isCancelled = true
+		if (interactEvent.isCanceled) event.isCancelled = true
 	}
 
 	private fun <I : Inventory> handleMenuMove(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
