@@ -19,7 +19,7 @@ import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
 import lirand.api.dsl.menu.exposed.dynamic.Slot
 import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
-import lirand.api.dsl.menu.exposed.getViewersFromPlayers
+import lirand.api.dsl.menu.exposed.hasPlayer
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.extensions.inventory.clone
 import lirand.api.extensions.inventory.set
@@ -87,38 +87,46 @@ class ChestMenuImpl(
 		_slots.clear()
 	}
 
-	override fun update(players: Collection<Player>) {
-		val viewers = getViewersFromPlayers(players)
+	override fun update(player: Player) {
+		if (!hasPlayer(player)) return
 
-		for ((player, inventory) in viewers) {
-			val update = PlayerMenuUpdateEvent(this, player, inventory)
-			eventHandler.handleUpdate(update)
+		val inventory = viewers.getValue(player)
+		val updateEvent = PlayerMenuUpdateEvent(this, player, inventory)
+		eventHandler.handleUpdate(updateEvent)
 
-			for (index in rangeOfSlots) {
-				val slot = getSlotOrBaseSlot(index)
-				updateSlotOnly(index, slot, player, inventory)
-			}
+		for (index in rangeOfSlots) {
+			val slot = getSlotOrBaseSlot(index)
+			callSlotUpdateEvent(index, slot, player, inventory)
 		}
 	}
 
-	override fun update() = update(viewers.keys)
+	override fun update() {
+		for (player in viewers.keys) {
+			update(player)
+		}
+	}
 
-	override fun updateSlot(slot: Slot<Inventory>, players: Collection<Player>) {
-		val slots: Map<Int, Slot<Inventory>> = if (slot === baseSlot) {
+	override fun updateSlot(slot: Slot<Inventory>, player: Player) {
+		if (!hasPlayer(player)) return
+
+		val slots = if (slot === baseSlot) {
 			rangeOfSlots.mapNotNull { if (slots[it] == null) it to slot else null }.toMap()
 		}
 		else {
 			rangeOfSlots.mapNotNull { if (slot === slots[it]) it to slot else null }.toMap()
 		}
 
-		for ((player, inventory) in getViewersFromPlayers(players)) {
-			for ((index, slot) in slots) {
-				updateSlotOnly(index, slot, player, inventory)
-			}
+		val inventory = viewers.getValue(player)
+		for ((index, slot) in slots) {
+			callSlotUpdateEvent(index, slot, player, inventory)
 		}
 	}
 
-	override fun updateSlot(slot: Slot<Inventory>) = updateSlot(slot, viewers.keys)
+	override fun updateSlot(slot: Slot<Inventory>) {
+		for (player in viewers.keys) {
+			updateSlot(slot, player)
+		}
+	}
 
 	override fun openTo(player: Player) {
 		close(player, false)
@@ -185,7 +193,7 @@ class ChestMenuImpl(
 		return viewing
 	}
 
-	private fun updateSlotOnly(index: Int, slot: Slot<Inventory>, player: Player, inventory: Inventory) {
+	private fun callSlotUpdateEvent(index: Int, slot: Slot<Inventory>, player: Player, inventory: Inventory) {
 		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
 		slot.eventHandler.handleUpdate(slotUpdate)
 	}

@@ -18,7 +18,7 @@ import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
 import lirand.api.dsl.menu.exposed.dynamic.Slot
 import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
-import lirand.api.dsl.menu.exposed.getViewersFromPlayers
+import lirand.api.dsl.menu.exposed.hasPlayer
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.utilities.allFields
 import lirand.api.utilities.ifTrue
@@ -116,23 +116,28 @@ class AnvilMenuImpl(
 		_slots.clear()
 	}
 
-	override fun update(players: Collection<Player>) {
-		val viewers = getViewersFromPlayers(players)
+	override fun update(player: Player) {
+		if (!hasPlayer(player)) return
 
-		for ((player, inventory) in viewers) {
-			val update = PlayerMenuUpdateEvent(this, player, inventory)
-			eventHandler.handleUpdate(update)
+		val inventory = viewers.getValue(player)
+		val updateEvent = PlayerMenuUpdateEvent(this, player, inventory)
+		eventHandler.handleUpdate(updateEvent)
 
-			for (index in rangeOfSlots) {
-				val slot = getSlotOrBaseSlot(index)
-				updateSlotOnly(index, slot, player, inventory)
-			}
+		for (index in rangeOfSlots) {
+			val slot = getSlotOrBaseSlot(index)
+			callSlotUpdateEvent(index, slot, player, inventory)
 		}
 	}
 
-	override fun update() = update(viewers.keys)
+	override fun update() {
+		for (player in viewers.keys) {
+			update(player)
+		}
+	}
 
-	override fun updateSlot(slot: Slot<AnvilInventory>, players: Collection<Player>) {
+	override fun updateSlot(slot: Slot<AnvilInventory>, player: Player) {
+		if (!hasPlayer(player)) return
+
 		val slots = if (slot === baseSlot) {
 			rangeOfSlots.mapNotNull { if (_slots[it] == null) it to slot else null }.toMap()
 		}
@@ -140,14 +145,17 @@ class AnvilMenuImpl(
 			rangeOfSlots.mapNotNull { if (slot === _slots[it]) it to slot else null }.toMap()
 		}
 
-		for ((player, inventory) in getViewersFromPlayers(players)) {
-			for ((index, slot) in slots) {
-				updateSlotOnly(index, slot, player, inventory)
-			}
+		val inventory = viewers.getValue(player)
+		for ((index, slot) in slots) {
+			callSlotUpdateEvent(index, slot, player, inventory)
 		}
 	}
 
-	override fun updateSlot(slot: Slot<AnvilInventory>) = updateSlot(slot, viewers.keys)
+	override fun updateSlot(slot: Slot<AnvilInventory>) {
+		for (player in viewers.keys) {
+			updateSlot(slot, player)
+		}
+	}
 
 	override fun getInventory() = Inventory(InventoryType.ANVIL, this).apply {
 		for (index in rangeOfSlots) {
@@ -216,7 +224,7 @@ class AnvilMenuImpl(
 		}
 	}
 
-	private fun updateSlotOnly(index: Int, slot: Slot<AnvilInventory>, player: Player, inventory: AnvilInventory) {
+	private fun callSlotUpdateEvent(index: Int, slot: Slot<AnvilInventory>, player: Player, inventory: AnvilInventory) {
 		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
 		slot.eventHandler.handleUpdate(slotUpdate)
 	}

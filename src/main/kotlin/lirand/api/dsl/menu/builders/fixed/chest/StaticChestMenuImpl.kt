@@ -105,7 +105,7 @@ class StaticChestMenuImpl(
 
 			for (index in rangeOfSlots) {
 				val slot = getSlotOrBaseSlot(index)
-				updateSlotOnly(index, slot, player, inventory)
+				callSlotUpdateEvent(index, slot, player, inventory)
 			}
 		}
 	}
@@ -120,7 +120,7 @@ class StaticChestMenuImpl(
 
 		for (player in viewers.keys) {
 			for ((index, slot) in slots) {
-				updateSlotOnly(index, slot, player, inventory)
+				callSlotUpdateEvent(index, slot, player, inventory)
 			}
 		}
 	}
@@ -175,7 +175,7 @@ class StaticChestMenuImpl(
 		return viewing
 	}
 
-	private fun updateSlotOnly(index: Int, slot: StaticSlot<Inventory>, player: Player, inventory: Inventory) {
+	private fun callSlotUpdateEvent(index: Int, slot: StaticSlot<Inventory>, player: Player, inventory: Inventory) {
 		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
 		slot.eventHandler.handleUpdate(slotUpdate)
 	}

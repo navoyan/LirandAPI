@@ -6,10 +6,7 @@ import org.bukkit.inventory.Inventory
 
 interface Menu<S : Slot<I>, I : Inventory> : StaticMenu<S, I> {
 
-	fun update(players: Collection<Player>)
-	fun updateSlot(slot: S, players: Collection<Player>)
-
-	fun update(vararg players: Player) = update(players.toList())
-	fun updateSlot(slot: S, vararg players: Player) = updateSlot(slot, players.toList())
+	fun update(player: Player)
+	fun updateSlot(slot: S, player: Player)
 
 }
