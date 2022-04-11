@@ -1,16 +1,16 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
-
 package lirand.api.nbt
 
 import lirand.api.extensions.server.nmsNumberVersion
 import lirand.api.extensions.server.nmsVersion
 
-class NbtData internal constructor(nbtTagCompound: Any?) {
+inline fun nbtData(crossinline builder: NbtData.() -> Unit) = NbtData().apply(builder)
 
+
+class NbtData internal constructor(nbtTagCompound: Any?) {
 	internal val nbtTagCompound: Any = nbtTagCompound ?: nbtCompoundConstructor.newInstance()
 	private val map: MutableMap<String, Any> = nbtCompoundMapField.get(this.nbtTagCompound) as MutableMap<String, Any>
 
-	constructor() : this(nbtCompoundConstructor.newInstance())
+	constructor() : this(null)
 	constructor(nbtString: String) : this(mojangParseMethod.invoke(null, nbtString))
 
 
@@ -21,7 +21,7 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 
 
 	/**
-	 * This method gets the value
+	 * Gets the value
 	 * at the given [key]. The returned [dataType]
 	 * must be specified.
 	 * The returned value is null, if it
@@ -36,7 +36,7 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	}
 
 	/**
-	 * This method gets the value
+	 * Gets the value
 	 * at the given [key]. The returned [dataType]
 	 * must be specified.
 	 * If it was not possible to find any value at
@@ -51,11 +51,11 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	}
 
 	/**
-	 * This method gets the value
+	 * Gets the value
 	 * at the given [key]. The returned [dataType]
 	 * must be specified.
-	 * The returned value is [defaultValue], if it
-	 * was not possible to find any value at
+	 * The returned value is the result of calling [defaultValue],
+	 * if it was not possible to find any value at
 	 * the specified location, or if the type
 	 * is not the one which was specified.
 	 */
@@ -64,7 +64,7 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	}
 
 	/**
-	 * This method sets some [value]
+	 * Sets some [value]
 	 * at the position of the given [key].
 	 * The [dataType] of the given [value]
 	 * must be specified.
@@ -74,7 +74,7 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	}
 
 	/**
-	 * This method removes the
+	 * Removes the
 	 * given [key] from the NBTTagCompound.
 	 * Its value will be lost.
 	 */
@@ -139,8 +139,6 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 }
 
 
-
-
 internal val nmsPackage = run {
 	if (nmsNumberVersion < 17)
 		"net.minecraft.server.v$nmsVersion"
@@ -151,9 +149,11 @@ internal val nmsPackage = run {
 internal val nbtCompoundClass = Class.forName("$nmsPackage.NBTTagCompound")
 
 private val mojangParseMethod = Class.forName("$nmsPackage.MojangsonParser").methods
-	.find { it.returnType == nbtCompoundClass && it.parameterTypes.let {
-		it.size == 1 && it[0] == String::class.java
-	} }!!
+	.find {
+		it.returnType == nbtCompoundClass && it.parameterTypes.let {
+			it.size == 1 && it[0] == String::class.java
+		}
+	}!!
 internal val nbtCompoundConstructor = nbtCompoundClass.getConstructor()
 
 private val nbtCompoundMapField = nbtCompoundClass.declaredFields

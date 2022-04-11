@@ -82,7 +82,7 @@ val NbtLongArrayType = createNbtType<LongArray>(
 	{ data -> longArrayTagConstructor.newInstance(data) }
 )
 
-fun <T : Any> NbtListType(type: NbtDataType<T>): NbtDataType<List<T>> {
+fun <T> NbtListType(type: NbtDataType<T>): NbtDataType<List<T>> {
 	return createNbtType<List<T>>(
 		9,
 		{ tag ->
