@@ -7,6 +7,9 @@ import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BookMeta
 import org.bukkit.inventory.meta.ItemMeta
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 fun ItemStack(material: Material, amount: Int = 1, nbtData: NbtData): ItemStack {
 	return ItemStack(material, amount).apply {
@@ -15,19 +18,31 @@ fun ItemStack(material: Material, amount: Int = 1, nbtData: NbtData): ItemStack 
 }
 
 
-fun <T : ItemMeta> ItemMeta(
-	material: Material
-): T {
+fun <T : ItemMeta> ItemMeta(material: Material): T {
 	val meta = server.itemFactory.getItemMeta(material)
 	return meta as T
 }
 
+
 @JvmName("typedMeta")
-inline fun <reified T : ItemMeta> ItemStack.meta(builder: T.() -> Unit) = apply {
-	itemMeta = (itemMeta as? T)?.apply(builder) ?: itemMeta
+@OptIn(ExperimentalContracts::class)
+inline fun <reified T : ItemMeta> ItemStack.meta(builder: T.() -> Unit): ItemStack {
+	contract {
+		callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+	}
+
+	itemMeta = (itemMeta as T).apply(builder)
+	return this
 }
 
-inline fun ItemStack.meta(builder: ItemMeta.() -> Unit) = meta<ItemMeta>(builder)
+@OptIn(ExperimentalContracts::class)
+inline fun ItemStack.meta(builder: ItemMeta.() -> Unit): ItemStack {
+	contract {
+		callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+	}
+
+	return meta<ItemMeta>(builder)
+}
 
 
 var ItemMeta.loreString: String?

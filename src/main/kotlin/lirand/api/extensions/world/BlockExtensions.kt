@@ -5,6 +5,9 @@ import org.bukkit.block.Block
 import org.bukkit.block.BlockState
 import org.bukkit.block.data.BlockData
 import org.bukkit.entity.Player
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 operator fun Block.component1() = x
 operator fun Block.component2() = y
@@ -17,11 +20,24 @@ fun Block.equalsType(material: Material) = type == material
 
 
 @JvmName("typedState")
-inline fun <reified T : BlockState> Block.state(builder: T.() -> Unit) = apply {
-	(state as? T)?.apply(builder)?.update(true)
+@OptIn(ExperimentalContracts::class)
+inline fun <reified T : BlockState> Block.state(builder: T.() -> Unit): Block {
+	contract {
+		callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+	}
+
+	(state as T).apply(builder).update(true)
+	return this
 }
 
-inline fun Block.state(builder: BlockState.() -> Unit) = state<BlockState>(builder)
+@OptIn(ExperimentalContracts::class)
+inline fun Block.state(builder: BlockState.() -> Unit): Block {
+	contract {
+		callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+	}
+
+	return state<BlockState>(builder)
+}
 
 
 fun Block.sendBlockChange(
