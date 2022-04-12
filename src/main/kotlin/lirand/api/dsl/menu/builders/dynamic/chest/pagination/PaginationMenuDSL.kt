@@ -14,8 +14,8 @@ import java.util.*
 
 inline fun <T> ChestMenuDSL.pagination(
 	noinline itemsProvider: ItemsProvider<T>,
-	previousPageSlot: SlotDSL<Inventory>,
-	nextPageSlot: SlotDSL<Inventory>,
+	previousPageSlot: SlotDSL<Inventory>? = null,
+	nextPageSlot: SlotDSL<Inventory>? = null,
 	linesRange: IntRange = 1 until lines,
 	slotsRange: IntRange = 1..9,
 	autoUpdateSwitchPageSlot: Boolean = true,
