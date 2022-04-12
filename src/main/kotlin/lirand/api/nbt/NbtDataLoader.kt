@@ -1,6 +1,7 @@
 package lirand.api.nbt
 
 import lirand.api.extensions.server.nmsVersion
+import org.bukkit.block.TileState
 import org.bukkit.entity.Entity
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
@@ -36,6 +37,18 @@ var ItemStack.nbtData: NbtData
 	}
 
 
+var TileState.nbtData: NbtData
+	get() {
+		val nbtTagCompound = tileStateGetSnapshotNBTMethod.invoke(this)
+
+		return NbtData(nbtTagCompound)
+	}
+	set(value) {
+		val snapshot = tileStateGetSnapshotMethod.invoke(this)
+
+		blockEntityLoadMethod.invoke(snapshot, value.nbtTagCompound)
+	}
+
 
 
 private val craftItemStackClass =
@@ -44,6 +57,7 @@ private val craftItemStackClass =
 private val craftEntityGetHandleMethod =
 	Class.forName("org.bukkit.craftbukkit.v$nmsVersion.entity.CraftEntity")
 		.getMethod("getHandle")
+
 
 private val asNMSCopyMethod =
 	craftItemStackClass.getMethod("asNMSCopy", ItemStack::class.java)
@@ -54,6 +68,16 @@ private val getItemMetaMethod = craftItemStackClass.methods
 			it.size == 1 && it[0] == asNMSCopyMethod.returnType
 		}
 	}!!
+
+
+private val tileStateClass =
+	Class.forName("org.bukkit.craftbukkit.v$nmsVersion.block.CraftBlockEntityState")
+
+private val tileStateGetSnapshotMethod = tileStateClass.getDeclaredMethod("getSnapshot")
+	.apply { isAccessible = true }
+
+private val tileStateGetSnapshotNBTMethod = tileStateClass.getMethod("getSnapshotNBT")
+
 
 
 private val minecraftEntityClass = craftEntityGetHandleMethod.returnType
@@ -79,6 +103,16 @@ private val minecraftItemStackTagField = minecraftItemStackClass.declaredFields
 	.apply { isAccessible = true }
 
 private val minecraftItemStackSetTagMethod = minecraftItemStackClass.methods
+	.find {
+		it.returnType == Void.TYPE && it.parameterTypes.let {
+			it.size == 1 && it[0] == nbtCompoundClass
+		}
+	}!!
+
+
+private val blockEntityClass = tileStateGetSnapshotMethod.returnType
+
+private val blockEntityLoadMethod = blockEntityClass.methods
 	.find {
 		it.returnType == Void.TYPE && it.parameterTypes.let {
 			it.size == 1 && it[0] == nbtCompoundClass
