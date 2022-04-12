@@ -1,5 +1,6 @@
 package lirand.api.nbt
 
+import lirand.api.extensions.server.nmsNumberVersion
 import lirand.api.extensions.server.nmsVersion
 import org.bukkit.block.TileState
 import org.bukkit.entity.Entity
@@ -46,7 +47,14 @@ var TileState.nbtData: NbtData
 	set(value) {
 		val snapshot = tileStateGetSnapshotMethod.invoke(this)
 
-		blockEntityLoadMethod.invoke(snapshot, value.nbtTagCompound)
+		if (nmsNumberVersion < 17) {
+			blockEntityLoadMethod.invoke(
+				snapshot, tileStateGetHandleMethod.invoke(this), value.nbtTagCompound
+			)
+		}
+		else {
+			blockEntityLoadMethod.invoke(snapshot, value.nbtTagCompound)
+		}
 	}
 
 
@@ -112,9 +120,21 @@ private val minecraftItemStackSetTagMethod = minecraftItemStackClass.methods
 
 private val blockEntityClass = tileStateGetSnapshotMethod.returnType
 
-private val blockEntityLoadMethod = blockEntityClass.methods
-	.find {
-		it.returnType == Void.TYPE && it.parameterTypes.let {
-			it.size == 1 && it[0] == nbtCompoundClass
+private val tileStateGetHandleMethod = tileStateClass.getMethod("getHandle")
+
+private val blockEntityLoadMethod = blockEntityClass.methods.let {
+	if (nmsNumberVersion < 17) {
+		it.find {
+			it.returnType == Void.TYPE && it.parameterTypes.let {
+				it.size == 2 && it[0] == tileStateGetHandleMethod.returnType && it[1] == nbtCompoundClass
+			}
 		}
-	}!!
+	}
+	else {
+		it.find {
+			it.returnType == Void.TYPE && it.parameterTypes.let {
+				it.size == 1 && it[0] == nbtCompoundClass
+			}
+		}
+	}
+}!!
