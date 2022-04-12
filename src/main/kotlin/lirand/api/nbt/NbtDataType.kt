@@ -123,18 +123,21 @@ private inline fun <T> createNbtType(
 
 
 
-private val byteTagFactoryMethod = getTagFactoryMethod("NBTTagByte")
-private val shortTagFactoryMethod = getTagFactoryMethod("NBTTagShort")
-private val intTagFactoryMethod = getTagFactoryMethod("NBTTagInt")
-private val longTagFactoryMethod = getTagFactoryMethod("NBTTagLong")
-private val floatTagFactoryMethod = getTagFactoryMethod("NBTTagFloat")
-private val doubleTagFactoryMethod = getTagFactoryMethod("NBTTagDouble")
-private val stringTagFactoryMethod = getTagFactoryMethod("NBTTagString")
+private val byteTagFactoryMethod = getTagFactoryMethod("NBTTagByte", Byte::class)
+private val shortTagFactoryMethod = getTagFactoryMethod("NBTTagShort", Short::class)
+private val intTagFactoryMethod = getTagFactoryMethod("NBTTagInt", Int::class)
+private val longTagFactoryMethod = getTagFactoryMethod("NBTTagLong", Long::class)
+private val floatTagFactoryMethod = getTagFactoryMethod("NBTTagFloat", Float::class)
+private val doubleTagFactoryMethod = getTagFactoryMethod("NBTTagDouble", Double::class)
+private val stringTagFactoryMethod = getTagFactoryMethod("NBTTagString", String::class)
 
-private fun getTagFactoryMethod(className: String): Method {
+private fun getTagFactoryMethod(className: String, argumentType: KClass<*>): Method {
 	val clazz = Class.forName("${nmsPackage}.$className")
 
-	return clazz.methods.find { it.returnType == clazz && Modifier.isStatic(it.modifiers) }!!
+	return clazz.methods.find {
+		it.returnType == clazz && Modifier.isStatic(it.modifiers)
+				&& it.parameterTypes.let { it.size == 1 && it[0] == argumentType.java }
+	}!!
 }
 
 
