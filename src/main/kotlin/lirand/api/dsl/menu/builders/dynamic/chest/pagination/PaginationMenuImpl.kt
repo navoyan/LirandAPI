@@ -19,8 +19,8 @@ internal const val PAGINATION_OPEN_PAGE_KEY = "PAGINATION:open_page"
 class PaginationMenuImpl<T>(
 	override val menu: ChestMenuDSL,
 	override val itemsProvider: ItemsProvider<T>,
-	override val previousPageSlot: SlotDSL<Inventory>,
-	override val nextPageSlot: SlotDSL<Inventory>,
+	override val previousPageSlot: SlotDSL<Inventory>?,
+	override val nextPageSlot: SlotDSL<Inventory>?,
 	override val linesRange: IntRange = 1 until menu.lines,
 	override val slotsRange: IntRange = 1..9,
 	override val autoUpdateSwitchPageSlots: Boolean = true
@@ -40,12 +40,12 @@ class PaginationMenuImpl<T>(
 	internal val itemPlayerSlotData = WeakHashMap<T, MutableMap<Player, MutableMap<String, Any>>>()
 
 	init {
-		nextPageSlot.onInteract {
+		nextPageSlot?.onInteract {
 			if (hasNextPage(player))
 				nextPage(player, inventory)
 		}
 
-		previousPageSlot.onInteract {
+		previousPageSlot?.onInteract {
 			if (hasPreviousPage(player))
 				previousPage(player, inventory)
 		}
@@ -77,9 +77,9 @@ class PaginationMenuImpl<T>(
 
 		if (autoUpdateSwitchPageSlots) {
 			onPageChange {
-				(menu as? ChestMenuDSL)?.let {
-					it.updateSlot(nextPageSlot, player)
-					it.updateSlot(previousPageSlot, player)
+				(menu as? ChestMenuDSL)?.let { menu ->
+					nextPageSlot?.let { menu.updateSlot(it, player) }
+					previousPageSlot?.let { menu.updateSlot(it, player) }
 				}
 			}
 		}

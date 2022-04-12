@@ -24,8 +24,8 @@ interface PaginationMenu<T> {
 	val autoUpdateSwitchPageSlots: Boolean
 
 	val slots: Map<Int, PaginationSlot<T>>
-	val nextPageSlot: Slot<Inventory>
-	val previousPageSlot: Slot<Inventory>
+	val nextPageSlot: Slot<Inventory>?
+	val previousPageSlot: Slot<Inventory>?
 
 	val linesRange: IntRange
 	val slotsRange: IntRange

@@ -51,8 +51,8 @@ interface PaginationMenuDSL<T> : PaginationMenu<T> {
 	override val menu: ChestMenuDSL
 	override val eventHandler: PaginationDSLEventHandler
 
-	override val previousPageSlot: Slot<Inventory>
-	override val nextPageSlot: Slot<Inventory>
+	override val previousPageSlot: SlotDSL<Inventory>?
+	override val nextPageSlot: SlotDSL<Inventory>?
 
 	fun onPageChange(pageChangeCallback: MenuPlayerPageChangeCallback) {
 		eventHandler.pageChangeCallbacks.add(pageChangeCallback)
