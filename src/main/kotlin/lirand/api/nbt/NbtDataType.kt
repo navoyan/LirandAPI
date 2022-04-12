@@ -24,7 +24,7 @@ val NbtCompoundType = createNbtType<NbtData>(
 
 val NbtStringType = createNbtType<String>(
 	8,
-	{ tag -> nbtStringAsStringMethod.invoke(tag) as String },
+	{ tag -> (nbtStringAsStringMethod.invoke(tag) as String).removeSurrounding("\"") },
 	{ data -> stringTagFactoryMethod.invoke(null, data) }
 )
 
