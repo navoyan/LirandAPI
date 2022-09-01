@@ -1,5 +1,6 @@
 package lirand.api.dsl.command.implementation.dispatcher
 
+import com.mojang.brigadier.Command
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.context.CommandContext
@@ -18,6 +19,10 @@ internal class SpigotMapper(private val dispatcher: CommandDispatcher<CommandSen
 	override fun getType(node: ArgumentCommandNode<CommandSender, *>): ArgumentType<*>? {
 		val type = node.type
 		return if (type is Type<*>) type.map() else type
+	}
+
+	override fun mapCommand(node: CommandNode<CommandSender>): Command<Any>? {
+		return node.command?.let { reparseCommand(node) }
 	}
 
 	override fun mapRequirement(node: CommandNode<CommandSender>): Predicate<Any> {
@@ -40,7 +45,17 @@ internal class SpigotMapper(private val dispatcher: CommandDispatcher<CommandSen
 		return reparseSuggestions(suggestor)
 	}
 
-	fun reparseSuggestions(type: Type<*>): SuggestionProvider<Any> {
+	private fun reparseCommand(command: CommandNode<CommandSender>): Command<Any> {
+		return Command { context: CommandContext<Any> ->
+			val sender = context.source.bukkitSender
+			val input = context.input
+
+			val reparsed = dispatcher.parse(input, sender).context.build(input)
+			command.command.run(reparsed)
+		}
+	}
+
+	private fun reparseSuggestions(type: Type<*>): SuggestionProvider<Any> {
 		return SuggestionProvider { context: CommandContext<Any>, suggestions: SuggestionsBuilder ->
 			val sender = context.source.bukkitSender
 			var input = context.input
@@ -50,7 +65,7 @@ internal class SpigotMapper(private val dispatcher: CommandDispatcher<CommandSen
 		}
 	}
 
-	fun reparseSuggestions(suggestor: SuggestionProvider<CommandSender>): SuggestionProvider<Any> {
+	private fun reparseSuggestions(suggestor: SuggestionProvider<CommandSender>): SuggestionProvider<Any> {
 		return SuggestionProvider { context: CommandContext<Any>, suggestions: SuggestionsBuilder ->
 			val sender = context.source.bukkitSender
 			var input = context.input
@@ -59,6 +74,7 @@ internal class SpigotMapper(private val dispatcher: CommandDispatcher<CommandSen
 			suggestor.getSuggestions(reparsed, suggestions)
 		}
 	}
+
 
 	private val Any.bukkitSender: CommandSender
 		get() {

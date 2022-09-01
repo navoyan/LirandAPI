@@ -56,7 +56,7 @@ internal open class Mapper<T, R> {
 		return node.type
 	}
 
-	protected fun mapCommand(node: CommandNode<T>?): Command<R> {
+	protected open fun mapCommand(node: CommandNode<T>): Command<R>? {
 		return NONE as Command<R>
 	}
 
