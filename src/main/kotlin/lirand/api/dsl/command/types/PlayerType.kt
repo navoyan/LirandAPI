@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture
  * A [Player] type.
  */
 open class PlayerType(
-	open val allowedPlayers: () -> Map<out OfflinePlayer, Message?> = Instance.allowedPlayers,
+	open val allowedPlayers: (sender: Player?) -> Map<out OfflinePlayer, Message?> = Instance.allowedPlayers,
 	open val notFoundExceptionType: ChatCommandExceptionType = Instance.notFoundExceptionType
 ) : WordType<Player> {
 
@@ -32,7 +32,7 @@ open class PlayerType(
 	 */
 	override fun parse(reader: StringReader): Player {
 		val name = reader.readUnquoted()
-		return server.getPlayerExact(name)?.takeIf { it in allowedPlayers() }
+		return server.getPlayerExact(name)?.takeIf { it in allowedPlayers(null) }
 			?: throw notFoundExceptionType.createWithContext(reader)
 	}
 
@@ -52,9 +52,9 @@ open class PlayerType(
 		context: CommandContext<S>,
 		builder: SuggestionsBuilder
 	): CompletableFuture<Suggestions> {
-		val sender = context.source as? Player ?: return builder.buildFuture()
+		val sender = context.source as? Player? ?: return builder.buildFuture()
 
-		allowedPlayers().mapKeys { (offlinePlayer, _) -> offlinePlayer.player }
+		allowedPlayers(sender).mapKeys { (offlinePlayer, _) -> offlinePlayer.player }
 			.filterKeys { it != null && sender.canSee(it) && it.name.startsWith(builder.remaining, true) }
 			.mapKeys { (player, _) -> player as Player }
 			.forEach { (player, tooltip) ->

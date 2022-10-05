@@ -10,13 +10,14 @@ import lirand.api.dsl.command.types.exceptions.ChatCommandSyntaxException
 import lirand.api.dsl.command.types.extensions.readUnquoted
 import net.md_5.bungee.api.chat.TranslatableComponent
 import org.bukkit.Material
+import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
 
 /**
  * A [Material] type. Legacy materials are **not** supported.
  */
 open class MaterialType(
-	open val allowedMaterials: () -> Map<Material, Message?> = Instance.allowedMaterials,
+	open val allowedMaterials: (sender: Player?) -> Map<Material, Message?> = Instance.allowedMaterials,
 	open val notFoundExceptionType: ChatCommandExceptionType = Instance.notFoundExceptionType
 ) : WordType<Material> {
 
@@ -31,7 +32,7 @@ open class MaterialType(
 	override fun parse(reader: StringReader): Material {
 		val name = reader.readUnquoted().lowercase()
 
-		return allMaterials[name]?.takeIf { it in allowedMaterials() }
+		return allMaterials[name]?.takeIf { it in allowedMaterials(null) }
 			?: throw notFoundExceptionType.createWithContext(reader, name)
 	}
 
@@ -48,7 +49,9 @@ open class MaterialType(
 		context: CommandContext<S>,
 		builder: SuggestionsBuilder
 	): CompletableFuture<Suggestions> {
-		allowedMaterials().mapKeys { (material, _) -> material.key.key }
+		val sender = context.source as? Player? ?: return builder.buildFuture()
+
+		allowedMaterials(sender).mapKeys { (material, _) -> material.key.key }
 			.filterKeys { it.startsWith(builder.remaining, true) }
 			.forEach { (materialName, tooltip) ->
 				if (tooltip != null)

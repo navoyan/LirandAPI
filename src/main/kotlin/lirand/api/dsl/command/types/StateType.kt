@@ -9,11 +9,12 @@ import lirand.api.dsl.command.types.exceptions.ChatCommandExceptionType
 import lirand.api.dsl.command.types.exceptions.ChatCommandSyntaxException
 import lirand.api.dsl.command.types.extensions.readUnquoted
 import net.md_5.bungee.api.chat.TranslatableComponent
+import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
 
 open class StateType(
-	open val trueCases: () -> Map<String, Message?> = Instance.trueCases,
-	open val falseCases: () -> Map<String, Message?> = Instance.falseCases,
+	open val trueCases: (sender: Player?) -> Map<String, Message?> = Instance.trueCases,
+	open val falseCases: (sender: Player?) -> Map<String, Message?> = Instance.falseCases,
 	open val unknownStateExceptionType: ChatCommandExceptionType = Instance.unknownStateExceptionType
 ) : WordType<Boolean> {
 
@@ -28,8 +29,8 @@ open class StateType(
 	 */
 	override fun parse(reader: StringReader): Boolean {
 		return when (reader.readUnquoted()) {
-			in trueCases() -> true
-			in falseCases() -> false
+			in trueCases(null) -> true
+			in falseCases(null) -> false
 			else -> throw unknownStateExceptionType.createWithContext(reader)
 		}
 	}
@@ -47,7 +48,9 @@ open class StateType(
 		context: CommandContext<S>,
 		builder: SuggestionsBuilder
 	): CompletableFuture<Suggestions> {
-		(trueCases() + falseCases())
+		val sender = context.source as? Player? ?: return builder.buildFuture()
+
+		(trueCases(sender) + falseCases(sender))
 			.filterKeys { it.startsWith(builder.remaining, true) }
 			.forEach { (case, tooltip) ->
 				if (tooltip != null)

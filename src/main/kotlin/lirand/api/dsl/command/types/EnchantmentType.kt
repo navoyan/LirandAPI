@@ -10,13 +10,14 @@ import lirand.api.dsl.command.types.exceptions.ChatCommandSyntaxException
 import lirand.api.dsl.command.types.extensions.readUnquoted
 import net.md_5.bungee.api.chat.TranslatableComponent
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
 
 /**
  * An [Enchantment] type.
  */
 open class EnchantmentType(
-	open val allowedEnchantments: () -> Map<out Enchantment, Message?> = Instance.allowedEnchantments,
+	open val allowedEnchantments: (sender: Player?) -> Map<out Enchantment, Message?> = Instance.allowedEnchantments,
 	open val notFoundExceptionType: ChatCommandExceptionType = Instance.notFoundExceptionType
 ) : WordType<Enchantment> {
 
@@ -31,7 +32,7 @@ open class EnchantmentType(
 	override fun parse(reader: StringReader): Enchantment {
 		val name = reader.readUnquoted().lowercase()
 
-		return allEnchantments[name]?.takeIf { it in allowedEnchantments() }
+		return allEnchantments[name]?.takeIf { it in allowedEnchantments(null) }
 			?: throw notFoundExceptionType.createWithContext(reader, name)
 	}
 
@@ -48,7 +49,9 @@ open class EnchantmentType(
 		context: CommandContext<S>,
 		builder: SuggestionsBuilder
 	): CompletableFuture<Suggestions> {
-		allowedEnchantments().mapKeys { (enchantment, _) -> enchantment.key.key }
+		val sender = context.source as? Player? ?: return builder.buildFuture()
+
+		allowedEnchantments(sender).mapKeys { (enchantment, _) -> enchantment.key.key }
 			.filterKeys { it.startsWith(builder.remaining, true) }
 			.forEach { (enchantmentName, tooltip) ->
 				if (tooltip != null)

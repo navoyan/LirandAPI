@@ -10,13 +10,14 @@ import lirand.api.dsl.command.types.exceptions.ChatCommandSyntaxException
 import lirand.api.dsl.command.types.extensions.readUnquoted
 import net.md_5.bungee.api.chat.TranslatableComponent
 import org.bukkit.Particle
+import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
 
 /**
  * A [Particle] type.
  */
 open class ParticleType(
-	open val allowedParticles: () -> Map<Particle, Message?> = Instance.allowedParticles,
+	open val allowedParticles: (sender: Player?) -> Map<Particle, Message?> = Instance.allowedParticles,
 	open val notFoundExceptionType: ChatCommandExceptionType = Instance.notFoundExceptionType
 ) : WordType<Particle> {
 
@@ -31,7 +32,7 @@ open class ParticleType(
 	override fun parse(reader: StringReader): Particle {
 		val name = reader.readUnquoted().lowercase()
 
-		return allParticles[name]?.takeIf { it in allowedParticles() }
+		return allParticles[name]?.takeIf { it in allowedParticles(null) }
 			?: throw notFoundExceptionType.createWithContext(reader, name)
 	}
 
@@ -48,7 +49,9 @@ open class ParticleType(
 		context: CommandContext<S>,
 		builder: SuggestionsBuilder
 	): CompletableFuture<Suggestions> {
-		allowedParticles().mapKeys { (particle, _) -> particle.name.lowercase() }
+		val sender = context.source as? Player? ?: return builder.buildFuture()
+
+		allowedParticles(sender).mapKeys { (particle, _) -> particle.name.lowercase() }
 			.filterKeys { it.startsWith(builder.remaining, true) }
 			.forEach { (particleName, tooltip) ->
 				if (tooltip != null)

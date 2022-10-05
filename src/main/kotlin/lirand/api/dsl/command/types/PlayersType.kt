@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture
  *
  */
 open class PlayersType(
-	open val allowedPlayers: () -> Map<out OfflinePlayer, Message?> = Instance.allowedPlayers,
+	open val allowedPlayers: (sender: Player?) -> Map<out OfflinePlayer, Message?> = Instance.allowedPlayers,
 	open val notFoundExceptionType: ChatCommandExceptionType = Instance.notFoundExceptionType,
 	open val additionalSelectors: AdditionalSelectors = Instance.additionalSelectors,
 	open val invalidSelectorExceptionType: ChatCommandExceptionType = Instance.invalidSelectorExceptionType
@@ -45,7 +45,7 @@ open class PlayersType(
 	 * or @a was used in a comma separated list of arguments
 	 */
 	override fun parse(reader: StringReader): List<Player> {
-		val allowedOnlinePlayers = allowedPlayers().keys.mapNotNull { it.player }.toMutableList()
+		val allowedOnlinePlayers = allowedPlayers(null).keys.mapNotNull { it.player }.toMutableList()
 
 		val argument = if (reader.peek() == '"') reader.readQuotedString() else reader.readUnquoted()
 		if (additionalSelectors.isAllSelectorSupported
@@ -93,7 +93,9 @@ open class PlayersType(
 		context: CommandContext<S>,
 		builder: SuggestionsBuilder
 	): CompletableFuture<Suggestions> {
-		val allowedOnlinePlayers = allowedPlayers().mapKeys { (offlinePlayer, _) -> offlinePlayer.player }
+		val sender = context.source as? Player? ?: return builder.buildFuture()
+
+		val allowedOnlinePlayers = allowedPlayers(sender).mapKeys { (offlinePlayer, _) -> offlinePlayer.player }
 			.filterKeys { it != null }
 			.mapKeys { (player, _) -> player as Player }
 
@@ -127,8 +129,6 @@ open class PlayersType(
 		}
 
 		if (!isStartQuoted && parts.size > 1) return builder.buildFuture()
-
-		val sender = context.source as? Player ?: return builder.buildFuture()
 
 		allowedOnlinePlayers
 			.filterKeys {
