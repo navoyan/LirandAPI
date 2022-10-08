@@ -1,6 +1,6 @@
 package lirand.api.dsl.command.builders
 
-import com.github.shynixn.mccoroutine.minecraftDispatcher
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mojang.brigadier.Command
 import com.mojang.brigadier.builder.ArgumentBuilder
 import com.mojang.brigadier.tree.CommandNode

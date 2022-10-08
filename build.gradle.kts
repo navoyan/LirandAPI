@@ -28,8 +28,8 @@ dependencies {
 	compileOnly("org.spigotmc:spigot-api:1.16.1-R0.1-SNAPSHOT")
 	compileOnly("com.mojang:brigadier:1.0.18")
 
-	api("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:1.5.0")
-	api("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:1.5.0")
+	api("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.6.0")
+	api("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.6.0")
 
 	api("net.wesjd:anvilgui:1.5.3-SNAPSHOT")
 }

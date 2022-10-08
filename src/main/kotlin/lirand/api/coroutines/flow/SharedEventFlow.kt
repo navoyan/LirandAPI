@@ -1,6 +1,6 @@
 package lirand.api.coroutines.flow
 
-import com.github.shynixn.mccoroutine.minecraftDispatcher
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow

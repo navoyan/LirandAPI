@@ -1,6 +1,6 @@
 package lirand.api.dsl.menu.builders.dynamic.anvil
 
-import com.github.shynixn.mccoroutine.minecraftDispatcher
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob

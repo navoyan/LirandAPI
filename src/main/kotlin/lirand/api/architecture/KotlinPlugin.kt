@@ -1,6 +1,6 @@
 package lirand.api.architecture
 
-import com.github.shynixn.mccoroutine.SuspendingJavaPlugin
+import com.github.shynixn.mccoroutine.bukkit.SuspendingJavaPlugin
 import lirand.api.LirandAPI
 
 abstract class KotlinPlugin : SuspendingJavaPlugin() {
