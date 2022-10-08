@@ -97,8 +97,8 @@ class DispatcherCommand(
 		}
 		failedCommandMessage.addExtra(input.substring(max(0, errorStart - 10), errorStart))
 
-		if (index < input.length) {
-			val error = TextComponent(input.substring(errorStart)).apply {
+		if (errorStart < input.length) {
+			val error = TextComponent(input.substring(errorStart, cursor)).apply {
 				color = ChatColor.RED
 				isUnderlined = true
 			}
@@ -122,7 +122,7 @@ class DispatcherCommand(
 			verifyChatMessageClass(messageClass)
 			val key = chatMessageGetKeyMethod.invoke(this) as String
 			val args = chatMessageGetArgsMethod.invoke(this) as Array<*>
-			TranslatableComponent(key, args)
+			TranslatableComponent(key, *args)
 		}
 		else {
 			string.toComponent()

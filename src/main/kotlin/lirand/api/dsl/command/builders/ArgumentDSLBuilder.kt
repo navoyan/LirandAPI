@@ -12,7 +12,7 @@ open class ArgumentDSLBuilder<T>(
 	plugin: Plugin,
 	val name: String,
 	val type: ArgumentType<T>
-) : NodeDSLBuilder<RequiredArgumentBuilder<CommandSender, T>>(plugin) {
+) : ContinuableNodeDSLBuilder<RequiredArgumentBuilder<CommandSender, ArgumentDSLBuilder<T>>>(plugin) {
 
 	var suggestionsProvider: SuggestionProvider<CommandSender>? = null
 		private set

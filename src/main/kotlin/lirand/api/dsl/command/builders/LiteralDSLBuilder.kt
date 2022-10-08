@@ -9,7 +9,7 @@ import org.bukkit.plugin.Plugin
 open class LiteralDSLBuilder(
 	plugin: Plugin,
 	val literal: String
-) : NodeDSLBuilder<LiteralArgumentBuilder<CommandSender>>(plugin) {
+) : ContinuableNodeDSLBuilder<LiteralArgumentBuilder<CommandSender>>(plugin) {
 
 	private val _aliases = mutableListOf<String>()
 	val aliases: List<String> get() = _aliases

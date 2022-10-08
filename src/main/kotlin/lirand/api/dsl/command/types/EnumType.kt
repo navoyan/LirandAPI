@@ -16,14 +16,14 @@ import java.util.concurrent.CompletableFuture
  * A [Enum] type.
  */
 open class EnumType<T : Enum<T>>(
-	enumClass: Class<T>,
-	open val allowedConstants: (sender: Player?) -> Map<T, Message?> = { enumClass.enumConstants.associateWith { null } },
+	val clazz: Class<T>,
+	open val allowedConstants: (sender: Player?) -> Map<T, Message?> = { clazz.enumConstants.associateWith { null } },
 	open val notFoundExceptionType: ChatCommandExceptionType = ChatCommandExceptionType {
 		TranslatableComponent("argument.id.unknown", it[0])
 	}
 ) : WordType<T> {
 
-	private val enumConstants = enumClass.enumConstants.associateBy { it.name.lowercase() }
+	private val enumConstants = clazz.enumConstants.associateBy { it.name.lowercase() }
 
 
 	/**

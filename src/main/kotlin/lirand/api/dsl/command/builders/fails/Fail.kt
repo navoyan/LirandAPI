@@ -9,16 +9,16 @@ import net.md_5.bungee.api.chat.TextComponent
 
 fun BrigadierCommandContext<*>.fail(
 	message: BaseComponent? = null
-): Nothing = throw CommandFailException(message)
+): Nothing = throw CommandFailException(message, source)
 
 fun BrigadierCommandContext<*>.fail(
 	message: BaseComponent,
 	vararg messages: BaseComponent
-): Nothing = throw CommandFailException(TextComponent(message, *messages))
+): Nothing = throw CommandFailException(TextComponent(message, *messages), source)
 
 inline fun BrigadierCommandContext<*>.fail(
 	crossinline builder: ComponentBaseBuilder.() -> Unit
-): Nothing = throw CommandFailException(ComponentBaseBuilder().apply(builder).build())
+): Nothing = throw CommandFailException(ComponentBaseBuilder().apply(builder).build(), source)
 
 fun BrigadierCommandContext<*>.fail(
 	message: String
