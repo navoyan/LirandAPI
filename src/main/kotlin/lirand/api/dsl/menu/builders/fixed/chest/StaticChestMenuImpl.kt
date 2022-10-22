@@ -128,7 +128,7 @@ class StaticChestMenuImpl(
 	override fun getInventory() = _inventory
 
 	override fun setInventory(inventory: Inventory) {
-		_inventory.storageContents = inventory.storageContents.map { it.clone() }.toTypedArray()
+		_inventory.storageContents = inventory.storageContents.map { it?.clone() }.toTypedArray()
 	}
 
 	override fun openTo(player: Player) {
