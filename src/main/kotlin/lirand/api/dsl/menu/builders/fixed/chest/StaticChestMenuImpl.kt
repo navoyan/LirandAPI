@@ -155,24 +155,24 @@ class StaticChestMenuImpl(
 	}
 
 	override fun close(player: Player, closeInventory: Boolean) {
-		removePlayer(player, closeInventory).ifTrue {
-			val menuClose = PlayerMenuCloseEvent(this, player)
-			eventHandler.handleClose(menuClose)
+		if (player !in _viewers) return
 
-			if (updateDelay > Duration.ZERO && viewers.isEmpty())
-				removeUpdateTask()
-		}
+		val menuClose = PlayerMenuCloseEvent(this, player)
+		eventHandler.handleClose(menuClose)
+
+		removePlayer(player, closeInventory)
+
+		if (updateDelay > Duration.ZERO && viewers.isEmpty())
+			removeUpdateTask()
 	}
 
 
-	private fun removePlayer(player: Player, closeInventory: Boolean): Boolean {
+	private fun removePlayer(player: Player, closeInventory: Boolean) {
 		if (closeInventory) player.closeInventory()
 
 		val viewing = _viewers.remove(player) != null
 		if (viewing)
 			clearPlayerData(player)
-
-		return viewing
 	}
 
 	private fun callSlotUpdateEvent(index: Int, slot: StaticSlot<Inventory>, player: Player, inventory: Inventory) {

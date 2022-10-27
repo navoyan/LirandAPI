@@ -1,24 +1,11 @@
 package lirand.api.dsl.menu.builders.dynamic.anvil
 
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlot
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlotEventHandler
-import lirand.api.dsl.menu.exposed.MenuSlotRenderEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuCloseEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuOpenEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuPreOpenEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
+import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.dynamic.Slot
-import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
-import lirand.api.dsl.menu.exposed.hasPlayer
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.utilities.allFields
 import lirand.api.utilities.ifTrue
@@ -215,28 +202,32 @@ class AnvilMenuImpl(
 	}
 
 	override fun close(player: Player, closeInventory: Boolean) {
-		removePlayer(player, closeInventory).ifTrue {
-			val menuClose = PlayerMenuCloseEvent(this, player)
-			eventHandler.handleClose(menuClose)
+		if (player !in _viewers) return
 
-			if (updateDelay > Duration.ZERO && viewers.isEmpty())
-				removeUpdateTask()
+		val menuClose = PlayerMenuCloseEvent(this, player)
+		eventHandler.handleClose(menuClose)
+
+		scope.launch {
+			delay(1)
+			removePlayer(player, closeInventory)
 		}
+
+		if (updateDelay > Duration.ZERO && viewers.isEmpty())
+			removeUpdateTask()
 	}
+
 
 	private fun callSlotUpdateEvent(index: Int, slot: Slot<AnvilInventory>, player: Player, inventory: AnvilInventory) {
 		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
 		slot.eventHandler.handleUpdate(slotUpdate)
 	}
 
-	private fun removePlayer(player: Player, closeInventory: Boolean): Boolean {
+	private fun removePlayer(player: Player, closeInventory: Boolean) {
 		if (closeInventory) player.closeInventory()
 
 		val viewing = _viewers.remove(player) != null
 		if (viewing)
 			clearPlayerData(player)
-
-		return viewing
 	}
 
 	private fun setUpdateTask() {
