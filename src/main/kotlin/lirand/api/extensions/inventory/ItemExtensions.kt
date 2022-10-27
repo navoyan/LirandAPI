@@ -31,7 +31,7 @@ inline fun <reified T : ItemMeta> ItemStack.meta(builder: T.() -> Unit): ItemSta
 		callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
 	}
 
-	itemMeta = (itemMeta as T).apply(builder)
+	itemMeta = ((itemMeta as T?) ?: ItemMeta(type)).apply(builder)
 	return this
 }
 
