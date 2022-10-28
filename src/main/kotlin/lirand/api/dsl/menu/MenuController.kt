@@ -11,6 +11,7 @@ import lirand.api.dsl.menu.exposed.getMenu
 import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
 import lirand.api.dsl.menu.exposed.takeIfHasPlayer
 import lirand.api.extensions.inventory.get
+import lirand.api.extensions.inventory.isEmpty
 import lirand.api.extensions.inventory.isNotEmpty
 import lirand.api.extensions.server.registerEvents
 import lirand.api.extensions.server.server
@@ -77,7 +78,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Initializable {
 	}
 
 	private fun <I : Inventory> handleMenuClick(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
-		if (event.slot != event.rawSlot) return
+		if (event.slot != event.rawSlot || event.slot < 0) return
 
 		val slot = menu.getSlotOrBaseSlot(event.slot) as StaticSlotDSL<I>
 
@@ -95,13 +96,13 @@ internal class MenuController(val plugin: Plugin) : Listener, Initializable {
 	}
 
 	private fun <I : Inventory> handleMenuMove(menu: StaticMenu<*, I>, event: InventoryClickEvent, inventory: I) {
-		val slotIndex = event.rawSlot
-		val slot = menu.getSlotOrBaseSlot(slotIndex) as StaticSlotDSL<I>
+		val slotIndex = event.rawSlot.takeIf { it >= 0 } ?: return
+		val menuSlot = menu.getSlotOrBaseSlot(slotIndex) as StaticSlotDSL<I>
 
 		with(event) {
-			if ((this.slot == rawSlot && (cursor.isNotEmpty ||
+			if ((slot == rawSlot && (cursor.isNotEmpty ||
 						(hotbarButton != -1 && view.bottomInventory[hotbarButton].isNotEmpty)))
-				|| (this.slot != rawSlot && this.click.isShiftClick && this.inventory.any { it.isNotEmpty })
+				|| (slot != rawSlot && click.isShiftClick && event.inventory.any { it.isEmpty })
 			) {
 				val movedItem = if (cursor.isNotEmpty)
 					cursor
@@ -112,10 +113,12 @@ internal class MenuController(val plugin: Plugin) : Listener, Initializable {
 
 				val moveEvent = PlayerMoveToMenuEvent(
 					menu, whoClicked as Player, inventory,
-					slot.cancelEvents, movedItem ?: return, hotbarButton
+					menuSlot.cancelEvents, movedItem ?: return, hotbarButton
 				)
 
 				menu.eventHandler.handleMoveToMenu(moveEvent)
+
+				if (moveEvent.isCanceled) event.isCancelled = true
 			}
 		}
 	}
