@@ -14,8 +14,8 @@ import java.util.*
 
 inline fun <T> ChestMenuDSL.pagination(
 	noinline itemsProvider: ItemsProvider<T>,
-	previousPageSlot: SlotDSL<Inventory>? = null,
-	nextPageSlot: SlotDSL<Inventory>? = null,
+	previousPageSlot: Slot<Inventory>? = null,
+	nextPageSlot: Slot<Inventory>? = null,
 	linesRange: IntRange = 1 until lines,
 	slotsRange: IntRange = 1..9,
 	autoUpdateSwitchPageSlot: Boolean = true,
@@ -51,8 +51,8 @@ interface PaginationMenuDSL<T> : PaginationMenu<T> {
 	override val menu: ChestMenuDSL
 	override val eventHandler: PaginationDSLEventHandler
 
-	override val previousPageSlot: SlotDSL<Inventory>?
-	override val nextPageSlot: SlotDSL<Inventory>?
+	override val previousPageSlot: Slot<Inventory>?
+	override val nextPageSlot: Slot<Inventory>?
 
 	fun onPageChange(pageChangeCallback: MenuPlayerPageChangeCallback) {
 		eventHandler.pageChangeCallbacks.add(pageChangeCallback)

@@ -8,6 +8,7 @@ import lirand.api.dsl.menu.builders.dynamic.chest.slot
 import lirand.api.dsl.menu.exposed.PlayerInventoryMenuEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuEvent
 import lirand.api.dsl.menu.exposed.calculateSlot
+import lirand.api.dsl.menu.exposed.dynamic.Slot
 import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.ItemsAdapter
 import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.ItemsProvider
 import org.bukkit.entity.Player
@@ -19,8 +20,8 @@ internal const val PAGINATION_OPEN_PAGE_KEY = "PAGINATION:open_page"
 class PaginationMenuImpl<T>(
 	override val menu: ChestMenuDSL,
 	override val itemsProvider: ItemsProvider<T>,
-	override val previousPageSlot: SlotDSL<Inventory>?,
-	override val nextPageSlot: SlotDSL<Inventory>?,
+	override val previousPageSlot: Slot<Inventory>?,
+	override val nextPageSlot: Slot<Inventory>?,
 	override val linesRange: IntRange = 1 until menu.lines,
 	override val slotsRange: IntRange = 1..9,
 	override val autoUpdateSwitchPageSlots: Boolean = true
@@ -40,12 +41,12 @@ class PaginationMenuImpl<T>(
 	internal val itemPlayerSlotData = WeakHashMap<T, MutableMap<Player, MutableMap<String, Any>>>()
 
 	init {
-		nextPageSlot?.onInteract {
+		(nextPageSlot as SlotDSL<Inventory>?)?.onInteract {
 			if (hasNextPage(player))
 				nextPage(player, inventory)
 		}
 
-		previousPageSlot?.onInteract {
+		(previousPageSlot as SlotDSL<Inventory>?)?.onInteract {
 			if (hasPreviousPage(player))
 				previousPage(player, inventory)
 		}
