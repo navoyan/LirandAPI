@@ -1,6 +1,7 @@
 package lirand.api.dsl.menu.builders.fixed.chest
 
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
+import com.github.shynixn.mccoroutine.bukkit.ticks
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -140,14 +141,19 @@ class StaticChestMenuImpl(
 			if (preOpenEvent.isCanceled) return
 
 			_viewers[player] = inventory
-			player.openInventory(inventory)
 
-			val openEvent = PlayerMenuOpenEvent(this, player, inventory)
-			eventHandler.handleOpen(openEvent)
+			scope.launch {
+				delay(1.ticks)
+				player.closeInventory()
 
-			if (updateDelay > Duration.ZERO && viewers.size == 1)
-				setUpdateTask()
+				player.openInventory(inventory)
 
+				val openEvent = PlayerMenuOpenEvent(this@StaticChestMenuImpl, player, inventory)
+				eventHandler.handleOpen(openEvent)
+
+				if (updateDelay > Duration.ZERO && viewers.size == 1)
+					setUpdateTask()
+			}
 		} catch (exception: Throwable) {
 			exception.printStackTrace()
 			removePlayer(player, true)

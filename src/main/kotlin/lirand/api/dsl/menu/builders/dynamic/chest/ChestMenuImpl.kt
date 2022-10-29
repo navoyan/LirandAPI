@@ -1,6 +1,7 @@
 package lirand.api.dsl.menu.builders.dynamic.chest
 
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
+import com.github.shynixn.mccoroutine.bukkit.ticks
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -140,19 +141,24 @@ class ChestMenuImpl(
 
 			_viewers[player] = inventory
 
-			for (index in rangeOfSlots) {
-				val slot = getSlotOrBaseSlot(index)
-				val render = MenuSlotRenderEvent(this, index, slot, player, inventory)
-				slot.eventHandler.handleRender(render)
+			scope.launch {
+				delay(1.ticks)
+				player.closeInventory()
+
+				for (index in rangeOfSlots) {
+					val slot = getSlotOrBaseSlot(index)
+					val render = MenuSlotRenderEvent(this@ChestMenuImpl, index, slot, player, inventory)
+					slot.eventHandler.handleRender(render)
+				}
+
+				player.openInventory(inventory)
+
+				val openEvent = PlayerMenuOpenEvent(this@ChestMenuImpl, player, inventory)
+				eventHandler.handleOpen(openEvent)
+
+				if (updateDelay > Duration.ZERO && viewers.size == 1)
+					setUpdateTask()
 			}
-
-			player.openInventory(inventory)
-
-			val openEvent = PlayerMenuOpenEvent(this, player, inventory)
-			eventHandler.handleOpen(openEvent)
-
-			if (updateDelay > Duration.ZERO && viewers.size == 1)
-				setUpdateTask()
 
 		} catch (exception: Throwable) {
 			exception.printStackTrace()

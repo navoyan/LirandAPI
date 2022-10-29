@@ -1,6 +1,7 @@
 package lirand.api.dsl.menu.builders.dynamic.anvil
 
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
+import com.github.shynixn.mccoroutine.bukkit.ticks
 import kotlinx.coroutines.*
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlot
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlotEventHandler
@@ -171,29 +172,32 @@ class AnvilMenuImpl(
 			bukkitOwnerField.set(inventoryField.get(container), this)
 			_viewers[player] = inventory
 
+			scope.launch {
+				delay(1.ticks)
+				player.closeInventory()
 
-			for (index in rangeOfSlots) {
-				val slot = getSlotOrBaseSlot(index)
-				val render = MenuSlotRenderEvent(this, index, slot, player, inventory)
-				slot.eventHandler.handleRender(render)
+				for (index in rangeOfSlots) {
+					val slot = getSlotOrBaseSlot(index)
+					val render = MenuSlotRenderEvent(this@AnvilMenuImpl, index, slot, player, inventory)
+					slot.eventHandler.handleRender(render)
+				}
+
+				with(anvilWrapper) {
+					val containerId = getNextContainerId(player, container)
+
+					sendPacketOpenWindow(player, getNextContainerId(player, container), title)
+					setActiveContainer(player, container)
+					setActiveContainerId(container, containerId)
+					addActiveContainerSlotListener(container, player)
+				}
+
+
+				val openEvent = PlayerMenuOpenEvent(this@AnvilMenuImpl, player, inventory)
+				eventHandler.handleOpen(openEvent)
+
+				if (updateDelay > Duration.ZERO && viewers.size == 1)
+					setUpdateTask()
 			}
-
-
-			with(anvilWrapper) {
-				val containerId = getNextContainerId(player, container)
-
-				sendPacketOpenWindow(player, getNextContainerId(player, container), title)
-				setActiveContainer(player, container)
-				setActiveContainerId(container, containerId)
-				addActiveContainerSlotListener(container, player)
-			}
-
-
-			val openEvent = PlayerMenuOpenEvent(this, player, inventory)
-			eventHandler.handleOpen(openEvent)
-
-			if (updateDelay > Duration.ZERO && viewers.size == 1)
-				setUpdateTask()
 
 		} catch (exception: Throwable) {
 			exception.printStackTrace()
