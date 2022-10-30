@@ -54,7 +54,7 @@ class AnvilMenuImpl(
 
 	}
 
-	private var dynamicTitle: ((Player) -> String?)? = null
+	private var dynamicTitle: (PlayerMenuEvent.() -> String?)? = null
 	override var title: String? = null
 
 	private val scope = CoroutineScope(
@@ -87,7 +87,7 @@ class AnvilMenuImpl(
 	override val playerData = WeakHashMap<Player, MutableMap<String, Any>>()
 
 
-	override fun title(render: (Player) -> String?) {
+	override fun title(render: PlayerMenuEvent.() -> String?) {
 		dynamicTitle = render
 	}
 
@@ -161,7 +161,7 @@ class AnvilMenuImpl(
 			if (preOpenEvent.isCanceled) return
 
 
-			val title = title ?: dynamicTitle?.invoke(player)
+			val title = title ?: dynamicTitle?.invoke(PlayerMenuEvent(this, player))
 			val container = anvilWrapper.newContainerAnvil(player, title)?.apply {
 				verifyObfuscatedFields(this)
 			}

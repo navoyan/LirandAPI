@@ -21,7 +21,6 @@ import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
 import lirand.api.dsl.menu.exposed.fixed.StaticSlot
 import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
 import lirand.api.extensions.inventory.Inventory
-import lirand.api.utilities.ifTrue
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin

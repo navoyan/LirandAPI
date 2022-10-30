@@ -12,19 +12,11 @@ import kotlinx.coroutines.launch
 import lirand.api.dsl.menu.builders.MenuDSLEventHandler
 import lirand.api.dsl.menu.builders.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.builders.dynamic.chest.slot.ChestSlot
-import lirand.api.dsl.menu.exposed.MenuSlotRenderEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuCloseEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuOpenEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuPreOpenEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
+import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.dynamic.Slot
-import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
-import lirand.api.dsl.menu.exposed.hasPlayer
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.extensions.inventory.clone
 import lirand.api.extensions.inventory.set
-import lirand.api.utilities.ifTrue
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
@@ -37,7 +29,7 @@ class ChestMenuImpl(
 	override var cancelEvents: Boolean,
 ) : ChestMenuDSL {
 
-	private var dynamicTitle: ((Player) -> String?)? = null
+	private var dynamicTitle: (PlayerMenuEvent.() -> String?)? = null
 	override var title: String? = null
 
 
@@ -71,7 +63,7 @@ class ChestMenuImpl(
 		ChestSlot(plugin, null, cancelEvents, SlotDSLEventHandler(plugin))
 
 
-	override fun title(render: (Player) -> String?) {
+	override fun title(render: PlayerMenuEvent.() -> String?) {
 		dynamicTitle = render
 	}
 
@@ -133,7 +125,9 @@ class ChestMenuImpl(
 		close(player, false)
 
 		try {
-			val inventory = inventory.clone(false, title = title ?: dynamicTitle?.invoke(player))
+			val inventory = inventory.clone(
+				false, title = title ?: dynamicTitle?.invoke(PlayerMenuEvent(this, player))
+			)
 
 			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
 			eventHandler.handlePreOpen(preOpenEvent)
