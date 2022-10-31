@@ -7,6 +7,8 @@ import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlot
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlotEventHandler
 import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.dynamic.Slot
+import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.utilities.allFields
 import lirand.api.utilities.ifTrue
@@ -83,8 +85,8 @@ class AnvilMenuImpl(
 	override var baseSlot: Slot<AnvilInventory> =
 		AnvilSlot(plugin, null, cancelEvents, AnvilSlotEventHandler(plugin, eventHandler))
 
-	override val data = WeakHashMap<String, Any>()
-	override val playerData = WeakHashMap<Player, MutableMap<String, Any>>()
+	override val data = MenuTypedDataMap()
+	override val playerData = MenuPlayerDataMap()
 
 
 	override fun title(render: PlayerMenuEvent.() -> String?) {

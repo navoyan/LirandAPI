@@ -2,24 +2,18 @@ package lirand.api.dsl.menu.exposed
 
 import lirand.api.dsl.menu.builders.dynamic.anvil.AnvilMenuDSL
 import lirand.api.dsl.menu.exposed.fixed.StaticMenu
+import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import org.bukkit.entity.Player
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
-import java.util.*
-import kotlin.collections.set
 
 interface PlayerMenuEvent {
 	val menu: StaticMenu<*, *>
 	val player: Player
 
-	fun putPlayerData(key: String, value: Any) {
-		val map = menu.playerData[player]
-		if (map != null) map[key] = value
-		else menu.playerData[player] = WeakHashMap<String, Any>().apply { put(key, value) }
-	}
-
-	fun getPlayerData(key: String) = menu.playerData[player]?.get(key)
+	val currentPlayerData: MenuTypedDataMap
+		get() = menu.playerData[player]
 }
 
 internal fun PlayerMenuEvent(
@@ -37,7 +31,11 @@ internal class PlayerMenuEventImpl(
 interface PlayerInventoryMenuEvent<I : Inventory> : PlayerMenuEvent {
 	val inventory: I
 
-	fun close() = player.closeInventory()
+	fun close() {
+		if (player.openInventory.topInventory.holder == menu) {
+			player.closeInventory()
+		}
+	}
 }
 
 internal fun <I : Inventory> PlayerInventoryMenuEvent(

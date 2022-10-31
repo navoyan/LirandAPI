@@ -1,6 +1,5 @@
 package lirand.api.dsl.menu.builders.dynamic.chest.pagination
 
-import lirand.api.dsl.menu.builders.dynamic.SlotDSL
 import lirand.api.dsl.menu.builders.dynamic.chest.ChestMenuDSL
 import lirand.api.dsl.menu.builders.dynamic.chest.pagination.slot.PaginationSlotDSL
 import lirand.api.dsl.menu.builders.fixed.MenuDSLMarker
@@ -10,7 +9,6 @@ import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.ItemsProvider
 import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.PaginationMenu
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
-import java.util.*
 
 inline fun <T> ChestMenuDSL.pagination(
 	noinline itemsProvider: ItemsProvider<T>,
@@ -39,9 +37,7 @@ inline fun <T> PaginationMenuDSL<T>.slot(
 }
 
 fun ChestMenuDSL.setPlayerOpenPage(player: Player, page: Int) {
-	playerData[player] = WeakHashMap<String, Any>().apply {
-		put(PAGINATION_OPEN_PAGE_KEY, page)
-	}
+	playerData[player][PAGINATION_OPEN_PAGE_KEY] = page
 }
 
 

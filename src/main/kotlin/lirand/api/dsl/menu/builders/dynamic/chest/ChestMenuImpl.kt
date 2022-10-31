@@ -14,6 +14,8 @@ import lirand.api.dsl.menu.builders.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.builders.dynamic.chest.slot.ChestSlot
 import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.dynamic.Slot
+import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.extensions.inventory.clone
 import lirand.api.extensions.inventory.set
@@ -54,8 +56,8 @@ class ChestMenuImpl(
 	private val _slots = TreeMap<Int, Slot<Inventory>>()
 	override val slots: Map<Int, Slot<Inventory>> get() = _slots
 
-	override val data = WeakHashMap<String, Any>()
-	override val playerData = WeakHashMap<Player, MutableMap<String, Any>>()
+	override val data = MenuTypedDataMap()
+	override val playerData = MenuPlayerDataMap()
 
 	override val eventHandler = MenuDSLEventHandler<Inventory>(plugin)
 

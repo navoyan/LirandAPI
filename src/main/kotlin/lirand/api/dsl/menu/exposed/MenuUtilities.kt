@@ -28,8 +28,3 @@ fun Inventory.asMenu(): StaticMenu<*, *>? = holder as? StaticMenu<*, *>
 fun Player.getMenu(): StaticMenu<*, *>? {
 	return openInventory.topInventory.asMenu()?.takeIfHasPlayer(this)
 }
-
-fun StaticMenu<*, *>.putPlayerData(player: Player, key: String, value: Any) =
-	playerData.getOrPut(player) { WeakHashMap() }.put(key, value)
-
-fun StaticMenu<*, *>.getPlayerData(player: Player, key: String): Any? = playerData[player]?.get(key)

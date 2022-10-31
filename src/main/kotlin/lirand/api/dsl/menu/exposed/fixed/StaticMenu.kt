@@ -21,8 +21,8 @@ interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 
 	val viewers: Map<Player, I>
 
-	val data: MutableMap<String, Any>
-	val playerData: MutableMap<Player, MutableMap<String, Any>>
+	val data: MenuTypedDataMap
+	val playerData: MenuPlayerDataMap
 
 	val eventHandler: MenuEventHandler<I>
 
