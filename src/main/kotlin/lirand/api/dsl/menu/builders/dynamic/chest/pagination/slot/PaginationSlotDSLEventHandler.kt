@@ -5,8 +5,8 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import lirand.api.dsl.menu.exposed.MenuSlotInteractEvent
-import lirand.api.dsl.menu.exposed.MenuSlotRenderEvent
+import lirand.api.dsl.menu.exposed.PlayerMenuSlotInteractEvent
+import lirand.api.dsl.menu.exposed.PlayerMenuSlotRenderEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuSlotPageChangeEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
 import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.slot.PaginationSlotEventHandler
@@ -16,9 +16,9 @@ import org.bukkit.plugin.Plugin
 typealias MenuSlotPageChangeCallback<T> =
 		PlayerMenuSlotPageChangeEvent.(provided: T?, scope: CoroutineScope) -> Unit
 typealias MenuPageSlotInteractCallback<T> =
-		MenuSlotInteractEvent<Inventory>.(provided: T?, scope: CoroutineScope) -> Unit
+		PlayerMenuSlotInteractEvent<Inventory>.(provided: T?, scope: CoroutineScope) -> Unit
 typealias MenuPageSlotRenderCallback<T> =
-		MenuSlotRenderEvent<Inventory>.(provided: T?, scope: CoroutineScope) -> Unit
+		PlayerMenuSlotRenderEvent<Inventory>.(provided: T?, scope: CoroutineScope) -> Unit
 typealias MenuPageSlotUpdateCallback<T> =
 		PlayerMenuSlotUpdateEvent<Inventory>.(provided: T?, scope: CoroutineScope) -> Unit
 
@@ -43,7 +43,7 @@ class PaginationSlotDSLEventHandler<T>(override val plugin: Plugin) : Pagination
 		}
 	}
 
-	override fun handleRender(provided: T?, renderEvent: MenuSlotRenderEvent<Inventory>) {
+	override fun handleRender(provided: T?, renderEvent: PlayerMenuSlotRenderEvent<Inventory>) {
 		for (callback in renderCallbacks) {
 			scope.launch {
 				callback(renderEvent, provided, this)
@@ -59,7 +59,7 @@ class PaginationSlotDSLEventHandler<T>(override val plugin: Plugin) : Pagination
 		}
 	}
 
-	override fun handleInteract(provided: T?, interactEvent: MenuSlotInteractEvent<Inventory>) {
+	override fun handleInteract(provided: T?, interactEvent: PlayerMenuSlotInteractEvent<Inventory>) {
 		for (callback in interactCallbacks) {
 			scope.launch {
 				callback(interactEvent, provided, this)

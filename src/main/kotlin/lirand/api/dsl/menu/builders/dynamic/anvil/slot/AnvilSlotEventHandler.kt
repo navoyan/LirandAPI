@@ -4,7 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lirand.api.dsl.menu.builders.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.builders.dynamic.anvil.AnvilMenuDSLEventHandler
-import lirand.api.dsl.menu.exposed.MenuSlotInteractEvent
+import lirand.api.dsl.menu.exposed.PlayerMenuSlotInteractEvent
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.plugin.Plugin
 
@@ -13,7 +13,7 @@ class AnvilSlotEventHandler(
 	private val menuEventHandler: AnvilMenuDSLEventHandler
 ) : SlotDSLEventHandler<AnvilInventory>(plugin) {
 
-	override fun handleInteract(interactEvent: MenuSlotInteractEvent<AnvilInventory>) {
+	override fun handleInteract(interactEvent: PlayerMenuSlotInteractEvent<AnvilInventory>) {
 		scope.launch {
 			delay(1)
 

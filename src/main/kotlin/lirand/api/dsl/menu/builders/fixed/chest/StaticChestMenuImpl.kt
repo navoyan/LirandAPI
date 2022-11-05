@@ -18,9 +18,7 @@ import lirand.api.dsl.menu.exposed.PlayerMenuOpenEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuPreOpenEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
-import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
-import lirand.api.dsl.menu.exposed.fixed.StaticSlot
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
+import lirand.api.dsl.menu.exposed.fixed.*
 import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
 import lirand.api.extensions.inventory.Inventory
 import org.bukkit.entity.Player
@@ -49,13 +47,13 @@ class StaticChestMenuImpl(
 		set(value) {
 			field = value.takeIf { it >= Duration.ZERO } ?: Duration.ZERO
 			removeUpdateTask()
-			if (value > Duration.ZERO && viewers.isNotEmpty())
+			if (value > Duration.ZERO && views.isNotEmpty())
 				setUpdateTask()
 		}
 
 
-	private val _viewers = WeakHashMap<Player, Inventory>()
-	override val viewers: Map<Player, Inventory> get() = _viewers
+	private val _views = WeakHashMap<Player, MenuView<Inventory>>()
+	override val views: Map<Player, MenuView<Inventory>> get() = _views
 
 	override val rangeOfSlots: IntRange = 0 until lines * 9
 
@@ -101,7 +99,7 @@ class StaticChestMenuImpl(
 	}
 
 	override fun update() {
-		for (player in viewers.keys) {
+		for (player in views.keys) {
 			val update = PlayerMenuUpdateEvent(this, player, inventory)
 			eventHandler.handleUpdate(update)
 
@@ -120,7 +118,7 @@ class StaticChestMenuImpl(
 			rangeOfSlots.mapNotNull { if (slot === slots[it]) it to slot else null }.toMap()
 		}
 
-		for (player in viewers.keys) {
+		for (player in views.keys) {
 			for ((index, slot) in slots) {
 				callSlotUpdateEvent(index, slot, player, inventory)
 			}
@@ -133,15 +131,19 @@ class StaticChestMenuImpl(
 		_inventory.storageContents = inventory.storageContents.map { it?.clone() }.toTypedArray()
 	}
 
-	override fun openTo(player: Player) {
+	override fun open(player: Player, backStack: MenuBackStack?) {
 		close(player, false)
 
 		try {
+			backStack?.takeIf { !it.lastBacked }
+				?.push(MenuBackStackFrame(this, player, MenuTypedDataMap(playerData[player])))
+				?: run { backStack?.lastBacked = false }
+
 			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
 			eventHandler.handlePreOpen(preOpenEvent)
 			if (preOpenEvent.isCanceled) return
 
-			_viewers[player] = inventory
+			_views[player] = MenuView(this, player, inventory, backStack)
 
 			scope.launch {
 				delay(1.ticks)
@@ -152,7 +154,7 @@ class StaticChestMenuImpl(
 				val openEvent = PlayerMenuOpenEvent(this@StaticChestMenuImpl, player, inventory)
 				eventHandler.handleOpen(openEvent)
 
-				if (updateDelay > Duration.ZERO && viewers.size == 1)
+				if (updateDelay > Duration.ZERO && views.size == 1)
 					setUpdateTask()
 			}
 		} catch (exception: Throwable) {
@@ -162,22 +164,41 @@ class StaticChestMenuImpl(
 	}
 
 	override fun close(player: Player, closeInventory: Boolean) {
-		if (player !in _viewers) return
+		if (player !in _views) return
 
 		val menuClose = PlayerMenuCloseEvent(this, player)
 		eventHandler.handleClose(menuClose)
 
 		removePlayer(player, closeInventory)
 
-		if (updateDelay > Duration.ZERO && viewers.isEmpty())
+		if (updateDelay > Duration.ZERO && views.isEmpty())
 			removeUpdateTask()
+	}
+
+	override fun back(player: Player, key: String?) {
+		val backStack = views[player]?.backStack?.takeIf { it.isNotEmpty() } ?: return
+
+		if (key != null) {
+			if (backStack.none { it.key == key }) return
+
+			while (backStack.peek().key != key) {
+				backStack.pop()
+			}
+		}
+		else {
+			backStack.pop()
+		}
+		val frame = backStack.peek()
+		frame.menu.playerData[player].putAll(frame.playerData)
+		backStack.lastBacked = true
+		frame.menu.open(player, backStack)
 	}
 
 
 	private fun removePlayer(player: Player, closeInventory: Boolean) {
 		if (closeInventory) player.closeInventory()
 
-		val viewing = _viewers.remove(player) != null
+		val viewing = _views.remove(player) != null
 		if (viewing)
 			clearPlayerData(player)
 	}

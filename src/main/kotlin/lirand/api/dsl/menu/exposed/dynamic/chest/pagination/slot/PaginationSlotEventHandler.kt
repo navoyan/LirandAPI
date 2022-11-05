@@ -1,7 +1,7 @@
 package lirand.api.dsl.menu.exposed.dynamic.chest.pagination.slot
 
-import lirand.api.dsl.menu.exposed.MenuSlotInteractEvent
-import lirand.api.dsl.menu.exposed.MenuSlotRenderEvent
+import lirand.api.dsl.menu.exposed.PlayerMenuSlotInteractEvent
+import lirand.api.dsl.menu.exposed.PlayerMenuSlotRenderEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuSlotPageChangeEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
 import org.bukkit.inventory.Inventory
@@ -13,10 +13,10 @@ interface PaginationSlotEventHandler<T> {
 
 	fun handlePageChange(provided: T?, pageChangeEvent: PlayerMenuSlotPageChangeEvent)
 
-	fun handleRender(provided: T?, renderEvent: MenuSlotRenderEvent<Inventory>)
+	fun handleRender(provided: T?, renderEvent: PlayerMenuSlotRenderEvent<Inventory>)
 
 	fun handleUpdate(provided: T?, updateEvent: PlayerMenuSlotUpdateEvent<Inventory>)
 
-	fun handleInteract(provided: T?, interactEvent: MenuSlotInteractEvent<Inventory>)
+	fun handleInteract(provided: T?, interactEvent: PlayerMenuSlotInteractEvent<Inventory>)
 
 }

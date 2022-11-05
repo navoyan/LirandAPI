@@ -2,14 +2,8 @@ package lirand.api.dsl.menu
 
 import lirand.api.dsl.menu.builders.dynamic.anvil.AnvilMenuDSL
 import lirand.api.dsl.menu.builders.fixed.StaticSlotDSL
-import lirand.api.dsl.menu.exposed.MenuSlotInteractEvent
-import lirand.api.dsl.menu.exposed.PlayerAnvilMenuPrepareEvent
-import lirand.api.dsl.menu.exposed.PlayerMoveToMenuEvent
-import lirand.api.dsl.menu.exposed.asMenu
+import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.fixed.StaticMenu
-import lirand.api.dsl.menu.exposed.getMenu
-import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
-import lirand.api.dsl.menu.exposed.takeIfHasPlayer
 import lirand.api.extensions.inventory.get
 import lirand.api.extensions.inventory.isEmpty
 import lirand.api.extensions.inventory.isNotEmpty
@@ -82,7 +76,7 @@ internal class MenuController(val plugin: Plugin) : Listener, Initializable {
 
 		val slot = menu.getSlotOrBaseSlot(event.slot) as StaticSlotDSL<I>
 
-		val interactEvent = MenuSlotInteractEvent(
+		val interactEvent = PlayerMenuSlotInteractEvent(
 			menu, inventory, event.whoClicked as Player,
 			event.slot, slot, slot.cancelEvents,
 			event.click, event.action,
@@ -128,8 +122,8 @@ internal class MenuController(val plugin: Plugin) : Listener, Initializable {
 		val inventory = event.inventory
 		val menu = inventory.asMenu() as? AnvilMenuDSL ?: return
 
-		val player = menu.viewers.firstNotNullOfOrNull { (player, menuInventory) ->
-			if (inventory == menuInventory) player
+		val player = menu.views.firstNotNullOfOrNull { (player, view) ->
+			if (inventory == view.inventory) player
 			else null
 		} ?: return
 
@@ -157,14 +151,15 @@ internal class MenuController(val plugin: Plugin) : Listener, Initializable {
 			return
 
 		val player = event.player as Player
-		player.getMenu()?.close(player, false)
+		val menuView = player.getMenuView() ?: return
+		menuView.menu.close(player, false)
 	}
 
 	@EventHandler(ignoreCancelled = true)
 	fun onPickupItemEvent(event: EntityPickupItemEvent) {
 		val player = event.entity as? Player ?: return
 
-		if (player.getMenu() != null)
+		if (player.getMenuView() != null)
 			event.isCancelled = true
 	}
 }

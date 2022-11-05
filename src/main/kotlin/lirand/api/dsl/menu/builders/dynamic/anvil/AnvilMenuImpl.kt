@@ -7,8 +7,7 @@ import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlot
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlotEventHandler
 import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.dynamic.Slot
-import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
+import lirand.api.dsl.menu.exposed.fixed.*
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.utilities.allFields
 import lirand.api.utilities.ifTrue
@@ -67,15 +66,15 @@ class AnvilMenuImpl(
 		set(value) {
 			field = value.takeIf { it >= Duration.ZERO } ?: Duration.ZERO
 			removeUpdateTask()
-			if (value > Duration.ZERO && viewers.isNotEmpty())
+			if (value > Duration.ZERO && views.isNotEmpty())
 				setUpdateTask()
 		}
 
 
 	override val eventHandler: AnvilMenuDSLEventHandler = AnvilMenuDSLEventHandler(plugin)
 
-	private val _viewers = HashMap<Player, AnvilInventory>()
-	override val viewers: Map<Player, AnvilInventory> get() = _viewers
+	private val _views = WeakHashMap<Player, MenuView<AnvilInventory>>()
+	override val views: Map<Player, MenuView<AnvilInventory>> get() = _views
 
 	override val rangeOfSlots: IntRange = 0..1
 
@@ -109,18 +108,18 @@ class AnvilMenuImpl(
 	override fun update(player: Player) {
 		if (!hasPlayer(player)) return
 
-		val inventory = viewers.getValue(player)
-		val updateEvent = PlayerMenuUpdateEvent(this, player, inventory)
+		val view = views.getValue(player)
+		val updateEvent = PlayerMenuUpdateEvent(this, player, view.inventory)
 		eventHandler.handleUpdate(updateEvent)
 
 		for (index in rangeOfSlots) {
 			val slot = getSlotOrBaseSlot(index)
-			callSlotUpdateEvent(index, slot, player, inventory)
+			callSlotUpdateEvent(index, slot, player, view.inventory)
 		}
 	}
 
 	override fun update() {
-		for (player in viewers.keys) {
+		for (player in views.keys) {
 			update(player)
 		}
 	}
@@ -135,14 +134,14 @@ class AnvilMenuImpl(
 			rangeOfSlots.mapNotNull { if (slot === _slots[it]) it to slot else null }.toMap()
 		}
 
-		val inventory = viewers.getValue(player)
+		val view = views.getValue(player)
 		for ((index, slot) in slots) {
-			callSlotUpdateEvent(index, slot, player, inventory)
+			callSlotUpdateEvent(index, slot, player, view.inventory)
 		}
 	}
 
 	override fun updateSlot(slot: Slot<AnvilInventory>) {
-		for (player in viewers.keys) {
+		for (player in views.keys) {
 			updateSlot(slot, player)
 		}
 	}
@@ -154,10 +153,14 @@ class AnvilMenuImpl(
 		}
 	}
 
-	override fun openTo(player: Player) {
+	override fun open(player: Player, backStack: MenuBackStack?) {
 		close(player, false)
 
 		try {
+			backStack?.takeIf { !it.lastBacked }
+				?.push(MenuBackStackFrame(this, player, MenuTypedDataMap(playerData[player])))
+				?: run { backStack?.lastBacked = false }
+
 			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
 			eventHandler.handlePreOpen(preOpenEvent)
 			if (preOpenEvent.isCanceled) return
@@ -172,7 +175,7 @@ class AnvilMenuImpl(
 			} as AnvilInventory
 
 			bukkitOwnerField.set(inventoryField.get(container), this)
-			_viewers[player] = inventory
+			_views[player] = MenuView(this, player, inventory, backStack)
 
 			scope.launch {
 				delay(1.ticks)
@@ -180,7 +183,7 @@ class AnvilMenuImpl(
 
 				for (index in rangeOfSlots) {
 					val slot = getSlotOrBaseSlot(index)
-					val render = MenuSlotRenderEvent(this@AnvilMenuImpl, index, slot, player, inventory)
+					val render = PlayerMenuSlotRenderEvent(this@AnvilMenuImpl, index, slot, player, inventory)
 					slot.eventHandler.handleRender(render)
 				}
 
@@ -197,7 +200,7 @@ class AnvilMenuImpl(
 				val openEvent = PlayerMenuOpenEvent(this@AnvilMenuImpl, player, inventory)
 				eventHandler.handleOpen(openEvent)
 
-				if (updateDelay > Duration.ZERO && viewers.size == 1)
+				if (updateDelay > Duration.ZERO && views.size == 1)
 					setUpdateTask()
 			}
 
@@ -208,7 +211,7 @@ class AnvilMenuImpl(
 	}
 
 	override fun close(player: Player, closeInventory: Boolean) {
-		if (player !in _viewers) return
+		if (player !in _views) return
 
 		val menuClose = PlayerMenuCloseEvent(this, player)
 		eventHandler.handleClose(menuClose)
@@ -218,8 +221,27 @@ class AnvilMenuImpl(
 			removePlayer(player, closeInventory)
 		}
 
-		if (updateDelay > Duration.ZERO && viewers.isEmpty())
+		if (updateDelay > Duration.ZERO && views.isEmpty())
 			removeUpdateTask()
+	}
+
+	override fun back(player: Player, key: String?) {
+		val backStack = views[player]?.backStack?.takeIf { it.isNotEmpty() } ?: return
+
+		if (key != null) {
+			if (backStack.none { it.key == key }) return
+
+			while (backStack.peek().key != key) {
+				backStack.pop()
+			}
+		}
+		else {
+			backStack.pop()
+		}
+		val frame = backStack.peek()
+		frame.menu.playerData[player].putAll(frame.playerData)
+		backStack.lastBacked = true
+		frame.menu.open(player, backStack)
 	}
 
 
@@ -231,7 +253,7 @@ class AnvilMenuImpl(
 	private fun removePlayer(player: Player, closeInventory: Boolean) {
 		if (closeInventory) player.closeInventory()
 
-		val viewing = _viewers.remove(player) != null
+		val viewing = _views.remove(player) != null
 		if (viewing)
 			clearPlayerData(player)
 	}

@@ -1,6 +1,7 @@
 package lirand.api.dsl.menu.exposed
 
 import lirand.api.dsl.menu.exposed.dynamic.chest.ChestMenu
+import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import lirand.api.dsl.menu.exposed.fixed.StaticMenu
 import lirand.api.dsl.menu.exposed.fixed.StaticSlot
 import lirand.api.extensions.inventory.get
@@ -11,19 +12,13 @@ import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
-import java.util.*
 
 interface PlayerMenuSlotEvent : PlayerMenuEvent {
 	val slotIndex: Int
 	val slot: StaticSlot<*>
 
-	fun putPlayerSlotData(key: String, value: Any) {
-		slot.playerSlotData.getOrPut(player) {
-			WeakHashMap()
-		}[key] = value
-	}
-
-	fun getPlayerSlotData(key: String): Any? = slot.playerSlotData[player]?.get(key)
+	val currentPlayerSlotData: MenuTypedDataMap
+		get() = slot.playerSlotData[player]
 }
 
 interface PlayerMenuInventorySlotEvent<I : Inventory> : PlayerMenuSlotEvent, PlayerInventoryMenuEvent<I> {
@@ -38,7 +33,7 @@ interface PlayerMenuInventorySlotEvent<I : Inventory> : PlayerMenuSlotEvent, Pla
 
 
 
-open class MenuSlotInteractEvent<I : Inventory>(
+open class PlayerMenuSlotInteractEvent<I : Inventory>(
 	menu: StaticMenu<*, *>,
 	inventory: I,
 	player: Player,
@@ -62,7 +57,7 @@ class PlayerMenuSlotPageChangeEvent(
 ) : PlayerMenuInventorySlotEvent<Inventory>
 
 
-class MenuSlotRenderEvent<I : Inventory>(
+class PlayerMenuSlotRenderEvent<I : Inventory>(
 	override val menu: StaticMenu<*, *>,
 	override val slotIndex: Int,
 	override val slot: StaticSlot<I>,

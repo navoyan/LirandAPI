@@ -11,6 +11,8 @@ import lirand.api.dsl.menu.exposed.calculateSlot
 import lirand.api.dsl.menu.exposed.dynamic.Slot
 import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.ItemsAdapter
 import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.ItemsProvider
+import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import java.util.*
@@ -37,8 +39,8 @@ class PaginationMenuImpl<T>(
 	// should be null when is not mapped (for not allocate a new list everytime)
 	private val currentPlayerItems = WeakHashMap<Player, List<T>>()
 
-	internal val itemSlotData = WeakHashMap<T, MutableMap<String, Any>>()
-	internal val itemPlayerSlotData = WeakHashMap<T, MutableMap<Player, MutableMap<String, Any>>>()
+	internal val itemSlotData = WeakHashMap<T, MenuTypedDataMap>()
+	internal val itemPlayerSlotData = WeakHashMap<T, MenuPlayerDataMap>()
 
 	init {
 		(nextPageSlot as SlotDSL<Inventory>?)?.onInteract {
@@ -55,7 +57,7 @@ class PaginationMenuImpl<T>(
 			val items = getPlayerItems(player).toList()
 			currentPlayerItems[player] = items
 
-			val openPage = menu.playerData[player]?.get(PAGINATION_OPEN_PAGE_KEY) as? Int?
+			val openPage = menu.playerData[player][PAGINATION_OPEN_PAGE_KEY] as? Int?
 			if (openPage != null) {
 				if (isPageAvailable(player, openPage)) {
 					currentPlayerPages[player] = openPage
@@ -150,11 +152,11 @@ class PaginationMenuImpl<T>(
 	 */
 	override fun updateItems(player: Player) {
 		val adapter = itemsAdapter ?: return
-		val inventory = menu.viewers[player] ?: return
+		val view = menu.views[player] ?: return
 
-		val playerInventoryMenu = PlayerInventoryMenuEvent(menu, player, inventory)
+		val playerInventoryMenuEvent = PlayerInventoryMenuEvent(menu, player, view.inventory)
 
-		val items = adapter.invoke(playerInventoryMenu, getPlayerItems(player).toList())
+		val items = adapter.invoke(playerInventoryMenuEvent, getPlayerItems(player).toList())
 
 		currentPlayerItems[player] = items
 
@@ -166,10 +168,10 @@ class PaginationMenuImpl<T>(
 
 			val item: T? = getCurrentItemForPlayer(player, slotPos, currentPage)
 
-			pageSlot.updateSlot(item, item, slotPos, player, inventory)
+			pageSlot.updateSlot(item, item, slotPos, player, view.inventory)
 		}
 
-		eventHandler.handlePageChange(playerInventoryMenu)
+		eventHandler.handlePageChange(playerInventoryMenuEvent)
 	}
 
 	private fun getCurrentItemForPlayer(player: Player, slotPos: Int, page: Int): T? {

@@ -19,7 +19,7 @@ interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 	var baseSlot: S
 	var updateDelay: Duration
 
-	val viewers: Map<Player, I>
+	val views: Map<Player, MenuView<I>>
 
 	val data: MenuTypedDataMap
 	val playerData: MenuPlayerDataMap
@@ -33,20 +33,23 @@ interface StaticMenu<S : StaticSlot<I>, I : Inventory> : InventoryHolder {
 	fun update()
 	fun updateSlot(slot: S)
 
-	fun openTo(player: Player)
+
+	fun open(player: Player, backStack: MenuBackStack? = null)
+
+	fun close(player: Player, closeInventory: Boolean = true)
+
+	fun back(player: Player, key: String? = null)
+
 
 	fun clearData() {
 		data.clear()
 		for (slot in getSlotsWithBaseSlot())
-			slot.clearSlotData()
+			slot.slotData.clear()
 	}
 
 	fun clearPlayerData(player: Player) {
 		playerData.remove(player)
 		for (slot in getSlotsWithBaseSlot())
-			slot.clearPlayerData(player)
+			slot.playerSlotData.remove(player)
 	}
-
-	fun close(player: Player, closeInventory: Boolean = true)
-
 }

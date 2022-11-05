@@ -1,6 +1,8 @@
 package lirand.api.dsl.menu.builders.dynamic.anvil.slot
 
 import lirand.api.dsl.menu.builders.dynamic.SlotDSL
+import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import org.bukkit.entity.Player
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.inventory.ItemStack
@@ -14,8 +16,8 @@ class AnvilSlot(
 	override val eventHandler: AnvilSlotEventHandler
 ) : SlotDSL<AnvilInventory> {
 
-	override val slotData = WeakHashMap<String, Any>()
-	override val playerSlotData = WeakHashMap<Player, MutableMap<String, Any>>()
+	override val slotData = MenuTypedDataMap()
+	override val playerSlotData = MenuPlayerDataMap()
 
 
 	override fun clone(item: ItemStack?, plugin: Plugin) =

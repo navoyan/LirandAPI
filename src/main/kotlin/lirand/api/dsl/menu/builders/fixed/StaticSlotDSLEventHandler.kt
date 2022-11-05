@@ -5,14 +5,14 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import lirand.api.dsl.menu.exposed.MenuSlotInteractEvent
+import lirand.api.dsl.menu.exposed.PlayerMenuSlotInteractEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
 import lirand.api.dsl.menu.exposed.fixed.StaticSlotEventHandler
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 
 typealias MenuPlayerSlotUpdateCallback<I> = PlayerMenuSlotUpdateEvent<I>.(scope: CoroutineScope) -> Unit
-typealias MenuPlayerSlotInteractCallback<I> = MenuSlotInteractEvent<I>.(scope: CoroutineScope) -> Unit
+typealias MenuPlayerSlotInteractCallback<I> = PlayerMenuSlotInteractEvent<I>.(scope: CoroutineScope) -> Unit
 
 open class StaticSlotDSLEventHandler<I : Inventory>(override val plugin: Plugin) : StaticSlotEventHandler<I> {
 
@@ -24,7 +24,7 @@ open class StaticSlotDSLEventHandler<I : Inventory>(override val plugin: Plugin)
 	val interactCallbacks = mutableListOf<MenuPlayerSlotInteractCallback<I>>()
 	val updateCallbacks = mutableListOf<MenuPlayerSlotUpdateCallback<I>>()
 
-	override fun handleInteract(interactEvent: MenuSlotInteractEvent<I>) {
+	override fun handleInteract(interactEvent: PlayerMenuSlotInteractEvent<I>) {
 		for (callback in interactCallbacks) {
 			scope.launch {
 				callback(interactEvent, this)

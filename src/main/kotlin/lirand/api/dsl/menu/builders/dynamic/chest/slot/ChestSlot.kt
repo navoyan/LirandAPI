@@ -2,11 +2,11 @@ package lirand.api.dsl.menu.builders.dynamic.chest.slot
 
 import lirand.api.dsl.menu.builders.dynamic.SlotDSL
 import lirand.api.dsl.menu.builders.dynamic.SlotDSLEventHandler
-import org.bukkit.entity.Player
+import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
-import java.util.*
 
 
 class ChestSlot(
@@ -16,8 +16,8 @@ class ChestSlot(
 	override val eventHandler: SlotDSLEventHandler<Inventory>
 ) : SlotDSL<Inventory> {
 
-	override val slotData = WeakHashMap<String, Any>()
-	override val playerSlotData = WeakHashMap<Player, MutableMap<String, Any>>()
+	override val slotData = MenuTypedDataMap()
+	override val playerSlotData = MenuPlayerDataMap()
 
 
 	override fun clone(item: ItemStack?, plugin: Plugin) =

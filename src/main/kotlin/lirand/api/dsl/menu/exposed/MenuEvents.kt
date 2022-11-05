@@ -1,6 +1,7 @@
 package lirand.api.dsl.menu.exposed
 
 import lirand.api.dsl.menu.builders.dynamic.anvil.AnvilMenuDSL
+import lirand.api.dsl.menu.exposed.fixed.MenuBackStack
 import lirand.api.dsl.menu.exposed.fixed.StaticMenu
 import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import org.bukkit.entity.Player
@@ -14,6 +15,39 @@ interface PlayerMenuEvent {
 
 	val currentPlayerData: MenuTypedDataMap
 		get() = menu.playerData[player]
+
+	val backStack: MenuBackStack?
+		get() = menu.views[player]?.backStack
+
+
+	fun saveAllDataToBackStack() {
+		val frame = backStack?.peek()?.takeIf { it.menu == menu } ?: return
+		frame.playerData.putAll(currentPlayerData)
+	}
+
+	fun saveDataToBackStack(dataKey: String, vararg dataKeys: String) {
+		val frame = backStack?.peek()?.takeIf { it.menu == menu } ?: return
+		frame.playerData.putAll(setOf(dataKey, *dataKeys).associateWith { currentPlayerData[it] })
+	}
+
+	fun saveDataToBackStack(dataKeys: Collection<String>) {
+		val frame = backStack?.peek()?.takeIf { it.menu == menu } ?: return
+		frame.playerData.putAll(dataKeys.associateWith { currentPlayerData[it] })
+	}
+
+	fun saveDataToBackStack(dataPair: Pair<String, Any?>, vararg dataPairs: Pair<String, Any?>) {
+		val frame = backStack?.peek()?.takeIf { it.menu == menu } ?: return
+		frame.playerData.putAll(mapOf(dataPair, *dataPairs))
+	}
+
+	fun saveDataToBackStack(data: Map<String, Any?>) {
+		val frame = backStack?.peek()?.takeIf { it.menu == menu } ?: return
+		frame.playerData.putAll(data)
+	}
+
+	fun back(key: String? = null) {
+		menu.back(player, key)
+	}
 }
 
 internal fun PlayerMenuEvent(
