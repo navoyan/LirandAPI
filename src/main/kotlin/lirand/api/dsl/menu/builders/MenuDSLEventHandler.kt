@@ -21,7 +21,7 @@ typealias PlayerMenuMoveCallback<I> = PlayerMoveToMenuEvent<I>.(scope: Coroutine
 typealias PlayerMenuPreOpenCallback = PlayerMenuPreOpenEvent.(scope: CoroutineScope) -> Unit
 typealias PlayerMenuOpenCallback<I> = PlayerMenuOpenEvent<I>.(scope: CoroutineScope) -> Unit
 
-open class MenuDSLEventHandler<I : Inventory>(override val plugin: Plugin) : MenuEventHandler<I> {
+open class MenuDSLEventHandler<I : Inventory>(final override val plugin: Plugin) : MenuEventHandler<I> {
 
 	protected val scope = CoroutineScope(
 		plugin.minecraftDispatcher + SupervisorJob() +

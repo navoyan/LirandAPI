@@ -89,7 +89,7 @@ class PaginationMenuImpl<T>(
 
 		for (line in linesRange) {
 			for (slotPos in slotsRange) {
-				val menuSlot = menu.calculateSlot(line, slotPos).also { println(it) }
+				val menuSlot = menu.calculateSlot(line, slotPos)
 				val slotRoot = menu.slot(menuSlot, null) as SlotDSL<Inventory>
 
 				val paginationSlot = PaginationSlotImpl(

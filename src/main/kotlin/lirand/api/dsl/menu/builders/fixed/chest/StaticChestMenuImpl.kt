@@ -1,72 +1,36 @@
 package lirand.api.dsl.menu.builders.fixed.chest
 
-import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.github.shynixn.mccoroutine.bukkit.ticks
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import lirand.api.dsl.menu.builders.MenuDSLEventHandler
 import lirand.api.dsl.menu.builders.dynamic.chest.slot.ChestSlot
+import lirand.api.dsl.menu.builders.fixed.AbstractStaticMenuDSL
 import lirand.api.dsl.menu.builders.fixed.StaticSlotDSLEventHandler
 import lirand.api.dsl.menu.builders.fixed.chest.slot.StaticChestSlot
-import lirand.api.dsl.menu.exposed.PlayerMenuCloseEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuOpenEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuPreOpenEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
 import lirand.api.dsl.menu.exposed.fixed.*
-import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
 import lirand.api.extensions.inventory.Inventory
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
-import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.time.Duration
 
 class StaticChestMenuImpl(
-	override val plugin: Plugin,
+	plugin: Plugin,
 	override val lines: Int,
 	override val title: String,
-	override var cancelEvents: Boolean
-) : StaticChestMenuDSL {
+	cancelEvents: Boolean
+) : AbstractStaticMenuDSL<StaticSlot<Inventory>, Inventory>(plugin, cancelEvents), StaticChestMenuDSL {
 
 	private var _inventory: Inventory = Inventory(lines * 9, this, title)
 
-	private val scope = CoroutineScope(
-		plugin.minecraftDispatcher + SupervisorJob() +
-				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
-	)
-	override var updateDelay: Duration = Duration.ZERO
-		set(value) {
-			field = value.takeIf { it >= Duration.ZERO } ?: Duration.ZERO
-			removeUpdateTask()
-			if (value > Duration.ZERO && views.isNotEmpty())
-				setUpdateTask()
-		}
-
-
-	private val _views = WeakHashMap<Player, MenuView<Inventory>>()
-	override val views: Map<Player, MenuView<Inventory>> get() = _views
-
 	override val rangeOfSlots: IntRange = 0 until lines * 9
 
-	private val _slots = TreeMap<Int, StaticSlot<Inventory>>()
-	override val slots: Map<Int, StaticSlot<Inventory>> get() = _slots
-
-	override val data = MenuTypedDataMap()
-	override val playerData = MenuPlayerDataMap()
-
-	override val eventHandler = MenuDSLEventHandler<Inventory>(plugin)
-
-	override var baseSlot: StaticSlot<Inventory> =
-		StaticChestSlot(plugin, cancelEvents, StaticSlotDSLEventHandler(plugin))
+	override var baseSlot: StaticSlot<Inventory> = StaticChestSlot(plugin, cancelEvents, StaticSlotDSLEventHandler(plugin))
 
 
 	override fun setSlot(index: Int, slot: StaticSlot<Inventory>) {
@@ -98,38 +62,6 @@ class StaticChestMenuImpl(
 		}
 	}
 
-	override fun update() {
-		for (player in views.keys) {
-			val update = PlayerMenuUpdateEvent(this, player, inventory)
-			eventHandler.handleUpdate(update)
-
-			for (index in rangeOfSlots) {
-				val slot = getSlotOrBaseSlot(index)
-				callSlotUpdateEvent(index, slot, player, inventory)
-			}
-		}
-	}
-
-	override fun updateSlot(slot: StaticSlot<Inventory>) {
-		val slots = if (slot === baseSlot) {
-			rangeOfSlots.mapNotNull { if (slots[it] == null || slots[it] === baseSlot) it to slot else null }.toMap()
-		}
-		else {
-			rangeOfSlots.mapNotNull { if (slot === slots[it]) it to slot else null }.toMap()
-		}
-
-		for (player in views.keys) {
-			for ((index, slot) in slots) {
-				callSlotUpdateEvent(index, slot, player, inventory)
-			}
-		}
-	}
-
-	override fun getInventory() = _inventory
-
-	override fun setInventory(inventory: Inventory) {
-		_inventory.storageContents = inventory.storageContents.map { it?.clone() }.toTypedArray()
-	}
 
 	override fun open(player: Player, backStack: MenuBackStack?) {
 		close(player, false)
@@ -163,61 +95,9 @@ class StaticChestMenuImpl(
 		}
 	}
 
-	override fun close(player: Player, closeInventory: Boolean) {
-		if (player !in _views) return
+	override fun getInventory() = _inventory
 
-		val menuClose = PlayerMenuCloseEvent(this, player)
-		eventHandler.handleClose(menuClose)
-
-		removePlayer(player, closeInventory)
-
-		if (updateDelay > Duration.ZERO && views.isEmpty())
-			removeUpdateTask()
-	}
-
-	override fun back(player: Player, key: String?) {
-		val backStack = views[player]?.backStack?.takeIf { it.isNotEmpty() } ?: return
-
-		if (key != null) {
-			if (backStack.none { it.key == key }) return
-
-			while (backStack.peek().key != key) {
-				backStack.pop()
-			}
-		}
-		else {
-			backStack.pop()
-		}
-		val frame = backStack.peek()
-		frame.menu.playerData[player].putAll(frame.playerData)
-		backStack.lastBacked = true
-		frame.menu.open(player, backStack)
-	}
-
-
-	private fun removePlayer(player: Player, closeInventory: Boolean) {
-		if (closeInventory) player.closeInventory()
-
-		val viewing = _views.remove(player) != null
-		if (viewing)
-			clearPlayerData(player)
-	}
-
-	private fun callSlotUpdateEvent(index: Int, slot: StaticSlot<Inventory>, player: Player, inventory: Inventory) {
-		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
-		slot.eventHandler.handleUpdate(slotUpdate)
-	}
-
-	private fun setUpdateTask() {
-		scope.launch {
-			while (isActive) {
-				delay(updateDelay)
-				update()
-			}
-		}
-	}
-
-	private fun removeUpdateTask() {
-		scope.coroutineContext.cancelChildren()
+	override fun setInventory(inventory: Inventory) {
+		_inventory.storageContents = inventory.storageContents.map { it?.clone() }.toTypedArray()
 	}
 }

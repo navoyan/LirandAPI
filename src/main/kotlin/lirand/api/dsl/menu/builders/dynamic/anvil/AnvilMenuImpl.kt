@@ -1,8 +1,8 @@
 package lirand.api.dsl.menu.builders.dynamic.anvil
 
-import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import kotlinx.coroutines.*
+import lirand.api.dsl.menu.builders.dynamic.AbstractMenuDSL
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlot
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlotEventHandler
 import lirand.api.dsl.menu.exposed.*
@@ -16,19 +16,17 @@ import net.wesjd.anvilgui.version.VersionWrapper
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.AnvilInventory
+import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
 import java.lang.reflect.Field
-import java.util.*
-import kotlin.collections.component1
-import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.time.Duration
 
 
 class AnvilMenuImpl(
-	override val plugin: Plugin,
-	override var cancelEvents: Boolean = true
-) : AnvilMenuDSL {
+	plugin: Plugin,
+	cancelEvents: Boolean = true
+) : AbstractMenuDSL<Slot<AnvilInventory>, AnvilInventory>(plugin, cancelEvents), AnvilMenuDSL {
 
 	private companion object {
 		val anvilWrapper: VersionWrapper = VersionMatcher().match()
@@ -55,103 +53,12 @@ class AnvilMenuImpl(
 
 	}
 
-	private var dynamicTitle: (PlayerMenuEvent.() -> String?)? = null
-	override var title: String? = null
-
-	private val scope = CoroutineScope(
-		plugin.minecraftDispatcher + SupervisorJob() +
-				CoroutineExceptionHandler { _, exception -> exception.printStackTrace() }
-	)
-	override var updateDelay: Duration = Duration.ZERO
-		set(value) {
-			field = value.takeIf { it >= Duration.ZERO } ?: Duration.ZERO
-			removeUpdateTask()
-			if (value > Duration.ZERO && views.isNotEmpty())
-				setUpdateTask()
-		}
-
-
 	override val eventHandler: AnvilMenuDSLEventHandler = AnvilMenuDSLEventHandler(plugin)
-
-	private val _views = WeakHashMap<Player, MenuView<AnvilInventory>>()
-	override val views: Map<Player, MenuView<AnvilInventory>> get() = _views
 
 	override val rangeOfSlots: IntRange = 0..1
 
-	private val _slots = TreeMap<Int, Slot<AnvilInventory>>()
-	override val slots: Map<Int, Slot<AnvilInventory>> get() = _slots
+	override var baseSlot: Slot<AnvilInventory> = AnvilSlot(plugin, null, cancelEvents, AnvilSlotEventHandler(plugin, eventHandler))
 
-	override var baseSlot: Slot<AnvilInventory> =
-		AnvilSlot(plugin, null, cancelEvents, AnvilSlotEventHandler(plugin, eventHandler))
-
-	override val data = MenuTypedDataMap()
-	override val playerData = MenuPlayerDataMap()
-
-
-	override fun title(render: PlayerMenuEvent.() -> String?) {
-		dynamicTitle = render
-	}
-
-	override fun setSlot(index: Int, slot: Slot<AnvilInventory>) {
-		if (index in rangeOfSlots)
-			_slots[index] = slot
-	}
-
-	override fun removeSlot(index: Int) {
-		_slots.remove(index)
-	}
-
-	override fun clearSlots() {
-		_slots.clear()
-	}
-
-	override fun update(player: Player) {
-		if (!hasPlayer(player)) return
-
-		val view = views.getValue(player)
-		val updateEvent = PlayerMenuUpdateEvent(this, player, view.inventory)
-		eventHandler.handleUpdate(updateEvent)
-
-		for (index in rangeOfSlots) {
-			val slot = getSlotOrBaseSlot(index)
-			callSlotUpdateEvent(index, slot, player, view.inventory)
-		}
-	}
-
-	override fun update() {
-		for (player in views.keys) {
-			update(player)
-		}
-	}
-
-	override fun updateSlot(slot: Slot<AnvilInventory>, player: Player) {
-		if (!hasPlayer(player)) return
-
-		val slots = if (slot === baseSlot) {
-			rangeOfSlots.mapNotNull { if (_slots[it] == null) it to slot else null }.toMap()
-		}
-		else {
-			rangeOfSlots.mapNotNull { if (slot === _slots[it]) it to slot else null }.toMap()
-		}
-
-		val view = views.getValue(player)
-		for ((index, slot) in slots) {
-			callSlotUpdateEvent(index, slot, player, view.inventory)
-		}
-	}
-
-	override fun updateSlot(slot: Slot<AnvilInventory>) {
-		for (player in views.keys) {
-			updateSlot(slot, player)
-		}
-	}
-
-	override fun getInventory() = Inventory(InventoryType.ANVIL, this).apply {
-		for (index in rangeOfSlots) {
-			val slot = getSlotOrBaseSlot(index)
-			setItem(index, slot.item?.clone())
-		}
-	}
 
 	override fun open(player: Player, backStack: MenuBackStack?) {
 		close(player, false)
@@ -203,71 +110,18 @@ class AnvilMenuImpl(
 				if (updateDelay > Duration.ZERO && views.size == 1)
 					setUpdateTask()
 			}
-
 		} catch (exception: Throwable) {
 			exception.printStackTrace()
 			removePlayer(player, true)
 		}
 	}
 
-	override fun close(player: Player, closeInventory: Boolean) {
-		if (player !in _views) return
-
-		val menuClose = PlayerMenuCloseEvent(this, player)
-		eventHandler.handleClose(menuClose)
-
-		scope.launch {
-			delay(1)
-			removePlayer(player, closeInventory)
-		}
-
-		if (updateDelay > Duration.ZERO && views.isEmpty())
-			removeUpdateTask()
-	}
-
-	override fun back(player: Player, key: String?) {
-		val backStack = views[player]?.backStack?.takeIf { it.isNotEmpty() } ?: return
-
-		if (key != null) {
-			if (backStack.none { it.key == key }) return
-
-			while (backStack.peek().key != key) {
-				backStack.pop()
+	override fun getInventory(): Inventory {
+		return Inventory(InventoryType.ANVIL, this).apply {
+			for (index in rangeOfSlots) {
+				val slot = getSlotOrBaseSlot(index)
+				setItem(index, slot.item?.clone())
 			}
 		}
-		else {
-			backStack.pop()
-		}
-		val frame = backStack.peek()
-		frame.menu.playerData[player].putAll(frame.playerData)
-		backStack.lastBacked = true
-		frame.menu.open(player, backStack)
-	}
-
-
-	private fun callSlotUpdateEvent(index: Int, slot: Slot<AnvilInventory>, player: Player, inventory: AnvilInventory) {
-		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
-		slot.eventHandler.handleUpdate(slotUpdate)
-	}
-
-	private fun removePlayer(player: Player, closeInventory: Boolean) {
-		if (closeInventory) player.closeInventory()
-
-		val viewing = _views.remove(player) != null
-		if (viewing)
-			clearPlayerData(player)
-	}
-
-	private fun setUpdateTask() {
-		scope.launch {
-			while (isActive) {
-				delay(updateDelay)
-				update()
-			}
-		}
-	}
-
-	private fun removeUpdateTask() {
-		scope.coroutineContext.cancelChildren()
 	}
 }
