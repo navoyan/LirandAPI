@@ -2,7 +2,7 @@ package lirand.api.extensions.inventory
 
 import lirand.api.extensions.server.server
 import lirand.api.nbt.NbtData
-import lirand.api.nbt.nbtData
+import lirand.api.nbt.tagNbtData
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.BookMeta
@@ -13,7 +13,7 @@ import kotlin.contracts.contract
 
 fun ItemStack(material: Material, amount: Int = 1, nbtData: NbtData): ItemStack {
 	return ItemStack(material, amount).apply {
-		this.nbtData = nbtData
+		this.tagNbtData = nbtData
 	}
 }
 

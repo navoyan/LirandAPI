@@ -1,7 +1,7 @@
 package lirand.api.extensions.chat
 
 import lirand.api.extensions.other.toId
-import lirand.api.nbt.nbtData
+import lirand.api.nbt.tagNbtData
 import net.md_5.bungee.api.chat.BaseComponent
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.HoverEvent
@@ -44,7 +44,7 @@ fun HoverItemEvent(itemStack: ItemStack): HoverEvent {
 		Item(
 			itemStack.type.toId(),
 			itemStack.amount,
-			ItemTag.ofNbt(itemStack.nbtData.toString())
+			ItemTag.ofNbt(itemStack.tagNbtData.toString())
 		)
 	)
 }

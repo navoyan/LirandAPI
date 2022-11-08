@@ -16,12 +16,12 @@ var Entity.persistentData: NbtData
 
 
 var ItemStack.persistentData: NbtData
-	get() = nbtData.getOrSet("PublicBukkitValues", NbtCompoundType) { NbtData() }
+	get() = tagNbtData.getOrSet("PublicBukkitValues", NbtCompoundType) { NbtData() }
 	set(value) {
-		val nbt = nbtData
+		val nbt = tagNbtData
 		nbt["PublicBukkitValues", NbtCompoundType] = value
 
-		nbtData = nbt
+		tagNbtData = nbt
 	}
 
 

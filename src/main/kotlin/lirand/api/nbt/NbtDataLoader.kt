@@ -4,6 +4,7 @@ import lirand.api.extensions.server.nmsNumberVersion
 import lirand.api.extensions.server.nmsVersion
 import org.bukkit.block.TileState
 import org.bukkit.entity.Entity
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 
@@ -24,7 +25,16 @@ var Entity.nbtData: NbtData
 	}
 
 
-var ItemStack.nbtData: NbtData
+val ItemStack.nbtData: NbtData
+	get() {
+		val itemStack = asNMSCopyMethod.invoke(null, this)
+
+		val nbtTagCompound = nbtCompoundConstructor.newInstance()
+		return NbtData(minecraftItemStackSaveMethod.invoke(itemStack, nbtTagCompound))
+	}
+
+
+var ItemStack.tagNbtData: NbtData
 	get() {
 		val itemStack = asNMSCopyMethod.invoke(null, this)
 
@@ -113,6 +123,13 @@ private val minecraftItemStackTagField = minecraftItemStackClass.declaredFields
 private val minecraftItemStackSetTagMethod = minecraftItemStackClass.methods
 	.find {
 		it.returnType == Void.TYPE && it.parameterTypes.let {
+			it.size == 1 && it[0] == nbtCompoundClass
+		}
+	}!!
+
+private val minecraftItemStackSaveMethod = minecraftItemStackClass.methods
+	.find {
+		it.returnType == nbtCompoundClass && it.parameterTypes.let {
 			it.size == 1 && it[0] == nbtCompoundClass
 		}
 	}!!
