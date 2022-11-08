@@ -75,11 +75,10 @@ class StaticChestMenuImpl(
 			eventHandler.handlePreOpen(preOpenEvent)
 			if (preOpenEvent.isCanceled) return
 
-			_views[player] = MenuView(this, player, inventory, backStack)
-
 			scope.launch {
 				delay(1.ticks)
 				player.closeInventory()
+				_views[player] = MenuView(this@StaticChestMenuImpl, player, inventory, backStack)
 
 				player.openInventory(inventory)
 

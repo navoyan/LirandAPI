@@ -82,11 +82,11 @@ class AnvilMenuImpl(
 			} as AnvilInventory
 
 			bukkitOwnerField.set(inventoryField.get(container), this)
-			_views[player] = MenuView(this, player, inventory, backStack)
 
 			scope.launch {
 				delay(1.ticks)
 				player.closeInventory()
+				_views[player] = MenuView(this@AnvilMenuImpl, player, inventory, backStack)
 
 				for (index in rangeOfSlots) {
 					val slot = getSlotOrBaseSlot(index)
