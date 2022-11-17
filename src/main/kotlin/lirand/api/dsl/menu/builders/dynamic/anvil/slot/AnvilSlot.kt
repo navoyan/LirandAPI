@@ -1,13 +1,11 @@
 package lirand.api.dsl.menu.builders.dynamic.anvil.slot
 
 import lirand.api.dsl.menu.builders.dynamic.SlotDSL
-import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
-import org.bukkit.entity.Player
+import lirand.api.dsl.menu.exposed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.MenuTypedDataMap
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
-import java.util.*
 
 class AnvilSlot(
 	override val plugin: Plugin,

@@ -11,8 +11,8 @@ import lirand.api.dsl.menu.exposed.calculateSlot
 import lirand.api.dsl.menu.exposed.dynamic.Slot
 import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.ItemsAdapter
 import lirand.api.dsl.menu.exposed.dynamic.chest.pagination.ItemsProvider
-import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
+import lirand.api.dsl.menu.exposed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.MenuTypedDataMap
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import java.util.*

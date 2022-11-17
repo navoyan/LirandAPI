@@ -2,8 +2,8 @@ package lirand.api.dsl.menu.builders.dynamic.chest.slot
 
 import lirand.api.dsl.menu.builders.dynamic.SlotDSL
 import lirand.api.dsl.menu.builders.dynamic.SlotDSLEventHandler
-import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
+import lirand.api.dsl.menu.exposed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.MenuTypedDataMap
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin

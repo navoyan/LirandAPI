@@ -1,4 +1,4 @@
-package lirand.api.dsl.menu.exposed.fixed
+package lirand.api.dsl.menu.exposed
 
 import org.bukkit.entity.Player
 import java.util.WeakHashMap

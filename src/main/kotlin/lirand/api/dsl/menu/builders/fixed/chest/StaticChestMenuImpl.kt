@@ -7,8 +7,7 @@ import lirand.api.dsl.menu.builders.dynamic.chest.slot.ChestSlot
 import lirand.api.dsl.menu.builders.fixed.AbstractStaticMenuDSL
 import lirand.api.dsl.menu.builders.fixed.StaticSlotDSLEventHandler
 import lirand.api.dsl.menu.builders.fixed.chest.slot.StaticChestSlot
-import lirand.api.dsl.menu.exposed.PlayerMenuOpenEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuPreOpenEvent
+import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.fixed.*
 import lirand.api.extensions.inventory.Inventory
 import org.bukkit.entity.Player
@@ -67,9 +66,7 @@ class StaticChestMenuImpl(
 		close(player, false)
 
 		try {
-			backStack?.takeIf { !it.lastBacked }
-				?.push(MenuBackStackFrame(this, player, MenuTypedDataMap(playerData[player])))
-				?: run { backStack?.lastBacked = false }
+			backStack?.let { processBackStack(it) }
 
 			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
 			eventHandler.handlePreOpen(preOpenEvent)

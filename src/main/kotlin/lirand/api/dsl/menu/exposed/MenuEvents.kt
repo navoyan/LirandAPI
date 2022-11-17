@@ -1,9 +1,7 @@
 package lirand.api.dsl.menu.exposed
 
 import lirand.api.dsl.menu.builders.dynamic.anvil.AnvilMenuDSL
-import lirand.api.dsl.menu.exposed.fixed.MenuBackStack
 import lirand.api.dsl.menu.exposed.fixed.StaticMenu
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import org.bukkit.entity.Player
 import org.bukkit.inventory.AnvilInventory
 import org.bukkit.inventory.Inventory

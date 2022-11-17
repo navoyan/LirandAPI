@@ -1,5 +1,6 @@
-package lirand.api.dsl.menu.exposed.fixed
+package lirand.api.dsl.menu.exposed
 
+import lirand.api.dsl.menu.exposed.fixed.StaticMenu
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 

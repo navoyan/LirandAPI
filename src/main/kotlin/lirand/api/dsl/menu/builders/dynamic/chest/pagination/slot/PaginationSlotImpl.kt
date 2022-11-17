@@ -4,8 +4,8 @@ import lirand.api.dsl.menu.builders.dynamic.SlotDSL
 import lirand.api.dsl.menu.builders.dynamic.chest.pagination.PaginationMenuImpl
 import lirand.api.dsl.menu.exposed.PlayerMenuSlotRenderEvent
 import lirand.api.dsl.menu.exposed.PlayerMenuSlotPageChangeEvent
-import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
+import lirand.api.dsl.menu.exposed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.MenuTypedDataMap
 import lirand.api.extensions.inventory.set
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory

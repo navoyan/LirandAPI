@@ -7,7 +7,6 @@ import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlot
 import lirand.api.dsl.menu.builders.dynamic.anvil.slot.AnvilSlotEventHandler
 import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.dynamic.Slot
-import lirand.api.dsl.menu.exposed.fixed.*
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.utilities.allFields
 import lirand.api.utilities.ifTrue
@@ -64,9 +63,7 @@ class AnvilMenuImpl(
 		close(player, false)
 
 		try {
-			backStack?.takeIf { !it.lastBacked }
-				?.push(MenuBackStackFrame(this, player, MenuTypedDataMap(playerData[player])))
-				?: run { backStack?.lastBacked = false }
+			backStack?.let { processBackStack(it) }
 
 			val preOpenEvent = PlayerMenuPreOpenEvent(this, player)
 			eventHandler.handlePreOpen(preOpenEvent)

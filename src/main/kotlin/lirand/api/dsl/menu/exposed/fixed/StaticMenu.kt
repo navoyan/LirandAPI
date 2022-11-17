@@ -1,7 +1,6 @@
 package lirand.api.dsl.menu.exposed.fixed
 
-import lirand.api.dsl.menu.exposed.MenuEventHandler
-import lirand.api.dsl.menu.exposed.getSlotsWithBaseSlot
+import lirand.api.dsl.menu.exposed.*
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder

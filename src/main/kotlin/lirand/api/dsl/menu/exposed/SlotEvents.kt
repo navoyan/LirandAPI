@@ -1,7 +1,6 @@
 package lirand.api.dsl.menu.exposed
 
 import lirand.api.dsl.menu.exposed.dynamic.chest.ChestMenu
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
 import lirand.api.dsl.menu.exposed.fixed.StaticMenu
 import lirand.api.dsl.menu.exposed.fixed.StaticSlot
 import lirand.api.extensions.inventory.get

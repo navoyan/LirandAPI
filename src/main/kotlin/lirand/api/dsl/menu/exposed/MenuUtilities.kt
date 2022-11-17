@@ -2,7 +2,6 @@ package lirand.api.dsl.menu.exposed
 
 import lirand.api.dsl.menu.builders.dynamic.chest.ChestMenuDSL
 import lirand.api.dsl.menu.builders.fixed.chest.StaticChestMenuDSL
-import lirand.api.dsl.menu.exposed.fixed.MenuView
 import lirand.api.dsl.menu.exposed.fixed.StaticMenu
 import lirand.api.dsl.menu.exposed.fixed.StaticSlot
 import org.bukkit.entity.Player

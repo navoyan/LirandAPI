@@ -3,16 +3,13 @@ package lirand.api.dsl.menu.builders.dynamic.chest
 import com.github.shynixn.mccoroutine.bukkit.ticks
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import lirand.api.dsl.menu.builders.MenuDSLEventHandler
 import lirand.api.dsl.menu.builders.dynamic.AbstractMenuDSL
 import lirand.api.dsl.menu.builders.dynamic.SlotDSLEventHandler
 import lirand.api.dsl.menu.builders.dynamic.chest.slot.ChestSlot
 import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.dynamic.Slot
-import lirand.api.dsl.menu.exposed.fixed.MenuBackStack
-import lirand.api.dsl.menu.exposed.fixed.MenuBackStackFrame
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuView
+import lirand.api.dsl.menu.exposed.MenuBackStack
+import lirand.api.dsl.menu.exposed.MenuView
 import lirand.api.extensions.inventory.Inventory
 import lirand.api.extensions.inventory.clone
 import lirand.api.extensions.inventory.set
@@ -36,9 +33,7 @@ class ChestMenuImpl(
 		close(player, false)
 
 		try {
-			backStack?.takeIf { !it.lastBacked }
-				?.push(MenuBackStackFrame(this, player, MenuTypedDataMap(playerData[player])))
-				?: run { backStack?.lastBacked = false }
+			backStack?.let { processBackStack(it) }
 
 			val inventory = inventory.clone(
 				false, title = title ?: dynamicTitle?.invoke(PlayerMenuEvent(this, player))

@@ -3,8 +3,8 @@ package lirand.api.dsl.menu.builders.fixed.chest.slot
 import lirand.api.dsl.menu.builders.fixed.StaticSlotDSL
 import lirand.api.dsl.menu.builders.fixed.StaticSlotDSLEventHandler
 import lirand.api.dsl.menu.builders.fixed.chest.StaticChestMenuDSL
-import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
+import lirand.api.dsl.menu.exposed.MenuPlayerDataMap
+import lirand.api.dsl.menu.exposed.MenuTypedDataMap
 import lirand.api.extensions.inventory.get
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack

@@ -3,14 +3,8 @@ package lirand.api.dsl.menu.builders.fixed
 import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import kotlinx.coroutines.*
 import lirand.api.dsl.menu.builders.MenuDSLEventHandler
-import lirand.api.dsl.menu.exposed.PlayerMenuCloseEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuSlotUpdateEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
-import lirand.api.dsl.menu.exposed.fixed.MenuPlayerDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuTypedDataMap
-import lirand.api.dsl.menu.exposed.fixed.MenuView
+import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.fixed.StaticSlot
-import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
@@ -106,7 +100,10 @@ abstract class AbstractStaticMenuDSL<S : StaticSlot<I>, I : Inventory>(
 		val backStack = views[player]?.backStack?.takeIf { it.isNotEmpty() } ?: return
 
 		if (key != null) {
-			if (backStack.none { it.key == key }) return
+			if (backStack.none { it.key == key }) {
+				close(player, true)
+				return
+			}
 
 			while (backStack.peek().key != key) {
 				backStack.pop()
@@ -115,11 +112,28 @@ abstract class AbstractStaticMenuDSL<S : StaticSlot<I>, I : Inventory>(
 		else {
 			backStack.pop()
 		}
-		val frame = backStack.peek()
+		val frame = backStack.peek() ?: run {
+			close(player, true)
+			return
+		}
 		frame.menu.playerData[player].putAll(frame.playerData)
-		backStack.lastBacked = true
+		backStack.next(pushToStack = false)
 		frame.menu.open(player, backStack)
 	}
+
+
+	protected fun processBackStack(
+		backStack: MenuBackStack,
+		playerData: MenuTypedDataMap = MenuTypedDataMap(this.playerData[backStack.player])
+	) {
+		if (!backStack.nextPushToStack) {
+			backStack.next(pushToStack = true)
+			return
+		}
+
+		backStack.push(backStack.Frame(this, playerData))
+	}
+
 
 
 	protected fun removePlayer(player: Player, closeInventory: Boolean) {

@@ -1,4 +1,4 @@
-package lirand.api.dsl.menu.exposed.fixed
+package lirand.api.dsl.menu.exposed
 
 import java.util.*
 
