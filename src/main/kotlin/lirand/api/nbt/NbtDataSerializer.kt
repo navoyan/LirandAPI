@@ -30,11 +30,11 @@ fun Inventory.getSerializableNbtData(title: String? = null): NbtData {
 }
 
 
-fun NbtData.deserializeItemStack(): ItemStack? {
+fun NbtData.deserializeItemStack(): ItemStack {
 	return ItemStack(
-		Material.matchMaterial(string["id"] ?: error("Invalid material id")) ?: error("Invalid material id"),
-		byte["Count"]?.toInt() ?: error("Invalid item count"),
-		compound["tag"] ?: error("Invalid item tag")
+		Material.matchMaterial(string["id"]) ?: error("Invalid material id"),
+		byte["Count"].toInt(),
+		compound["tag"]
 	)
 }
 
@@ -42,24 +42,24 @@ fun NbtData.deserializeInventory(
 	owner: InventoryHolder? = null,
 	title: String? = null
 ): Inventory {
-	val type = InventoryType.valueOf(string["type"]?.uppercase() ?: error("Invalid inventory type"))
+	val type = InventoryType.valueOf(string["type"].uppercase())
 
-	val size = if (type == InventoryType.CHEST) int["size"] ?: error("Invalid size") else -1
+	val size = if (type == InventoryType.CHEST) int["size"] else -1
 
-	val resultTitle = title ?: string["title"]
+	val resultTitle = title ?: string.getOrNull("title")
 
 	val resultInventory = if (type == InventoryType.CHEST)
 		Inventory(size, owner, resultTitle)
 	else
 		Inventory(type, owner, resultTitle)
 
-	val itemStacksNbt = list(compound)["Items"] ?: error("Invalid items")
+	val itemStacksNbt = list(compound)["Items"]
 
 	return resultInventory.apply {
 		for (itemStackNbt in itemStacksNbt) {
 			setItem(
-				itemStackNbt.byte["Slot"]?.toInt() ?: error("Invalid slot of $itemStackNbt"),
-				itemStackNbt.compound["ItemStack"]?.deserializeItemStack() ?: error("Invalid ItemStack of $itemStackNbt")
+				itemStackNbt.byte["Slot"].toInt(),
+				itemStackNbt.compound["ItemStack"].deserializeItemStack()
 			)
 		}
 	}

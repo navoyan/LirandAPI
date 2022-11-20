@@ -24,14 +24,28 @@ class NbtDataAccessor<T>(
 	private val nbtData: NbtData,
 	internal val dataType: NbtDataType<T>
 ) {
+
+
 	/**
-	 * Gets the value at the given [key].
-	 * The returned value is null, if it
+	 * Gets the value at the given [key]
+	 * or throws an [IllegalStateException] if it
 	 * was not possible to find any value at
 	 * the specified location, or if the type
 	 * is not the [dataType].
 	 */
-	operator fun get(key: String): T? {
+	operator fun get(key: String): T {
+		return nbtData[key, dataType]
+			?: error("There is no value under the \"$key\" key or its type is not $dataType")
+	}
+
+	/**
+	 * Gets the value at the given [key].
+	 * The returned value is null if it
+	 * was not possible to find any value at
+	 * the specified location, or if the type
+	 * is not the [dataType].
+	 */
+	fun getOrNull(key: String): T? {
 		return nbtData[key, dataType]
 	}
 
@@ -43,7 +57,7 @@ class NbtDataAccessor<T>(
 	 * the result of calling [defaultValue] was put into specified location.
 	 */
 	inline fun getOrSet(key: String, defaultValue: () -> T): T {
-		return get(key) ?: defaultValue().also {
+		return getOrNull(key) ?: defaultValue().also {
 			set(key, it)
 		}
 	}
@@ -56,7 +70,7 @@ class NbtDataAccessor<T>(
 	 * is not the [dataType].
 	 */
 	inline fun getOrDefault(key: String, defaultValue: () -> T): T {
-		return get(key) ?: defaultValue()
+		return getOrNull(key) ?: defaultValue()
 	}
 
 
