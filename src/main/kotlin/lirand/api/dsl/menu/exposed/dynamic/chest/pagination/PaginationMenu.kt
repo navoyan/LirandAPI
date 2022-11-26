@@ -9,7 +9,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 
 typealias ItemsProvider<T> = PlayerMenuEvent.() -> Collection<T>
-typealias ItemsAdapter<T> = PlayerInventoryMenuEvent<Inventory>.(List<T>) -> List<T>
+typealias ItemsAdapter<T> = PlayerInventoryMenuEvent<Inventory>.(Collection<T>) -> Collection<T>
 
 
 interface PaginationMenu<T> {

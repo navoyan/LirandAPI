@@ -69,15 +69,10 @@ abstract class AbstractStaticMenuDSL<S : StaticSlot<I>, I : Inventory>(
 	}
 
 	override fun updateSlot(slot: S) {
-		val slots = if (slot === baseSlot) {
-			rangeOfSlots.mapNotNull { if (slots[it] == null || slots[it] === baseSlot) it to slot else null }.toMap()
-		}
-		else {
-			rangeOfSlots.mapNotNull { if (slot === slots[it]) it to slot else null }.toMap()
-		}
+		val slotMatches = getSlotMatches(slot)
 
 		for (view in views.values) {
-			for ((index, slot) in slots) {
+			for ((index, slot) in slotMatches) {
 				callSlotUpdateEvent(index, slot, view.player, view.inventory)
 			}
 		}
@@ -158,7 +153,16 @@ abstract class AbstractStaticMenuDSL<S : StaticSlot<I>, I : Inventory>(
 	}
 
 	protected fun callSlotUpdateEvent(index: Int, slot: S, player: Player, inventory: I) {
-		val slotUpdate = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
-		slot.eventHandler.handleUpdate(slotUpdate)
+		val slotUpdateEvent = PlayerMenuSlotUpdateEvent(this, index, slot, player, inventory)
+		slot.eventHandler.handleUpdate(slotUpdateEvent)
+	}
+
+	protected fun getSlotMatches(slot: S): Map<Int, S> {
+		return if (slot === baseSlot) {
+			rangeOfSlots.mapNotNull { if (slots[it] == null || slots[it] === baseSlot) it to slot else null }.toMap()
+		}
+		else {
+			rangeOfSlots.mapNotNull { if (slot === slots[it]) it to slot else null }.toMap()
+		}
 	}
 }

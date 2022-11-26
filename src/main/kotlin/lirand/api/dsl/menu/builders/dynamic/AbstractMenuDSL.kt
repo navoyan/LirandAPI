@@ -1,11 +1,8 @@
 package lirand.api.dsl.menu.builders.dynamic
 
 import lirand.api.dsl.menu.builders.fixed.AbstractStaticMenuDSL
-import lirand.api.dsl.menu.exposed.PlayerMenuEvent
-import lirand.api.dsl.menu.exposed.PlayerMenuUpdateEvent
+import lirand.api.dsl.menu.exposed.*
 import lirand.api.dsl.menu.exposed.dynamic.Slot
-import lirand.api.dsl.menu.exposed.getSlotOrBaseSlot
-import lirand.api.dsl.menu.exposed.hasPlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.plugin.Plugin
@@ -38,17 +35,28 @@ abstract class AbstractMenuDSL<S : Slot<I>, I : Inventory>(
 	override fun updateSlot(slot: S, player: Player) {
 		if (!hasPlayer(player)) return
 
-		val slots = if (slot === baseSlot) {
-			rangeOfSlots.mapNotNull { if (_slots[it] == null) it to slot else null }.toMap()
-		}
-		else {
-			rangeOfSlots.mapNotNull { if (slot === _slots[it]) it to slot else null }.toMap()
-		}
+		val slotMatches = getSlotMatches(slot)
 
 		val view = views.getValue(player)
-		for ((index, slot) in slots) {
+		for ((index, slot) in slotMatches) {
 			callSlotUpdateEvent(index, slot, player, view.inventory)
 		}
+	}
+
+	override fun rerenderSlot(slot: S, player: Player) {
+		if (!hasPlayer(player)) return
+
+		val slotMatches = getSlotMatches(slot)
+
+		val view = views.getValue(player)
+		for ((index, slot) in slotMatches) {
+			callSlotRenderEvent(index, slot, player, view.inventory)
+		}
+	}
+
+	protected fun callSlotRenderEvent(index: Int, slot: S, player: Player, inventory: I) {
+		val slotRenderEvent = PlayerMenuSlotRenderEvent(this, index, slot, player, inventory)
+		slot.eventHandler.handleRender(slotRenderEvent)
 	}
 
 }

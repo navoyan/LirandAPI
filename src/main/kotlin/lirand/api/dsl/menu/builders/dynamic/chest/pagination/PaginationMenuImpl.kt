@@ -34,13 +34,12 @@ class PaginationMenuImpl<T>(
 		private set
 
 	override val slots = TreeMap<Int, PaginationSlotDSL<T>>()
-	private val currentPlayerPages = WeakHashMap<Player, Int>()
-
-	// should be null when is not mapped (for not allocate a new list everytime)
-	private val currentPlayerItems = WeakHashMap<Player, List<T>>()
 
 	internal val itemSlotData = WeakHashMap<T, MenuTypedDataMap>()
 	internal val itemPlayerSlotData = WeakHashMap<T, MenuPlayerDataMap>()
+
+	private val currentPlayerPages = WeakHashMap<Player, Int>()
+	private val currentPlayerItems = WeakHashMap<Player, List<T>>()
 
 	init {
 		(nextPageSlot as SlotDSL<Inventory>?)?.onInteract {
@@ -148,7 +147,7 @@ class PaginationMenuImpl<T>(
 	override fun getPlayerCurrentPage(player: Player): Int = currentPlayerPages.getOrDefault(player, 1)
 
 	/**
-	 * Update current item list calling itemsUpdateFilter
+	 * Update current item list calling [itemsAdapter]
 	 */
 	override fun updateItems(player: Player) {
 		val adapter = itemsAdapter ?: return
@@ -156,16 +155,16 @@ class PaginationMenuImpl<T>(
 
 		val playerInventoryMenuEvent = PlayerInventoryMenuEvent(menu, player, view.inventory)
 
-		val items = adapter.invoke(playerInventoryMenuEvent, getPlayerItems(player).toList())
+		val items = adapter.invoke(playerInventoryMenuEvent, getPlayerItems(player))
 
-		currentPlayerItems[player] = items
+		currentPlayerItems[player] = items.toList()
 
 		if (!isPageAvailable(player, getPlayerCurrentPage(player)))
 			currentPlayerPages[player] = getMaxPages(player)
 
-		forEachSlot { slotPos, pageSlot ->
-			val currentPage = getPlayerCurrentPage(player)
+		val currentPage = getPlayerCurrentPage(player)
 
+		forEachSlot { slotPos, pageSlot ->
 			val item: T? = getCurrentItemForPlayer(player, slotPos, currentPage)
 
 			pageSlot.updateSlot(item, item, slotPos, player, view.inventory)
