@@ -4,8 +4,12 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.KVariance
+import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.typeOf
 
-interface NbtDataType<T> {
+sealed interface NbtDataType<T : Any> {
 
 	val typeId: Int
 
@@ -13,21 +17,116 @@ interface NbtDataType<T> {
 
 	fun encode(data: T): Any
 
+
+	companion object {
+		/**
+		 * Gets [NbtDataType] of the corresponding [T] type.
+		 */
+		@Suppress("UNCHECKED_CAST")
+		inline fun <reified T : Any> getFor(): NbtDataType<T>? {
+			return getFor(typeOf<T>()) as NbtDataType<T>?
+		}
+
+		/**
+		 * Gets [NbtDataType] of the corresponding value.
+		 */
+		@Suppress("UNCHECKED_CAST")
+		fun <T : Any> getFor(value: T): NbtDataType<T>? {
+			return when (value) {
+				is NbtData -> NbtCompoundType
+				is String -> NbtStringType
+				is Char -> NbtCharType
+				is Byte -> NbtByteType
+				is Boolean -> NbtBooleanType
+				is Short -> NbtShortType
+				is Int -> NbtIntType
+				is Long -> NbtLongType
+				is Float -> NbtFloatType
+				is Double -> NbtDoubleType
+				is ByteArray -> NbtByteArrayType
+				is IntArray -> NbtIntArrayType
+				is LongArray -> NbtLongArrayType
+				is Collection<*> -> {
+					if ((value as Collection<Any>).isNotEmpty())
+						NbtListType(getFor(value.first()) ?: return null)
+					else
+						NbtListType(NbtByteType)
+				}
+				else -> null
+			} as NbtDataType<T>?
+		}
+
+		/**
+		 * Gets [NbtDataType] of the corresponding [nbtTag].
+		 */
+		@Suppress("UNCHECKED_CAST")
+		fun getForTag(nbtTag: Any): NbtDataType<*>? {
+			return when (getNbtTypeId(nbtTag)) {
+				10 -> NbtCompoundType
+				8 -> NbtStringType
+				1 -> NbtByteType
+				2 -> NbtShortType
+				3 -> NbtIntType
+				4 -> NbtLongType
+				5 -> NbtFloatType
+				6 -> NbtDoubleType
+				7 -> NbtByteArrayType
+				11 -> NbtIntArrayType
+				12 -> NbtLongArrayType
+				9 -> {
+					if ((nbtTag as List<Any>).isNotEmpty())
+						NbtListType(getForTag(nbtTag.first()) ?: return null)
+					else
+						NbtListType(NbtByteType)
+				}
+				else -> null
+			}
+		}
+
+		@PublishedApi
+		internal fun getFor(type: KType): NbtDataType<*>? {
+			return when (type.classifier) {
+				NbtData::class -> NbtCompoundType
+				String::class -> NbtStringType
+				Char::class -> NbtCharType
+				Byte::class -> NbtByteType
+				Boolean::class -> NbtBooleanType
+				Short::class -> NbtShortType
+				Int::class -> NbtIntType
+				Long::class -> NbtLongType
+				Float::class -> NbtFloatType
+				Double::class -> NbtDoubleType
+				ByteArray::class -> NbtByteArrayType
+				IntArray::class -> NbtIntArrayType
+				LongArray::class -> NbtLongArrayType
+				else -> {
+					if (!type.isSubtypeOf(typeOf<Collection<*>>())) return null
+
+					val innerType = type.arguments.firstOrNull()
+						?.takeIf { it.variance != KVariance.IN }
+						?.type
+						?: return null
+
+					NbtListType(getFor(innerType) ?: return null)
+				}
+			}
+		}
+	}
 }
 
 
-abstract class AbstractNbtDataType<T>(override val typeId: Int) : NbtDataType<T> {
+abstract class AbstractNbtDataType<T : Any>(override val typeId: Int) : NbtDataType<T> {
 	final override fun decode(nbt: Any): T? {
-		return if ((nbtBaseGetTypeIdMethod.invoke(nbt) as Byte).toInt() == typeId)
+		return if (getNbtTypeId(nbt) == typeId)
 			decodeCorrectlyTyped(nbt)
 		else
 			null
 	}
 
-	protected abstract fun decodeCorrectlyTyped(nbt: Any): T
+	protected abstract fun decodeCorrectlyTyped(nbt: Any): T?
 
 	override fun toString(): String {
-		return javaClass.name
+		return this::class.simpleName ?: "NbtDataType"
 	}
 }
 
@@ -52,6 +151,16 @@ object NbtStringType : AbstractNbtDataType<String>(8) {
 	}
 }
 
+object NbtCharType : AbstractNbtDataType<Char>(8) {
+	override fun encode(data: Char): Any {
+		return stringTagFactoryMethod.invoke(null, data.toString())
+	}
+
+	override fun decodeCorrectlyTyped(nbt: Any): Char? {
+		return (nbtStringAsStringMethod.invoke(nbt) as String).removeSurrounding("\"").singleOrNull()
+	}
+}
+
 object NbtByteType : AbstractNbtDataType<Byte>(1) {
 	override fun encode(data: Byte): Any {
 		return byteTagFactoryMethod.invoke(null, data)
@@ -59,6 +168,17 @@ object NbtByteType : AbstractNbtDataType<Byte>(1) {
 
 	override fun decodeCorrectlyTyped(nbt: Any): Byte {
 		return nbtNumberAsByteMethod.invoke(nbt) as Byte
+	}
+}
+
+object NbtBooleanType : AbstractNbtDataType<Boolean>(1) {
+	override fun encode(data: Boolean): Any {
+		return NbtByteType.encode(if (data) 1 else 0)
+	}
+
+	override fun decodeCorrectlyTyped(nbt: Any): Boolean? {
+		val byte = NbtByteType.decode(nbt)?.takeIf { it in 0..1 } ?: return null
+		return byte > 0
 	}
 }
 
@@ -143,23 +263,29 @@ object NbtLongArrayType : AbstractNbtDataType<LongArray>(12) {
 	}
 }
 
-fun <T> NbtListType(type: NbtDataType<T>): NbtDataType<List<T>> {
-	return object : AbstractNbtDataType<List<T>>(9) {
-		override fun encode(data: List<T>): Any {
-			return (nbtListConstructor.newInstance() as MutableList<Any>).apply {
-				addAll(data.map { type.encode(it) })
-			}
+@Suppress("UNCHECKED_CAST")
+class NbtListType<T : Any>(val innerType: NbtDataType<T>) : AbstractNbtDataType<Collection<T>>(9) {
+	override fun encode(data: Collection<T>): Any {
+		return (nbtListConstructor.newInstance() as MutableList<Any>).apply {
+			addAll(data.map { innerType.encode(it) })
 		}
+	}
 
-		override fun decodeCorrectlyTyped(nbt: Any): List<T> {
-			val list = nbt as MutableList<Any>
+	override fun decodeCorrectlyTyped(nbt: Any): List<T> {
+		val list = nbt as MutableList<Any>
 
-			return list.map { type.decode(it)!! }
-		}
+		return list.map { innerType.decode(it)!! }
+	}
+
+	override fun toString(): String {
+		return "NbtListType($innerType)"
 	}
 }
 
 
+private fun getNbtTypeId(nbtTag: Any): Int {
+	return (nbtBaseGetTypeIdMethod.invoke(nbtTag) as Byte).toInt()
+}
 
 private val byteTagFactoryMethod = getTagFactoryMethod("NBTTagByte", Byte::class)
 private val shortTagFactoryMethod = getTagFactoryMethod("NBTTagShort", Short::class)
