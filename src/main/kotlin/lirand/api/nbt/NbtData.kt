@@ -8,12 +8,18 @@ inline fun nbtData(crossinline builder: NbtData.() -> Unit) = NbtData().apply(bu
 
 class NbtData internal constructor(nbtTagCompound: Any?) {
 	internal val nbtTagCompound: Any = nbtTagCompound ?: nbtCompoundConstructor.newInstance()
+	@Suppress("UNCHECKED_CAST")
 	private val map: MutableMap<String, Any> = nbtCompoundMapField.get(this.nbtTagCompound) as MutableMap<String, Any>
 
 	constructor() : this(null)
 	constructor(nbtString: String) : this(mojangParseMethod.invoke(null, nbtString))
 
 
+	/**
+	 * Gives access to change [NbtData] values of certain generic types.
+	 */
+	val tag = NbtDataAccessor(this)
+	
 	/**
 	 * Returns a [Set] of all keys in this nbt.
 	 */
@@ -29,10 +35,21 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	 * the specified location, or if the type
 	 * is not the one which was specified.
 	 */
-	operator fun <T> get(key: String, dataType: NbtDataType<T>): T? {
+	operator fun <T : Any> get(key: String, dataType: NbtDataType<T>): T? {
 		val value = map[key] ?: return null
 
 		return dataType.decode(value)
+	}
+
+	/**
+	 * Gets the nbt value (NBTBase subtype)
+	 * at the given [key].
+	 * The returned value is null, if it
+	 * was not possible to find any value at
+	 * the specified location.
+	 */
+	fun getNbtTag(key: String): Any? {
+		return map[key]
 	}
 
 	/**
@@ -44,7 +61,7 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	 * is not the one which was specified,
 	 * the result of calling [defaultValue] was put into specified location.
 	 */
-	inline fun <T> getOrSet(key: String, dataType: NbtDataType<T>, defaultValue: () -> T): T {
+	inline fun <T : Any> getOrSet(key: String, dataType: NbtDataType<T>, defaultValue: () -> T): T {
 		return get(key, dataType) ?: defaultValue().also {
 			set(key, dataType, it)
 		}
@@ -59,7 +76,7 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	 * the specified location, or if the type
 	 * is not the one which was specified.
 	 */
-	inline fun <T> getOrDefault(key: String, dataType: NbtDataType<T>, defaultValue: () -> T): T {
+	inline fun <T : Any> getOrDefault(key: String, dataType: NbtDataType<T>, defaultValue: () -> T): T {
 		return get(key, dataType) ?: defaultValue()
 	}
 
@@ -69,8 +86,25 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	 * The [dataType] of the given [value]
 	 * must be specified.
 	 */
-	operator fun <T> set(key: String, dataType: NbtDataType<T>, value: T) {
+	operator fun <T : Any> set(key: String, dataType: NbtDataType<T>, value: T) {
 		map[key] = dataType.encode(value)
+	}
+
+	/**
+	 * Sets some NBT [value] (NBTBase subtype)
+	 * at the position of the given [key].
+	 */
+	fun setNbtTag(key: String, value: Any) {
+		map[key] = value
+	}
+
+
+	/**
+	 * Puts all values from [nbtData]
+	 * to this [NbtData].
+	 */
+	fun putAll(nbtData: NbtData) {
+		map.putAll(nbtData.map.toMap())
 	}
 
 	/**
@@ -87,7 +121,17 @@ class NbtData internal constructor(nbtTagCompound: Any?) {
 	 */
 	operator fun minusAssign(key: String) = remove(key)
 
+	/**
+	 * Clears this [NbtData].
+	 */
+	fun clear() {
+		map.clear()
+	}
 
+
+	/**
+	 * Gets type id of the value under the provided [key].
+	 */
 	fun getTypeId(key: String): Int? {
 		if (key !in this) return null
 

@@ -24,6 +24,8 @@ repositories {
 dependencies {
 	compileOnly("org.jetbrains.kotlin:kotlin-stdlib:1.6.0")
 	compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+	compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1")
+	compileOnly("org.jetbrains.kotlin:kotlin-reflect:1.6.0")
 
 	compileOnly("org.spigotmc:spigot-api:1.16.1-R0.1-SNAPSHOT")
 	compileOnly("com.mojang:brigadier:1.0.18")
