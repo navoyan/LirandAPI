@@ -10,19 +10,19 @@ import org.bukkit.inventory.ItemStack
 
 fun Inventory.getSerializableNbtData(title: String? = null): NbtData {
 	return nbtData {
-		string["type"] = type.toString().lowercase()
+		tag["type"] = type.toString().lowercase()
 
 		if (type == InventoryType.CHEST)
-			int["size"] = size
+			tag["size"] = size
 
 		if (title != null)
-			string["title"] = title
+			tag["title"] = title
 
-		list(compound)["Items"] = mapIndexedNotNull { index, itemStack ->
+		tag["Items"] = mapIndexedNotNull { index, itemStack ->
 			itemStack?.let {
 				nbtData {
-					byte["Slot"] = index.toByte()
-					compound["ItemStack"] = itemStack.nbtData
+					tag["Slot"] = index.toByte()
+					tag["ItemStack"] = itemStack.nbtData
 				}
 			}
 		}
@@ -32,9 +32,9 @@ fun Inventory.getSerializableNbtData(title: String? = null): NbtData {
 
 fun NbtData.deserializeItemStack(): ItemStack {
 	return ItemStack(
-		Material.matchMaterial(string["id"]) ?: error("Invalid material id"),
-		byte["Count"].toInt(),
-		compound["tag"]
+		Material.matchMaterial(tag["id"]) ?: error("Invalid material id"),
+		tag.getOrDefault<Byte>("Count") { 1 }.toInt(),
+		tag.get<NbtData>("tag"),
 	)
 }
 
@@ -42,24 +42,24 @@ fun NbtData.deserializeInventory(
 	owner: InventoryHolder? = null,
 	title: String? = null
 ): Inventory {
-	val type = InventoryType.valueOf(string["type"].uppercase())
+	val type = InventoryType.valueOf(tag.get<String>("type").uppercase())
 
-	val size = if (type == InventoryType.CHEST) int["size"] else -1
+	val size = if (type == InventoryType.CHEST) tag.get<Int>("size") else -1
 
-	val resultTitle = title ?: string.getOrNull("title")
+	val resultTitle = title ?: tag.getOrNull("title")
 
 	val resultInventory = if (type == InventoryType.CHEST)
 		Inventory(size, owner, resultTitle)
 	else
 		Inventory(type, owner, resultTitle)
 
-	val itemStacksNbt = list(compound)["Items"]
+	val itemStacksNbt: List<NbtData> = tag["Items"]
 
 	return resultInventory.apply {
 		for (itemStackNbt in itemStacksNbt) {
 			setItem(
-				itemStackNbt.byte["Slot"].toInt(),
-				itemStackNbt.compound["ItemStack"].deserializeItemStack()
+				itemStackNbt["Slot", NbtByteType]?.toInt() ?: continue,
+				itemStackNbt["ItemStack", NbtCompoundType]?.deserializeItemStack()
 			)
 		}
 	}
