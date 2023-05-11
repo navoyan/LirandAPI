@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	kotlin("jvm") version "1.6.0"
+	kotlin("jvm") version "1.8.21"
 	java
 	idea
 
@@ -22,22 +22,25 @@ repositories {
 }
 
 dependencies {
-	compileOnly("org.jetbrains.kotlin:kotlin-stdlib:1.6.0")
-	compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-	compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1")
-	compileOnly("org.jetbrains.kotlin:kotlin-reflect:1.6.0")
+	compileOnly("org.jetbrains.kotlin:kotlin-stdlib:1.8.21")
+	compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-RC")
+	compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0")
+	compileOnly("org.jetbrains.kotlin:kotlin-reflect:1.8.21")
 
 	compileOnly("org.spigotmc:spigot-api:1.16.1-R0.1-SNAPSHOT")
 	compileOnly("com.mojang:brigadier:1.0.18")
 
-	api("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.6.0")
-	api("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.6.0")
+	api("com.github.shynixn.mccoroutine:mccoroutine-bukkit-api:2.11.0")
+	api("com.github.shynixn.mccoroutine:mccoroutine-bukkit-core:2.11.0")
 
-	api("net.wesjd:anvilgui:1.5.3-SNAPSHOT")
+	api("net.wesjd:anvilgui:1.6.4-SNAPSHOT")
 }
 
 java {
 	withSourcesJar()
+
+	val javaVersion = JavaVersion.toVersion(8)
+	sourceCompatibility = javaVersion
 }
 
 tasks.withType<KotlinCompile>().configureEach {
