@@ -46,20 +46,20 @@ fun NbtData.deserializeInventory(
 
 	val size = if (type == InventoryType.CHEST) tag.get<Int>("size") else -1
 
-	val resultTitle = title ?: tag.getOrNull("title")
+	val resultTitle = title ?: tag.getOrNull<String>("title")
 
 	val resultInventory = if (type == InventoryType.CHEST)
 		Inventory(size, owner, resultTitle)
 	else
 		Inventory(type, owner, resultTitle)
 
-	val itemStacksNbt: List<NbtData> = tag["Items"]
+	val itemStacksNbt = tag.get<List<NbtData>>("Items")
 
 	return resultInventory.apply {
 		for (itemStackNbt in itemStacksNbt) {
 			setItem(
-				itemStackNbt["Slot", NbtByteType]?.toInt() ?: continue,
-				itemStackNbt["ItemStack", NbtCompoundType]?.deserializeItemStack()
+				itemStackNbt.tag.getOrNull<Byte>("Slot")?.toInt() ?: continue,
+				itemStackNbt.tag.getOrNull<NbtData>("ItemStack")?.deserializeItemStack()
 			)
 		}
 	}
