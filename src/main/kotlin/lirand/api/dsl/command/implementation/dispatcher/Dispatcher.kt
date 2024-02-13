@@ -31,103 +31,107 @@ import org.bukkit.plugin.Plugin
  * dispatcher are synchronized automatically.
  */
 open class Dispatcher protected constructor(private val root: BrigadierRoot) :
-	CommandDispatcher<CommandSender>(root), Listener {
+    CommandDispatcher<CommandSender>(root), Listener {
 
-	internal val walker: TreeWalker<CommandSender, Any> = TreeWalker(
-		SpigotMapper(this)
-	)
+    internal val walker: TreeWalker<CommandSender, Any> = TreeWalker(
+        SpigotMapper(this)
+    )
 
-	open fun register(nodes: List<CommandNode<CommandSender>>) {
-		for (node in nodes) {
-			getRoot().addChild(node)
-		}
-	}
+    open fun register(nodes: List<CommandNode<CommandSender>>) {
+        for (node in nodes) {
+            getRoot().addChild(node)
+        }
+    }
 
-	/**
-	 * Registers the command by the given node.
-	 *
-	 * @param node that must be registered
-	 */
-	open fun register(node: LiteralCommandNode<CommandSender>) {
-		root.addChild(node)
-	}
+    /**
+     * Registers the command by the given node.
+     *
+     * @param node that must be registered
+     */
+    open fun register(node: LiteralCommandNode<CommandSender>) {
+        root.addChild(node)
+    }
 
-	/**
-	 * Registers the command built using the given [builder].
-	 *
-	 * @param builder the builder used to build the command to be registered
-	 * @return the built node that was registered
-	 */
-	open fun register(builder: LiteralDSLBuilder): BrigadierLiteral<CommandSender> {
-		val literal = builder.build()
-		register(literal)
-		return literal
-	}
+    /**
+     * Registers the command built using the given [builder].
+     *
+     * @param builder the builder used to build the command to be registered
+     * @return the built node that was registered
+     */
+    open fun register(builder: LiteralDSLBuilder): BrigadierLiteral<CommandSender> {
+        val literal = builder.build()
+        register(literal)
+        return literal
+    }
 
-	/**
-	 * Synchronizes this dispatcher with the server and clients.
-	 */
-	open fun update() {
-		walker.prune(commandDispatcher.root, root.children)
-		for (player in server.onlinePlayers) {
-			player.updateCommands()
-		}
-	}
+    /**
+     * Synchronizes this dispatcher with the server and clients.
+     */
+    open fun update() {
+        walker.prune(commandDispatcher.root, root.children)
+        for (player in server.onlinePlayers) {
+            player.updateCommands()
+        }
+    }
 
-	override fun getRoot(): BrigadierRoot {
-		return root
-	}
+    override fun getRoot(): BrigadierRoot {
+        return root
+    }
 
-	@EventHandler
-	private fun onServerReload(event: ServerLoadEvent) {
-		commandDispatcher = commandsGetDispatcherMethod.invoke(
-			serverGetCommandDispatcherMethod.invoke(dedicatedServer)
-		) as CommandDispatcher<Any>
+    @EventHandler
+    private fun onServerReload(event: ServerLoadEvent) {
+        commandDispatcher = commandsGetDispatcherMethod.invoke(
+            serverGetCommandDispatcherMethod.invoke(dedicatedServer)
+        ) as CommandDispatcher<Any>
 
-		if (event.type == ServerLoadEvent.LoadType.STARTUP) {
-			walker.prune(commandDispatcher.root, root.children)
-		}
-		else {
-			update()
-		}
-	}
+        if (event.type == ServerLoadEvent.LoadType.STARTUP) {
+            walker.prune(commandDispatcher.root, root.children)
+        } else {
+            update()
+        }
+    }
 
-	companion object {
+    companion object {
 
-		private lateinit var commandDispatcher: CommandDispatcher<Any>
+        private lateinit var commandDispatcher: CommandDispatcher<Any>
 
-		private val dedicatedServer = server::class.java.getMethod("getServer").invoke(server)
-		private val serverGetCommandMapMethod = server::class.java.getMethod("getCommandMap")
-		private val serverGetCommandDispatcherMethod = dedicatedServer::class.java.methods
-			.find { it.returnType.simpleName == "CommandDispatcher" && it.parameterCount == 0 }!!
-		private val commandsGetDispatcherMethod = serverGetCommandDispatcherMethod.returnType.methods
-			.find { it.returnType == CommandDispatcher::class.java && it.parameterCount == 0 }!!
+        private val dedicatedServer = server::class.java.getMethod("getServer").invoke(server)
+        private val serverGetCommandMapMethod = server::class.java.getMethod("getCommandMap")
+        private val serverGetCommandDispatcherMethod = dedicatedServer::class.java.methods
+            .find { it.returnType.simpleName == "CommandDispatcher" && it.parameterCount == 0 }
+            ?: dedicatedServer::class.java.methods
+                .find { it.returnType.simpleName == "Commands" && it.parameterCount == 0 }
+            ?: throw IllegalStateException("Could not find the method getCommandDispatcher in the server class")
+
+        private val commandsGetDispatcherMethod = serverGetCommandDispatcherMethod.returnType.methods
+            .find { it.returnType == CommandDispatcher::class.java && it.parameterCount == 0 }!!
 
 
-		private val _instances = mutableMapOf<Plugin, Dispatcher>()
-		val instances: Map<Plugin, Dispatcher> get() = _instances
+        private val _instances = mutableMapOf<Plugin, Dispatcher>()
+        val instances: Map<Plugin, Dispatcher> get() = _instances
 
-		fun of(plugin: Plugin): Dispatcher {
-			if (plugin in instances) return instances[plugin]!!
+        fun of(plugin: Plugin): Dispatcher {
+            if (plugin in instances) return instances[plugin]!!
 
-			if (!Companion::commandDispatcher.isInitialized) {
-				val commands = serverGetCommandDispatcherMethod.invoke(dedicatedServer)
-				commandDispatcher = commandsGetDispatcherMethod.invoke(commands) as CommandDispatcher<Any>
-			}
+            if (!Companion::commandDispatcher.isInitialized) {
+                val commands = serverGetCommandDispatcherMethod.invoke(dedicatedServer)
+                commandDispatcher = commandsGetDispatcherMethod.invoke(commands) as CommandDispatcher<Any>
+            }
 
-			val prefix = plugin.name.lowercase()
-			val map = SpigotMap(prefix, plugin,
-				serverGetCommandMapMethod.invoke(server) as SimpleCommandMap
-			)
-			val root = BrigadierRoot(prefix, map)
-			val dispatcher = Dispatcher(root)
-			map.dispatcher = dispatcher
+            val prefix = plugin.name.lowercase()
+            val map = SpigotMap(
+                prefix, plugin,
+                serverGetCommandMapMethod.invoke(server) as SimpleCommandMap
+            )
+            val root = BrigadierRoot(prefix, map)
+            val dispatcher = Dispatcher(root)
+            map.dispatcher = dispatcher
 
-			_instances[plugin] = dispatcher
+            _instances[plugin] = dispatcher
 
-			plugin.registerEvents(dispatcher)
+            plugin.registerEvents(dispatcher)
 
-			return dispatcher
-		}
-	}
+            return dispatcher
+        }
+    }
 }
